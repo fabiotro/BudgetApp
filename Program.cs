@@ -1,7 +1,14 @@
+using BudgetApp.Data;
+using BudgetApp.Data.Repositories;
+using BudgetApp.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<DapperContext>();
+builder.Services.AddScoped<ICampRepository<CampModel>, CampRepository<CampModel>>();
 
 var app = builder.Build();
 

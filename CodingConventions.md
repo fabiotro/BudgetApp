@@ -75,3 +75,18 @@ View models are used to transfer data between the controller and the view.
 ## V - View
 
 ## C - Controller
+
+# Data Access
+The database is accessed using the micro-ORM `Dapper`. (https://www.learndapper.com/)
+
+All data access is done asynchronously.
+For each table, a repository class is created to handle all database operations related to that table.
+These repositories are then injected into the services that require database access.
+Each repository has at least the CRUD operations implemented.
+
+- Create => `Create(Model model)`
+- Read => `GetAll()`, `GetById(int id)`
+- Update => `Update(Model model)`
+- Delete => `Delete(int id)`
+
+The error handling is done in the controllers and not in the repositories.
