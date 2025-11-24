@@ -3,14 +3,10 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class CampRepository<T> : ICampRepository<T> where T : CampModel
+    public class CampRepository<T> : BaseRepository, ICampRepository<T> where T : CampModel
     {
-        private readonly DapperContext _context;
 
-        public CampRepository(DapperContext context)
-        {
-            _context = context;
-        }
+        public CampRepository(DapperContext context) : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
@@ -34,6 +30,7 @@ namespace BudgetApp.Data.Repositories
 
         public async Task<T?> GetById(int id)
         {
+            ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
             @"
@@ -107,8 +104,7 @@ namespace BudgetApp.Data.Repositories
 
         public async Task<int> Delete(int id)
         {
-            if (id <= 0)
-                throw new ArgumentOutOfRangeException(nameof(id), "Die ID muss grösser als Null sein.");
+            ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql = "DELETE FROM [dbo].[Camp] WHERE Id = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id });

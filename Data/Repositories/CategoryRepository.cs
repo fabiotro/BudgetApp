@@ -3,14 +3,10 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class CategoryRepository<T> : ICategoryRepository<T> where T : CategoryModel
+    public class CategoryRepository<T> : BaseRepository, ICategoryRepository<T> where T : CategoryModel
     {
-        private readonly DapperContext _context;
 
-        public CategoryRepository(DapperContext context)
-        {
-            _context = context;
-        }
+        public CategoryRepository(DapperContext context) : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
@@ -28,6 +24,7 @@ namespace BudgetApp.Data.Repositories
 
         public async Task<T?> GetById(int id)
         {
+            ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
             @"
@@ -75,8 +72,7 @@ namespace BudgetApp.Data.Repositories
 
         public async Task<int> Delete(int id)
         {
-            if (id <= 0)
-                throw new ArgumentOutOfRangeException(nameof(id), "Die ID muss grösser als Null sein.");
+            ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql = "DELETE FROM [dbo].[Category] WHERE Id = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id });
