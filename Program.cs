@@ -9,6 +9,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<DapperContext>();
 builder.Services.AddScoped<ICampRepository<CampModel>, CampRepository<CampModel>>();
+builder.Services.AddScoped<IBudgetRepository<BudgetModel>, BudgetRepository<BudgetModel>>();
 
 var app = builder.Build();
 
