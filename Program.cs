@@ -14,6 +14,7 @@ builder.Services.AddScoped<ICategoryRepository<CategoryModel>, CategoryRepositor
 builder.Services.AddScoped<IPositionTypeRepository<PositionTypeModel>, PositionTypeRepository<PositionTypeModel>>();
 builder.Services.AddScoped<ISubCategoryRepository<SubCategoryModel>, SubCategoryRepository<SubCategoryModel>>();
 builder.Services.AddScoped<ITemplateBudgetRepository<TemplateBudgetModel>, TemplateBudgetRepository<TemplateBudgetModel>>();
+builder.Services.AddScoped<ITemplatePositionRepository<TemplatePositionModel>, TemplatePositionRepository<TemplatePositionModel>>();
 
 var app = builder.Build();
 
