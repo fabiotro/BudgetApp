@@ -107,8 +107,10 @@ namespace BudgetApp.Data.Repositories
 
         public async Task<int> Delete(int id)
         {
+            if (id <= 0)
+                throw new ArgumentOutOfRangeException(nameof(id), "Die ID muss grösser als Null sein.");
             using var conn = _context.CreateConnection();
-            var sql = "DELETE FROM [Camp] WHERE Id = @Id";
+            var sql = "DELETE FROM [dbo].[Camp] WHERE Id = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id });
         }
     }
