@@ -13,6 +13,7 @@ builder.Services.AddScoped<ICampRepository<CampModel>, CampRepository<CampModel>
 builder.Services.AddScoped<ICategoryRepository<CategoryModel>, CategoryRepository<CategoryModel>>();
 builder.Services.AddScoped<IPositionTypeRepository<PositionTypeModel>, PositionTypeRepository<PositionTypeModel>>();
 builder.Services.AddScoped<ISubCategoryRepository<SubCategoryModel>, SubCategoryRepository<SubCategoryModel>>();
+builder.Services.AddScoped<ITemplateBudgetRepository<TemplateBudgetModel>, TemplateBudgetRepository<TemplateBudgetModel>>();
 
 var app = builder.Build();
 
