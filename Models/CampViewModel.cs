@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BudgetApp.Resources;
+using System.ComponentModel.DataAnnotations;
 
 namespace BudgetApp.Models
 {
@@ -6,45 +7,45 @@ namespace BudgetApp.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
         [DataType(DataType.Date)]
-        [Display(Name = "Lagerbeginn")]
+        [Display(Name = "CampStartDate", ResourceType = typeof(DataAnnotations))]
         public DateTime StartDate { get; set; }
 
-        [Required]
+        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
         [DataType(DataType.Date)]
-        [Display(Name = "Lagerende")]
+        [Display(Name = "CampEndDate", ResourceType = typeof(DataAnnotations))]
         public DateTime EndDate { get; set; }
 
-        [StringLength(255)]
-        [Display(Name = "Hauptleitung")]
+        [StringLength(255, ErrorMessageResourceName = "StringLength", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Display(Name = "CampMainLeader", ResourceType = typeof(DataAnnotations))]
         public string? MainLeader { get; set; }
 
-        [Required]
-        [Range(0, int.MaxValue)]
-        [Display(Name = "Anzahl Teilnehmende (TN)")]
+        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Range(0, int.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Display(Name = "CampParticipantsCount", ResourceType = typeof(DataAnnotations))]
         public int? ParticipantsCount_fc { get; set; }
 
-        [Required]
-        [Range(0, int.MaxValue)]
-        [Display(Name = "J+S-angemeldete Personen")]
+        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Range(0, int.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Display(Name = "CampJsPersonsCount", ResourceType = typeof(DataAnnotations))]
         public int? js_PersonsCount_fc { get; set; }
 
-        [Required]
-        [Range(0, int.MaxValue)]
-        [Display(Name = "Leitung, Küche, Hilfspersonen")]
+        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Range(0, int.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Display(Name = "CampLeadersTeamCount", ResourceType = typeof(DataAnnotations))]
         public int? LeadersTeamCount_fc { get; set; }
 
-        [Range(0, int.MaxValue)]
-        [Display(Name = "Anzahl Teilnehmende (TN)")]
+        [Range(0, int.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Display(Name = "CampParticipantsCount", ResourceType = typeof(DataAnnotations))]
         public int? ParticipantsCount_rl { get; set; }
 
-        [Range(0, int.MaxValue)]
-        [Display(Name = "J+S-angemeldete Personen")]
+        [Range(0, int.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Display(Name = "CampJsPersonsCount", ResourceType = typeof(DataAnnotations))]
         public int? js_PersonsCount_rl { get; set; }
 
-        [Range(0, int.MaxValue)]
-        [Display(Name = "Leitung, Küche, Hilfspersonen")]
+        [Range(0, int.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Display(Name = "CampLeadersTeamCount", ResourceType = typeof(DataAnnotations))]
         public int? LeadersTeamCount_rl { get; set; }
     }
 }

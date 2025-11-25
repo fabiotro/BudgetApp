@@ -1,6 +1,7 @@
 using BudgetApp.Data;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Models;
+using BudgetApp.Resources;
 using NLog;
 using NLog.Web;
 
@@ -13,7 +14,12 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Add services to the container.
-    builder.Services.AddControllersWithViews();
+    builder.Services.AddControllersWithViews()
+        .AddDataAnnotationsLocalization(options => {
+            options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(DataAnnotations));
+        });
+
+    builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
     // Dependency Injection for Repositories
     builder.Services.AddScoped<DapperContext>();
@@ -31,6 +37,14 @@ try
     builder.Host.UseNLog();
 
     var app = builder.Build();
+
+    var supportedCultures = new[] { "de-CH" };
+    var localizationOptions = new RequestLocalizationOptions()
+        .SetDefaultCulture("de-CH") // Standard auf Deutsch setzen
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+
+    app.UseRequestLocalization(localizationOptions);
 
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
