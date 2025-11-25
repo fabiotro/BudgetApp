@@ -8,10 +8,12 @@ namespace BudgetApp.Controllers
 {
     public class BudgetController : Controller
     {
+        private readonly ILogger<BudgetController> _logger;
         private readonly ICampRepository<CampModel> _campRepo;
 
-        public BudgetController(ICampRepository<CampModel> campRepo)
+        public BudgetController(ILogger<BudgetController> logger, ICampRepository<CampModel> campRepo)
         {
+            _logger = logger;
             _campRepo = campRepo;
         }
 
@@ -70,7 +72,7 @@ namespace BudgetApp.Controllers
             }
             catch (Exception ex)
             {
-                // TODO: Log exception with NLog
+                _logger.LogError(ex, "Error in UpsertCamp");
                 toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
