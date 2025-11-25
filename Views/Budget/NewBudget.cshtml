@@ -1,5 +1,4 @@
-﻿@using BudgetApp.Models
-@model NewBudgetViewModel
+﻿@model NewBudgetViewModel
 @{
     ViewBag.Title = "Lagebudget erstellen";
     NewBudgetViewModel m = Model;
@@ -18,7 +17,7 @@
             <!-- StartDate -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.StartDate, new { @class = "form-label" })
-                @Html.TextBoxFor(m => m.Camp.StartDate, new { @class = "form-control", type = "date" })
+                @Html.TextBoxFor(m => m.Camp.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
                 @Html.ValidationMessageFor(m => m.Camp.StartDate, "", new { @class = "text-danger" })
             </div>
         </div>
@@ -26,7 +25,7 @@
             <!-- EndDate -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.EndDate, new { @class = "form-label" })
-                @Html.TextBoxFor(m => m.Camp.EndDate, new { @class = "form-control", type = "date" })
+                @Html.TextBoxFor(m => m.Camp.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
                 @Html.ValidationMessageFor(m => m.Camp.EndDate, "", new { @class = "text-danger" })
             </div>
         </div>
@@ -87,3 +86,7 @@
 }
 <hr />
 <h3>Budget</h3>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

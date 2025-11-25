@@ -23,17 +23,17 @@ namespace BudgetApp.Models
         [Required]
         [Range(0, int.MaxValue)]
         [Display(Name = "Anzahl Teilnehmende (TN)")]
-        public int ParticipantsCount_fc { get; set; }
+        public int? ParticipantsCount_fc { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
         [Display(Name = "J+S-angemeldete Personen")]
-        public int js_PersonsCount_fc { get; set; }
+        public int? js_PersonsCount_fc { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
         [Display(Name = "Leitung, Küche, Hilfspersonen")]
-        public int LeadersTeamCount_fc { get; set; }
+        public int? LeadersTeamCount_fc { get; set; }
 
         [Range(0, int.MaxValue)]
         [Display(Name = "Anzahl Teilnehmende (TN)")]
