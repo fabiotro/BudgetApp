@@ -40,7 +40,7 @@ try
 
     var supportedCultures = new[] { "de-CH" };
     var localizationOptions = new RequestLocalizationOptions()
-        .SetDefaultCulture("de-CH") // Standard auf Deutsch setzen
+        .SetDefaultCulture("de-CH")
         .AddSupportedCultures(supportedCultures)
         .AddSupportedUICultures(supportedCultures);
 

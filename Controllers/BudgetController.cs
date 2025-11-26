@@ -20,7 +20,15 @@ namespace BudgetApp.Controllers
         [HttpGet]
         public async Task<IActionResult> NewBudget(int? campId)
         {
-            var newBudget = new NewBudgetViewModel();
+            var newBudget = new NewBudgetViewModel 
+            { 
+                Camp = new CampViewModel 
+                {
+                    StartDate = DateTime.Today,
+                    // Default camp duration of 7 days
+                    EndDate = DateTime.Today.AddDays(7)
+                } 
+            };
 
             if (campId.HasValue)
             {
