@@ -1,0 +1,92 @@
+﻿@model NewBudgetViewModel
+@{
+    ViewBag.Title = "Lagebudget erstellen";
+    NewBudgetViewModel m = Model;
+}
+
+<h2>Neues Lagerbudget erstellen</h2>
+<hr />
+<h3>Lagerdaten</h3>
+@using (Html.BeginForm("UpsertCamp", "Budget", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <!-- Id -->
+    @Html.HiddenFor(m => m.Camp.Id)
+    <div class="row">
+        <div class="col">
+            <!-- StartDate -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.StartDate, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                @Html.ValidationMessageFor(m => m.Camp.StartDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col">
+            <!-- EndDate -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.EndDate, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                @Html.ValidationMessageFor(m => m.Camp.EndDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+    <!-- MainLeader -->
+    <div class="mb-3">
+        @Html.LabelFor(m => m.Camp.MainLeader, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Camp.MainLeader, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Camp.MainLeader, "", new { @class = "text-danger" })
+    </div>
+    <div class="row">
+        <div class="col">
+            <h5>Provisorisch</h5>
+            <hr />
+            <!-- ParticipantsCount_fc -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.ParticipantsCount_fc, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.ParticipantsCount_fc, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(m => m.Camp.ParticipantsCount_fc, "", new { @class = "text-danger" })
+            </div>
+            <!-- js_PersonsCount_fc -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.js_PersonsCount_fc, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.js_PersonsCount_fc, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(m => m.Camp.js_PersonsCount_fc, "", new { @class = "text-danger" })
+            </div>
+            <!-- LeadersTeamCount_fc -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.LeadersTeamCount_fc, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.LeadersTeamCount_fc, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(m => m.Camp.LeadersTeamCount_fc, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col">
+            <h5>Definitiv</h5>
+            <hr />
+            <!-- ParticipantsCount_rl -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.ParticipantsCount_rl, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.ParticipantsCount_rl, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(m => m.Camp.ParticipantsCount_rl, "", new { @class = "text-danger" })
+            </div>
+            <!-- js_PersonsCount_rl -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.js_PersonsCount_rl, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.js_PersonsCount_rl, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(m => m.Camp.js_PersonsCount_rl, "", new { @class = "text-danger" })
+            </div>
+            <!-- LeadersTeamCount_rl -->
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Camp.LeadersTeamCount_rl, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Camp.LeadersTeamCount_rl, new { @class = "form-control", type = "number" })
+                @Html.ValidationMessageFor(m => m.Camp.LeadersTeamCount_rl, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Lagerdaten speichern</button>
+}
+<hr />
+<h3>Budget</h3>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
