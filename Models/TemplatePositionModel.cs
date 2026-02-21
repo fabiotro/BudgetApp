@@ -27,13 +27,13 @@ namespace BudgetApp.Models
         public required string Name { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal FixedAmount { get; set; }
+        public decimal? FixedAmount { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal Quantity { get; set; }
+        public decimal? Quantity { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal UnitAmount { get; set; }
+        public decimal? UnitAmount { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

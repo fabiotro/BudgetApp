@@ -56,6 +56,30 @@ namespace BudgetApp.Data.Repositories
             return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Id = id });
         }
 
+        public async Task<IEnumerable<T>> GetByBudgetId(int budgetId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+            @"
+            SELECT [Id]
+                  ,[BudgetId]
+                  ,[PositionTypeId]
+                  ,[CategoryId]
+                  ,[SubCategoryId]
+                  ,[Name]
+                  ,[FixedAmount_fc]
+                  ,[Quantity_fc]
+                  ,[UnitAmount_fc]
+                  ,[FixedAmount_rl]
+                  ,[Quantity_rl]
+                  ,[UnitAmount_rl]
+                  ,[SortIndex]
+              FROM [dbo].[Position]
+              WHERE [BudgetId] = @BudgetId
+            ";
+            return await conn.QueryAsync<T>(sql, new { BudgetId = budgetId });
+        }
+
         public async Task<int> Create(T position)
         {
             using var conn = _context.CreateConnection();

@@ -1,0 +1,129 @@
+@model BudgetDetailViewModel
+@{
+    ViewData["Title"] = Model.Budget.Name;
+}
+
+<div class="d-flex justify-content-between align-items-start mb-2">
+    <div>
+        <h2>@Model.Budget.Name</h2>
+        @if (!string.IsNullOrEmpty(Model.Budget.Description))
+        {
+            <p class="text-muted mb-1">@Model.Budget.Description</p>
+        }
+        <small class="text-muted">
+            Lager: @Model.Camp.StartDate.ToString("dd.MM.yyyy") – @Model.Camp.EndDate.ToString("dd.MM.yyyy")
+            @if (!string.IsNullOrEmpty(Model.Camp.MainLeader))
+            {
+                <span> | Lagerleiter: @Model.Camp.MainLeader</span>
+            }
+        </small>
+    </div>
+    <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">Lagerdaten bearbeiten</a>
+</div>
+<hr />
+
+@if (!Model.Groups.Any())
+{
+    <p class="text-muted">Keine Positionen vorhanden.</p>
+}
+else
+{
+    <form asp-action="SaveRealAmounts" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="budgetId" value="@Model.Budget.Id" />
+
+        @{ int pi = 0; }
+
+        @foreach (var catGroup in Model.Groups)
+        {
+            <h4 class="mt-4">@catGroup.Category.Name</h4>
+
+            @foreach (var subGroup in catGroup.SubGroups)
+            {
+                <h6 class="text-muted">@subGroup.SubCategory.Name</h6>
+                <table class="table table-sm table-bordered mb-2">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Position</th>
+                            <th class="text-end">Fixbetrag (prov.)</th>
+                            <th class="text-end">Anzahl (prov.)</th>
+                            <th class="text-end">Einheitspreis (prov.)</th>
+                            <th class="text-end">Total (prov.)</th>
+                            <th class="text-end">Fixbetrag (def.)</th>
+                            <th class="text-end">Anzahl (def.)</th>
+                            <th class="text-end">Einheitspreis (def.)</th>
+                            <th class="text-end">Total (def.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pos in subGroup.Positions)
+                        {
+                            <input type="hidden" name="positions[@pi].Id" value="@pos.Id" />
+                            <tr>
+                                <td>@pos.Name</td>
+                                <td class="text-end">@pos.FixedAmount_fc.ToString("N2")</td>
+                                <td class="text-end">@pos.Quantity_fc.ToString("N2")</td>
+                                <td class="text-end">@pos.UnitAmount_fc.ToString("N2")</td>
+                                <td class="text-end fw-semibold">@pos.TotalAmount_fc.ToString("N2")</td>
+                                <td>
+                                    <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
+                                           name="positions[@pi].FixedAmount_rl"
+                                           value="@pos.FixedAmount_rl" />
+                                </td>
+                                <td>
+                                    <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
+                                           name="positions[@pi].Quantity_rl"
+                                           value="@pos.Quantity_rl" />
+                                </td>
+                                <td>
+                                    <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
+                                           name="positions[@pi].UnitAmount_rl"
+                                           value="@pos.UnitAmount_rl" />
+                                </td>
+                                <td class="text-end fw-semibold">@pos.TotalAmount_rl.ToString("N2")</td>
+                            </tr>
+                            pi++;
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="fw-bold">Total @subGroup.SubCategory.Name</td>
+                            <td class="text-end fw-bold">@subGroup.TotalAmount_fc.ToString("N2")</td>
+                            <td colspan="3"></td>
+                            <td class="text-end fw-bold">@subGroup.TotalAmount_rl.ToString("N2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            }
+
+            <div class="text-end mb-3">
+                <strong>Total @catGroup.Category.Name:</strong>
+                @catGroup.TotalAmount_fc.ToString("N2") (prov.) /
+                @catGroup.TotalAmount_rl.ToString("N2") (def.)
+            </div>
+        }
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title">Gesamttotal</h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <span class="text-muted">Provisorisch:</span>
+                        <strong>CHF @Model.TotalAmount_fc.ToString("N2")</strong>
+                    </div>
+                    <div class="col">
+                        <span class="text-muted">Definitiv:</span>
+                        <strong>CHF @Model.TotalAmount_rl.ToString("N2")</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Definitiv-Beträge speichern</button>
+        <a asp-action="Index" class="btn btn-outline-secondary mt-3 ms-2">Zur Übersicht</a>
+    </form>
+}

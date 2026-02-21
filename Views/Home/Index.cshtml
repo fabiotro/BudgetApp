@@ -1,8 +1,11 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "BudgetApp";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center py-5">
+    <h1 class="display-4">BudgetApp</h1>
+    <p class="lead text-muted">Lagerbudgets erstellen und verwalten.</p>
+    <hr class="my-4" />
+    <a asp-controller="Budget" asp-action="NewBudget" class="btn btn-primary btn-lg me-2">Neues Lagerbudget</a>
+    <a asp-controller="Budget" asp-action="Index" class="btn btn-outline-secondary btn-lg">Alle Budgets anzeigen</a>
 </div>

@@ -39,13 +39,13 @@ namespace BudgetApp.Models
         public decimal UnitAmount_fc { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal FixedAmount_rl { get; set; }
+        public decimal? FixedAmount_rl { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal Quantity_rl { get; set; }
+        public decimal? Quantity_rl { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal UnitAmount_rl { get; set; }
+        public decimal? UnitAmount_rl { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

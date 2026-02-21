@@ -38,6 +38,21 @@ namespace BudgetApp.Data.Repositories
             return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Id = id });
         }
 
+        public async Task<IEnumerable<T>> GetByCampId(int campId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+            @"
+            SELECT [Id]
+                  ,[Name]
+                  ,[Description]
+                  ,[CampId]
+              FROM [dbo].[Budget]
+              WHERE [CampId] = @CampId
+            ";
+            return await conn.QueryAsync<T>(sql, new { CampId = campId });
+        }
+
         public async Task<int> Create(T budget)
         {
             using var conn = _context.CreateConnection();

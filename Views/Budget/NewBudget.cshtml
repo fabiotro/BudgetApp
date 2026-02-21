@@ -1,20 +1,18 @@
-﻿@model NewBudgetViewModel
+@model NewBudgetViewModel
 @{
     ViewBag.Title = "Lagebudget erstellen";
-    NewBudgetViewModel m = Model;
 }
 
 <h2>Neues Lagerbudget erstellen</h2>
 <hr />
+
 <h3>Lagerdaten</h3>
 @using (Html.BeginForm("UpsertCamp", "Budget", FormMethod.Post))
 {
     @Html.AntiForgeryToken()
-    <!-- Id -->
     @Html.HiddenFor(m => m.Camp.Id)
     <div class="row">
         <div class="col">
-            <!-- StartDate -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.StartDate, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
@@ -22,7 +20,6 @@
             </div>
         </div>
         <div class="col">
-            <!-- EndDate -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.EndDate, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
@@ -30,7 +27,6 @@
             </div>
         </div>
     </div>
-    <!-- MainLeader -->
     <div class="mb-3">
         @Html.LabelFor(m => m.Camp.MainLeader, new { @class = "form-label" })
         @Html.TextBoxFor(m => m.Camp.MainLeader, new { @class = "form-control" })
@@ -40,19 +36,16 @@
         <div class="col">
             <h5>Provisorisch</h5>
             <hr />
-            <!-- ParticipantsCount_fc -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.ParticipantsCount_fc, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.ParticipantsCount_fc, new { @class = "form-control", type = "number" })
                 @Html.ValidationMessageFor(m => m.Camp.ParticipantsCount_fc, "", new { @class = "text-danger" })
             </div>
-            <!-- js_PersonsCount_fc -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.js_PersonsCount_fc, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.js_PersonsCount_fc, new { @class = "form-control", type = "number" })
                 @Html.ValidationMessageFor(m => m.Camp.js_PersonsCount_fc, "", new { @class = "text-danger" })
             </div>
-            <!-- LeadersTeamCount_fc -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.LeadersTeamCount_fc, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.LeadersTeamCount_fc, new { @class = "form-control", type = "number" })
@@ -62,19 +55,16 @@
         <div class="col">
             <h5>Definitiv</h5>
             <hr />
-            <!-- ParticipantsCount_rl -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.ParticipantsCount_rl, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.ParticipantsCount_rl, new { @class = "form-control", type = "number" })
                 @Html.ValidationMessageFor(m => m.Camp.ParticipantsCount_rl, "", new { @class = "text-danger" })
             </div>
-            <!-- js_PersonsCount_rl -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.js_PersonsCount_rl, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.js_PersonsCount_rl, new { @class = "form-control", type = "number" })
                 @Html.ValidationMessageFor(m => m.Camp.js_PersonsCount_rl, "", new { @class = "text-danger" })
             </div>
-            <!-- LeadersTeamCount_rl -->
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.LeadersTeamCount_rl, new { @class = "form-label" })
                 @Html.TextBoxFor(m => m.Camp.LeadersTeamCount_rl, new { @class = "form-control", type = "number" })
@@ -84,8 +74,67 @@
     </div>
     <button type="submit" class="btn btn-primary">Lagerdaten speichern</button>
 }
+
 <hr />
 <h3>Budget</h3>
+
+@if (Model.Camp.Id == 0)
+{
+    <p class="text-muted">Zuerst die Lagerdaten speichern.</p>
+}
+else
+{
+    @if (Model.ExistingBudgets.Any())
+    {
+        <table class="table table-sm mb-3">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Beschreibung</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var budget in Model.ExistingBudgets)
+                {
+                    <tr>
+                        <td>@budget.Name</td>
+                        <td>@budget.Description</td>
+                        <td>
+                            <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary">Anzeigen</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h5>Neues Budget erstellen</h5>
+    <form asp-action="CreateBudget" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="CampId" value="@Model.Camp.Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Vorlage</label>
+            <select name="SelectedTemplateBudgetId" class="form-select">
+                <option value="0">-- Vorlage auswählen --</option>
+                @foreach (var template in Model.AvailableTemplates)
+                {
+                    <option value="@template.Id">@template.Name</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Budgetname</label>
+            <input type="text" name="BudgetName" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Beschreibung</label>
+            <input type="text" name="BudgetDescription" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Budget erstellen</button>
+    </form>
+}
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")

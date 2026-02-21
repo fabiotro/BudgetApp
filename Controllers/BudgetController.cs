@@ -1,4 +1,4 @@
-﻿using BudgetApp.Data.Repositories;
+using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
@@ -10,33 +10,75 @@ namespace BudgetApp.Controllers
     {
         private readonly ILogger<BudgetController> _logger;
         private readonly ICampRepository<CampModel> _campRepo;
+        private readonly IBudgetRepository<BudgetModel> _budgetRepo;
+        private readonly ITemplateBudgetRepository<TemplateBudgetModel> _templateBudgetRepo;
+        private readonly ITemplatePositionRepository<TemplatePositionModel> _templatePositionRepo;
+        private readonly IPositionRepository<PositionModel> _positionRepo;
+        private readonly ICategoryRepository<CategoryModel> _categoryRepo;
+        private readonly ISubCategoryRepository<SubCategoryModel> _subCategoryRepo;
 
-        public BudgetController(ILogger<BudgetController> logger, ICampRepository<CampModel> campRepo)
+        public BudgetController(
+            ILogger<BudgetController> logger,
+            ICampRepository<CampModel> campRepo,
+            IBudgetRepository<BudgetModel> budgetRepo,
+            ITemplateBudgetRepository<TemplateBudgetModel> templateBudgetRepo,
+            ITemplatePositionRepository<TemplatePositionModel> templatePositionRepo,
+            IPositionRepository<PositionModel> positionRepo,
+            ICategoryRepository<CategoryModel> categoryRepo,
+            ISubCategoryRepository<SubCategoryModel> subCategoryRepo)
         {
             _logger = logger;
             _campRepo = campRepo;
+            _budgetRepo = budgetRepo;
+            _templateBudgetRepo = templateBudgetRepo;
+            _templatePositionRepo = templatePositionRepo;
+            _positionRepo = positionRepo;
+            _categoryRepo = categoryRepo;
+            _subCategoryRepo = subCategoryRepo;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var budgets = (await _budgetRepo.GetAll()).ToList();
+            var camps = (await _campRepo.GetAll()).ToDictionary(c => c.Id);
+
+            var vm = budgets
+                .Where(b => camps.ContainsKey(b.CampId))
+                .Select(b => new BudgetListViewModel
+                {
+                    Budget = b,
+                    Camp = camps[b.CampId]
+                })
+                .ToList();
+
+            return View(vm);
         }
 
         [HttpGet]
         public async Task<IActionResult> NewBudget(int? campId)
         {
-            var newBudget = new NewBudgetViewModel 
-            { 
-                Camp = new CampViewModel 
+            var vm = new NewBudgetViewModel
+            {
+                Camp = new CampViewModel
                 {
                     StartDate = DateTime.Today,
-                    // Default camp duration of 7 days
                     EndDate = DateTime.Today.AddDays(7)
-                } 
+                },
+                AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList()
             };
 
             if (campId.HasValue)
             {
                 var camp = await _campRepo.GetById(campId.Value);
                 if (camp != null)
-                    newBudget.Camp = MapModelToViewModel(camp);
+                {
+                    vm.Camp = MapModelToViewModel(camp);
+                    vm.ExistingBudgets = (await _budgetRepo.GetByCampId(campId.Value)).ToList();
+                }
             }
-            return View(newBudget);
+
+            return View(vm);
         }
 
         [HttpPost]
@@ -44,7 +86,12 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> UpsertCamp(NewBudgetViewModel newBudget)
         {
             if (!ModelState.IsValid)
+            {
+                newBudget.AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList();
+                if (newBudget.Camp.Id > 0)
+                    newBudget.ExistingBudgets = (await _budgetRepo.GetByCampId(newBudget.Camp.Id)).ToList();
                 return View(nameof(NewBudget), newBudget);
+            }
 
             var toast = new ToastMessageViewModel();
 
@@ -54,7 +101,6 @@ namespace BudgetApp.Controllers
 
                 if (newBudget.Camp.Id == 0)
                 {
-                    // CREATE
                     int newId = await _campRepo.Create(campModel);
                     newBudget.Camp.Id = newId;
                     toast = new ToastMessageViewModel
@@ -66,7 +112,6 @@ namespace BudgetApp.Controllers
                 }
                 else
                 {
-                    // UPDATE
                     await _campRepo.Update(campModel);
                     toast = new ToastMessageViewModel
                     {
@@ -88,8 +133,182 @@ namespace BudgetApp.Controllers
                     Type = ToastType.Error
                 };
                 TempData.Put("ToastMsg", toast);
-                return View("NewBudget", newBudget);
+                newBudget.AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList();
+                return View(nameof(NewBudget), newBudget);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateBudget(CreateBudgetViewModel vm)
+        {
+            var toast = new ToastMessageViewModel();
+
+            if (!ModelState.IsValid)
+            {
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Bitte Vorlage auswählen und Budgetname eingeben.",
+                    Type = ToastType.Error
+                };
+                TempData.Put("ToastMsg", toast);
+                return RedirectToAction(nameof(NewBudget), new { campId = vm.CampId });
+            }
+
+            try
+            {
+                var budget = new BudgetModel
+                {
+                    Name = vm.BudgetName,
+                    Description = vm.BudgetDescription,
+                    CampId = vm.CampId
+                };
+                int budgetId = await _budgetRepo.Create(budget);
+
+                var templatePositions = await _templatePositionRepo.GetByTemplateBudgetId(vm.SelectedTemplateBudgetId);
+                foreach (var tp in templatePositions)
+                {
+                    var position = new PositionModel
+                    {
+                        BudgetId = budgetId,
+                        PositionTypeId = tp.PositionTypeId,
+                        CategoryId = tp.CategoryId,
+                        SubCategoryId = tp.SubCategoryId,
+                        Name = tp.Name,
+                        FixedAmount_fc = tp.FixedAmount ?? 0,
+                        Quantity_fc = tp.Quantity ?? 0,
+                        UnitAmount_fc = tp.UnitAmount ?? 0,
+                        SortIndex = tp.SortIndex
+                    };
+                    await _positionRepo.Create(position);
+                }
+
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Erfolg",
+                    Message = "Budget erstellt.",
+                    Type = ToastType.Success
+                };
+                TempData.Put("ToastMsg", toast);
+                return RedirectToAction(nameof(Detail), new { id = budgetId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateBudget");
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                    Type = ToastType.Error
+                };
+                TempData.Put("ToastMsg", toast);
+                return RedirectToAction(nameof(NewBudget), new { campId = vm.CampId });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Detail(int id)
+        {
+            var budget = await _budgetRepo.GetById(id);
+            if (budget == null) return NotFound();
+
+            var camp = await _campRepo.GetById(budget.CampId);
+            var positions = (await _positionRepo.GetByBudgetId(id)).ToList();
+            var categories = (await _categoryRepo.GetAll()).ToDictionary(c => c.Id);
+            var subCategories = (await _subCategoryRepo.GetAll()).ToDictionary(sc => sc.Id);
+
+            var groups = positions
+                .GroupBy(p => p.CategoryId)
+                .Select(g =>
+                {
+                    categories.TryGetValue(g.Key, out var category);
+                    return new CategoryGroupViewModel
+                    {
+                        Category = category!,
+                        SubGroups = g
+                            .GroupBy(p => p.SubCategoryId)
+                            .Select(sg =>
+                            {
+                                subCategories.TryGetValue(sg.Key, out var subCategory);
+                                return new SubCategoryGroupViewModel
+                                {
+                                    SubCategory = subCategory!,
+                                    Positions = sg
+                                        .OrderBy(p => p.SortIndex)
+                                        .Select(p => new PositionRowViewModel
+                                        {
+                                            Id = p.Id,
+                                            Name = p.Name,
+                                            FixedAmount_fc = p.FixedAmount_fc,
+                                            Quantity_fc = p.Quantity_fc,
+                                            UnitAmount_fc = p.UnitAmount_fc,
+                                            FixedAmount_rl = p.FixedAmount_rl,
+                                            Quantity_rl = p.Quantity_rl,
+                                            UnitAmount_rl = p.UnitAmount_rl
+                                        })
+                                        .ToList()
+                                };
+                            })
+                            .OrderBy(sg => subCategories.TryGetValue(sg.SubCategory.Id, out var sc) ? sc.SortIndex : 0)
+                            .ToList()
+                    };
+                })
+                .OrderBy(g => categories.TryGetValue(g.Category.Id, out var cat) ? cat.SortIndex : 0)
+                .ToList();
+
+            var vm = new BudgetDetailViewModel
+            {
+                Budget = budget,
+                Camp = camp!,
+                Groups = groups
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveRealAmounts(int budgetId, List<PositionUpdateViewModel> positions)
+        {
+            var toast = new ToastMessageViewModel();
+
+            try
+            {
+                var currentPositions = (await _positionRepo.GetByBudgetId(budgetId))
+                    .ToDictionary(p => p.Id);
+
+                foreach (var update in positions)
+                {
+                    if (currentPositions.TryGetValue(update.Id, out var pos))
+                    {
+                        pos.FixedAmount_rl = update.FixedAmount_rl;
+                        pos.Quantity_rl = update.Quantity_rl;
+                        pos.UnitAmount_rl = update.UnitAmount_rl;
+                        await _positionRepo.Update(pos);
+                    }
+                }
+
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Erfolg",
+                    Message = "Definitiv-Beträge gespeichert.",
+                    Type = ToastType.Success
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SaveRealAmounts");
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                    Type = ToastType.Error
+                };
+            }
+
+            TempData.Put("ToastMsg", toast);
+            return RedirectToAction(nameof(Detail), new { id = budgetId });
         }
 
         #region Helpers
