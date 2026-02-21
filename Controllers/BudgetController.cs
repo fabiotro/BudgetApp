@@ -44,11 +44,10 @@ namespace BudgetApp.Controllers
             var camps = (await _campRepo.GetAll()).ToDictionary(c => c.Id);
 
             var vm = budgets
-                .Where(b => camps.ContainsKey(b.CampId))
-                .Select(b => new BudgetListViewModel
+                .Select(b =>
                 {
-                    Budget = b,
-                    Camp = camps[b.CampId]
+                    camps.TryGetValue(b.CampId, out var camp);
+                    return new BudgetListViewModel { Budget = b, Camp = camp };
                 })
                 .ToList();
 

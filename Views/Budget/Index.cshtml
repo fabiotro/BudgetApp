@@ -35,11 +35,20 @@ else
                             <br /><small class="text-muted">@item.Budget.Description</small>
                         }
                     </td>
-                    <td>@item.Camp.StartDate.ToString("dd.MM.yyyy") – @item.Camp.EndDate.ToString("dd.MM.yyyy")</td>
-                    <td>@(item.Camp.MainLeader ?? "–")</td>
+                    <td>
+                        @if (item.Camp != null)
+                        {
+                            @($"{item.Camp.StartDate:dd.MM.yyyy} – {item.Camp.EndDate:dd.MM.yyyy}")
+                        }
+                        else { <span class="text-muted">–</span> }
+                    </td>
+                    <td>@(item.Camp?.MainLeader ?? "–")</td>
                     <td class="text-end">
                         <a asp-action="Detail" asp-route-id="@item.Budget.Id" class="btn btn-sm btn-outline-primary">Anzeigen</a>
-                        <a asp-action="NewBudget" asp-route-campId="@item.Camp.Id" class="btn btn-sm btn-outline-secondary">Lager bearbeiten</a>
+                        @if (item.Camp != null)
+                        {
+                            <a asp-action="NewBudget" asp-route-campId="@item.Camp.Id" class="btn btn-sm btn-outline-secondary">Lager bearbeiten</a>
+                        }
                     </td>
                 </tr>
             }
