@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BudgetApp.Models
 {
     public class BudgetDetailViewModel
@@ -8,6 +10,10 @@ namespace BudgetApp.Models
 
         public decimal TotalAmount_fc => Groups.Sum(g => g.TotalAmount_fc);
         public decimal TotalAmount_rl => Groups.Sum(g => g.TotalAmount_rl);
+
+        public List<PositionTypeModel> PositionTypes { get; set; } = [];
+        public List<CategoryModel> AllCategories { get; set; } = [];
+        public List<SubCategoryModel> AllSubCategories { get; set; } = [];
     }
 
     public class CategoryGroupViewModel
@@ -49,5 +55,38 @@ namespace BudgetApp.Models
         public decimal? FixedAmount_rl { get; set; }
         public decimal? Quantity_rl { get; set; }
         public decimal? UnitAmount_rl { get; set; }
+    }
+
+    public class AddBudgetPositionViewModel
+    {
+        public int BudgetId { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int PositionTypeId { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int CategoryId { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int SubCategoryId { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; } = string.Empty;
+
+        [Range(0, double.MaxValue)]
+        public decimal FixedAmount_fc { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal Quantity_fc { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal UnitAmount_fc { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int SortIndex { get; set; }
     }
 }

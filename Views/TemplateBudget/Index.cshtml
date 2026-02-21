@@ -1,0 +1,55 @@
+@model List<TemplateBudgetModel>
+@{
+    ViewData["Title"] = "Vorlagen";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Budgetvorlagen</h2>
+    <a asp-action="Upsert" class="btn btn-primary">Neue Vorlage</a>
+</div>
+<hr />
+
+@if (!Model.Any())
+{
+    <p class="text-muted">Noch keine Vorlagen vorhanden. <a asp-action="Upsert">Jetzt erstellen.</a></p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Beschreibung</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var template in Model)
+            {
+                <tr>
+                    <td><strong>@template.Name</strong></td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(template.Description))
+                        {
+                            <small class="text-muted">@template.Description</small>
+                        }
+                        else
+                        {
+                            <span class="text-muted">–</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <a asp-action="Detail" asp-route-id="@template.Id" class="btn btn-sm btn-outline-primary">Anzeigen</a>
+                        <a asp-action="Upsert" asp-route-id="@template.Id" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
+                        <form asp-action="DeleteTemplate" method="post" class="d-inline"
+                              onsubmit="return confirm('Vorlage «@template.Name» wirklich löschen?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@template.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Löschen</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,111 @@
+@model UpsertTemplatePositionViewModel
+@{
+    ViewData["Title"] = "Position bearbeiten";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Position bearbeiten</h2>
+    <a asp-action="Detail" asp-route-id="@Model.TemplateBudgetId" class="btn btn-outline-secondary btn-sm">Abbrechen</a>
+</div>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="SavePosition" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="TemplateBudgetId" />
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="PositionTypeId" class="form-label"></label>
+                    <select asp-for="PositionTypeId" class="form-select"
+                            asp-items="@(new SelectList(Model.PositionTypes, "Id", "Name"))">
+                        <option value="0">– Typ –</option>
+                    </select>
+                    <span asp-validation-for="PositionTypeId" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="CategoryId" class="form-label"></label>
+                    <select asp-for="CategoryId" id="editCategoryId" class="form-select"
+                            asp-items="@(new SelectList(Model.Categories, "Id", "Name"))">
+                        <option value="0">– Kategorie –</option>
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="SubCategoryId" class="form-label"></label>
+                    <select asp-for="SubCategoryId" id="editSubCategoryId" class="form-select">
+                        <option value="0">– Unterkategorie –</option>
+                        @foreach (var sub in Model.SubCategories)
+                        {
+                            <option value="@sub.Id" data-category="@sub.CategoryId"
+                                    selected="@(sub.Id == Model.SubCategoryId)">@sub.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SubCategoryId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label asp-for="FixedAmount" class="form-label"></label>
+                    <input asp-for="FixedAmount" type="number" step="0.01" min="0" class="form-control text-end" />
+                    <span asp-validation-for="FixedAmount" class="text-danger"></span>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="Quantity" class="form-label"></label>
+                    <input asp-for="Quantity" type="number" step="0.01" min="0" class="form-control text-end" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="UnitAmount" class="form-label"></label>
+                    <input asp-for="UnitAmount" type="number" step="0.01" min="0" class="form-control text-end" />
+                    <span asp-validation-for="UnitAmount" class="text-danger"></span>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="SortIndex" class="form-label"></label>
+                    <input asp-for="SortIndex" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="SortIndex" class="text-danger"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Speichern</button>
+            <a asp-action="Detail" asp-route-id="@Model.TemplateBudgetId" class="btn btn-outline-secondary ms-2">Abbrechen</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        (function () {
+            const categorySelect = document.getElementById('editCategoryId');
+            const subCategorySelect = document.getElementById('editSubCategoryId');
+            const allSubOptions = Array.from(subCategorySelect.querySelectorAll('option[data-category]'));
+            const initialSubId = '@Model.SubCategoryId';
+
+            function filterSubCategories(keepSelection) {
+                const selectedCategoryId = categorySelect.value;
+                subCategorySelect.innerHTML = '<option value="0">– Unterkategorie –</option>';
+                allSubOptions
+                    .filter(opt => !selectedCategoryId || selectedCategoryId === '0' || opt.dataset.category === selectedCategoryId)
+                    .forEach(opt => {
+                        const clone = opt.cloneNode(true);
+                        if (keepSelection && clone.value === initialSubId)
+                            clone.selected = true;
+                        subCategorySelect.appendChild(clone);
+                    });
+            }
+
+            filterSubCategories(true);
+            categorySelect.addEventListener('change', () => filterSubCategories(false));
+        })();
+    </script>
+}

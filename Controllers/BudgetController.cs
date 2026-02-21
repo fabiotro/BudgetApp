@@ -14,6 +14,7 @@ namespace BudgetApp.Controllers
         private readonly ITemplateBudgetRepository<TemplateBudgetModel> _templateBudgetRepo;
         private readonly ITemplatePositionRepository<TemplatePositionModel> _templatePositionRepo;
         private readonly IPositionRepository<PositionModel> _positionRepo;
+        private readonly IPositionTypeRepository<PositionTypeModel> _positionTypeRepo;
         private readonly ICategoryRepository<CategoryModel> _categoryRepo;
         private readonly ISubCategoryRepository<SubCategoryModel> _subCategoryRepo;
 
@@ -24,6 +25,7 @@ namespace BudgetApp.Controllers
             ITemplateBudgetRepository<TemplateBudgetModel> templateBudgetRepo,
             ITemplatePositionRepository<TemplatePositionModel> templatePositionRepo,
             IPositionRepository<PositionModel> positionRepo,
+            IPositionTypeRepository<PositionTypeModel> positionTypeRepo,
             ICategoryRepository<CategoryModel> categoryRepo,
             ISubCategoryRepository<SubCategoryModel> subCategoryRepo)
         {
@@ -33,6 +35,7 @@ namespace BudgetApp.Controllers
             _templateBudgetRepo = templateBudgetRepo;
             _templatePositionRepo = templatePositionRepo;
             _positionRepo = positionRepo;
+            _positionTypeRepo = positionTypeRepo;
             _categoryRepo = categoryRepo;
             _subCategoryRepo = subCategoryRepo;
         }
@@ -165,22 +168,25 @@ namespace BudgetApp.Controllers
                 };
                 int budgetId = await _budgetRepo.Create(budget);
 
-                var templatePositions = await _templatePositionRepo.GetByTemplateBudgetId(vm.SelectedTemplateBudgetId);
-                foreach (var tp in templatePositions)
+                if (vm.SelectedTemplateBudgetId > 0)
                 {
-                    var position = new PositionModel
+                    var templatePositions = await _templatePositionRepo.GetByTemplateBudgetId(vm.SelectedTemplateBudgetId);
+                    foreach (var tp in templatePositions)
                     {
-                        BudgetId = budgetId,
-                        PositionTypeId = tp.PositionTypeId,
-                        CategoryId = tp.CategoryId,
-                        SubCategoryId = tp.SubCategoryId,
-                        Name = tp.Name,
-                        FixedAmount_fc = tp.FixedAmount ?? 0,
-                        Quantity_fc = tp.Quantity ?? 0,
-                        UnitAmount_fc = tp.UnitAmount ?? 0,
-                        SortIndex = tp.SortIndex
-                    };
-                    await _positionRepo.Create(position);
+                        var position = new PositionModel
+                        {
+                            BudgetId = budgetId,
+                            PositionTypeId = tp.PositionTypeId,
+                            CategoryId = tp.CategoryId,
+                            SubCategoryId = tp.SubCategoryId,
+                            Name = tp.Name,
+                            FixedAmount_fc = tp.FixedAmount ?? 0,
+                            Quantity_fc = tp.Quantity ?? 0,
+                            UnitAmount_fc = tp.UnitAmount ?? 0,
+                            SortIndex = tp.SortIndex
+                        };
+                        await _positionRepo.Create(position);
+                    }
                 }
 
                 toast = new ToastMessageViewModel
@@ -260,7 +266,10 @@ namespace BudgetApp.Controllers
             {
                 Budget = budget,
                 Camp = camp!,
-                Groups = groups
+                Groups = groups,
+                PositionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList(),
+                AllCategories = categories.Values.OrderBy(c => c.SortIndex).ToList(),
+                AllSubCategories = subCategories.Values.OrderBy(sc => sc.SortIndex).ToList()
             };
 
             return View(vm);
@@ -306,6 +315,88 @@ namespace BudgetApp.Controllers
                 };
             }
 
+            TempData.Put("ToastMsg", toast);
+            return RedirectToAction(nameof(Detail), new { id = budgetId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddBudgetPosition(AddBudgetPositionViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                var toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Bitte alle Pflichtfelder ausfüllen.",
+                    Type = ToastType.Error
+                };
+                TempData.Put("ToastMsg", toast);
+                return RedirectToAction(nameof(Detail), new { id = vm.BudgetId });
+            }
+
+            try
+            {
+                var position = new PositionModel
+                {
+                    BudgetId = vm.BudgetId,
+                    PositionTypeId = vm.PositionTypeId,
+                    CategoryId = vm.CategoryId,
+                    SubCategoryId = vm.SubCategoryId,
+                    Name = vm.Name,
+                    FixedAmount_fc = vm.FixedAmount_fc,
+                    Quantity_fc = vm.Quantity_fc,
+                    UnitAmount_fc = vm.UnitAmount_fc,
+                    SortIndex = vm.SortIndex
+                };
+                await _positionRepo.Create(position);
+                var toast = new ToastMessageViewModel
+                {
+                    Title = "Erfolg",
+                    Message = "Position hinzugefügt.",
+                    Type = ToastType.Success
+                };
+                TempData.Put("ToastMsg", toast);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddBudgetPosition");
+                var toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                    Type = ToastType.Error
+                };
+                TempData.Put("ToastMsg", toast);
+            }
+            return RedirectToAction(nameof(Detail), new { id = vm.BudgetId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteBudgetPosition(int id, int budgetId)
+        {
+            var toast = new ToastMessageViewModel();
+            try
+            {
+                await _positionRepo.Delete(id);
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Erfolg",
+                    Message = "Position gelöscht.",
+                    Type = ToastType.Success
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in DeleteBudgetPosition");
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                    Type = ToastType.Error
+                };
+            }
             TempData.Put("ToastMsg", toast);
             return RedirectToAction(nameof(Detail), new { id = budgetId });
         }
