@@ -15,7 +15,7 @@ namespace BudgetApp.Models
         public required string Name { get; set; }
         public required string PositionTypeName { get; set; }
         public required string CategoryName { get; set; }
-        public required string SubCategoryName { get; set; }
+        public string SubCategoryName { get; set; } = string.Empty;
         public decimal? FixedAmount { get; set; }
         public decimal? Quantity { get; set; }
         public decimal? UnitAmount { get; set; }
@@ -35,9 +35,7 @@ namespace BudgetApp.Models
         [Range(1, int.MaxValue)]
         public int CategoryId { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int SubCategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
 
         [Required]
         [StringLength(255)]

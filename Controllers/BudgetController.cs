@@ -178,7 +178,7 @@ namespace BudgetApp.Controllers
                             BudgetId = budgetId,
                             PositionTypeId = tp.PositionTypeId,
                             CategoryId = tp.CategoryId,
-                            SubCategoryId = tp.SubCategoryId,
+                            SubCategoryId = tp.SubCategoryId == 0 ? null : tp.SubCategoryId,
                             Name = tp.Name,
                             FixedAmount_fc = tp.FixedAmount ?? 0,
                             Quantity_fc = tp.Quantity ?? 0,
@@ -235,10 +235,12 @@ namespace BudgetApp.Controllers
                             .GroupBy(p => p.SubCategoryId)
                             .Select(sg =>
                             {
-                                subCategories.TryGetValue(sg.Key, out var subCategory);
+                                SubCategoryModel? subCategory = null;
+                                if (sg.Key.HasValue)
+                                    subCategories.TryGetValue(sg.Key.Value, out subCategory);
                                 return new SubCategoryGroupViewModel
                                 {
-                                    SubCategory = subCategory!,
+                                    SubCategory = subCategory,
                                     Positions = sg
                                         .OrderBy(p => p.SortIndex)
                                         .Select(p => new PositionRowViewModel
@@ -255,7 +257,7 @@ namespace BudgetApp.Controllers
                                         .ToList()
                                 };
                             })
-                            .OrderBy(sg => subCategories.TryGetValue(sg.SubCategory.Id, out var sc) ? sc.SortIndex : 0)
+                            .OrderBy(sg => sg.SubCategory?.SortIndex ?? int.MaxValue)
                             .ToList()
                     };
                 })
@@ -337,17 +339,20 @@ namespace BudgetApp.Controllers
 
             try
             {
+                var existing = await _positionRepo.GetByBudgetId(vm.BudgetId);
+                int nextSortIndex = (existing.Any() ? existing.Max(p => p.SortIndex) : 0) + 1;
+
                 var position = new PositionModel
                 {
                     BudgetId = vm.BudgetId,
                     PositionTypeId = vm.PositionTypeId,
                     CategoryId = vm.CategoryId,
-                    SubCategoryId = vm.SubCategoryId,
+                    SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId,
                     Name = vm.Name,
                     FixedAmount_fc = vm.FixedAmount_fc,
                     Quantity_fc = vm.Quantity_fc,
                     UnitAmount_fc = vm.UnitAmount_fc,
-                    SortIndex = vm.SortIndex
+                    SortIndex = nextSortIndex
                 };
                 await _positionRepo.Create(position);
                 var toast = new ToastMessageViewModel

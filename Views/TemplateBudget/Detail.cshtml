@@ -78,7 +78,7 @@ else
             <label class="form-label">Name</label>
             <input type="text" name="Name" class="form-control form-control-sm" required />
         </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
             <label class="form-label">Typ</label>
             <select name="PositionTypeId" class="form-select form-select-sm" required>
                 <option value="0">– Typ –</option>
@@ -100,8 +100,8 @@ else
         </div>
         <div class="col-md-2">
             <label class="form-label">Unterkategorie</label>
-            <select name="SubCategoryId" id="addSubCategoryId" class="form-select form-select-sm" required>
-                <option value="0">– Unterkategorie –</option>
+            <select name="SubCategoryId" id="addSubCategoryId" class="form-select form-select-sm">
+                <option value="">– Unterkategorie –</option>
                 @foreach (var sub in Model.NewPosition.SubCategories)
                 {
                     <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
@@ -120,14 +120,10 @@ else
             <label class="form-label">Einheitspreis</label>
             <input type="number" name="UnitAmount" class="form-control form-control-sm text-end" step="0.01" min="0" />
         </div>
-    </div>
-    <div class="row g-2 align-items-end mb-3">
-        <div class="col-md-1">
-            <label class="form-label">Reihenfolge</label>
-            <input type="number" name="SortIndex" class="form-control form-control-sm" value="0" min="0" />
-        </div>
-        <div class="col-md-auto">
-            <button type="submit" class="btn btn-primary btn-sm">Position hinzufügen</button>
+        <div class="col-md-1 d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-square"></i>
+            </button>
         </div>
     </div>
 </form>
@@ -141,7 +137,7 @@ else
 
             function filterSubCategories() {
                 const selectedCategoryId = categorySelect.value;
-                subCategorySelect.innerHTML = '<option value="0">– Unterkategorie –</option>';
+                subCategorySelect.innerHTML = '<option value="">– Unterkategorie –</option>';
                 allSubOptions
                     .filter(opt => !selectedCategoryId || selectedCategoryId === '0' || opt.dataset.category === selectedCategoryId)
                     .forEach(opt => subCategorySelect.appendChild(opt.cloneNode(true)));

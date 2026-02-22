@@ -27,7 +27,7 @@ namespace BudgetApp.Models
 
     public class SubCategoryGroupViewModel
     {
-        public required SubCategoryModel SubCategory { get; set; }
+        public SubCategoryModel? SubCategory { get; set; }
         public List<PositionRowViewModel> Positions { get; set; } = [];
 
         public decimal TotalAmount_fc => Positions.Sum(p => p.TotalAmount_fc);
@@ -69,9 +69,7 @@ namespace BudgetApp.Models
         [Range(1, int.MaxValue)]
         public int CategoryId { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int SubCategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
 
         [Required]
         [StringLength(255)]
@@ -85,8 +83,5 @@ namespace BudgetApp.Models
 
         [Range(0, double.MaxValue)]
         public decimal UnitAmount_fc { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int SortIndex { get; set; }
     }
 }

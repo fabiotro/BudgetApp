@@ -18,9 +18,7 @@ namespace BudgetApp.Models
         [Range(1, int.MaxValue)]
         public int CategoryId { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int SubCategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
 
         [Required]
         [StringLength(255)]

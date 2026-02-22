@@ -116,7 +116,9 @@ namespace BudgetApp.Controllers
                 {
                     positionTypes.TryGetValue(p.PositionTypeId, out var pt);
                     categories.TryGetValue(p.CategoryId, out var cat);
-                    subCategories.TryGetValue(p.SubCategoryId, out var sub);
+                    SubCategoryModel? sub = null;
+                    if (p.SubCategoryId.HasValue)
+                        subCategories.TryGetValue(p.SubCategoryId.Value, out sub);
                     return new TemplatePositionRowViewModel
                     {
                         Id = p.Id,
@@ -200,17 +202,20 @@ namespace BudgetApp.Controllers
 
             try
             {
+                var existing = await _templatePositionRepo.GetByTemplateBudgetId(vm.TemplateBudgetId);
+                int nextSortIndex = (existing.Any() ? existing.Max(p => p.SortIndex) : 0) + 1;
+
                 var model = new TemplatePositionModel
                 {
                     TemplateBudgetId = vm.TemplateBudgetId,
                     PositionTypeId = vm.PositionTypeId,
                     CategoryId = vm.CategoryId,
-                    SubCategoryId = vm.SubCategoryId,
+                    SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId,
                     Name = vm.Name,
                     FixedAmount = vm.FixedAmount,
                     Quantity = vm.Quantity,
                     UnitAmount = vm.UnitAmount,
-                    SortIndex = vm.SortIndex
+                    SortIndex = nextSortIndex
                 };
                 await _templatePositionRepo.Create(model);
                 var toast = new ToastMessageViewModel
@@ -285,7 +290,7 @@ namespace BudgetApp.Controllers
                     TemplateBudgetId = vm.TemplateBudgetId,
                     PositionTypeId = vm.PositionTypeId,
                     CategoryId = vm.CategoryId,
-                    SubCategoryId = vm.SubCategoryId,
+                    SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId,
                     Name = vm.Name,
                     FixedAmount = vm.FixedAmount,
                     Quantity = vm.Quantity,
