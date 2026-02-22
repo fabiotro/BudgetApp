@@ -71,10 +71,11 @@
             const selectedCategoryId = categorySelect.value;
             subCategorySelect.innerHTML = '<option value="">– Unterkategorie –</option>';
             allSubOptions
-                .filter(opt => !selectedCategoryId || selectedCategoryId === '0' || opt.dataset.category === selectedCategoryId)
+                .filter(opt => selectedCategoryId && selectedCategoryId !== '0' && opt.dataset.category === selectedCategoryId)
                 .forEach(opt => subCategorySelect.appendChild(opt.cloneNode(true)));
         }
 
+        filterSubCategories();
         categorySelect.addEventListener('change', filterSubCategories);
     })();
 </script>
