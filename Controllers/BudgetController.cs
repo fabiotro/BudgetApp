@@ -222,6 +222,7 @@ namespace BudgetApp.Controllers
             var positions = (await _positionRepo.GetByBudgetId(id)).ToList();
             var categories = (await _categoryRepo.GetAll()).ToDictionary(c => c.Id);
             var subCategories = (await _subCategoryRepo.GetAll()).ToDictionary(sc => sc.Id);
+            var positionTypes = (await _positionTypeRepo.GetAll()).ToDictionary(pt => pt.Id);
 
             var groups = positions
                 .GroupBy(p => p.CategoryId)
@@ -243,16 +244,21 @@ namespace BudgetApp.Controllers
                                     SubCategory = subCategory,
                                     Positions = sg
                                         .OrderBy(p => p.SortIndex)
-                                        .Select(p => new PositionRowViewModel
+                                        .Select(p =>
                                         {
-                                            Id = p.Id,
-                                            Name = p.Name,
-                                            FixedAmount_fc = p.FixedAmount_fc,
-                                            Quantity_fc = p.Quantity_fc,
-                                            UnitAmount_fc = p.UnitAmount_fc,
-                                            FixedAmount_rl = p.FixedAmount_rl,
-                                            Quantity_rl = p.Quantity_rl,
-                                            UnitAmount_rl = p.UnitAmount_rl
+                                            positionTypes.TryGetValue(p.PositionTypeId, out var pt);
+                                            return new PositionRowViewModel
+                                            {
+                                                Id = p.Id,
+                                                Name = p.Name,
+                                                PositionTypeName = pt?.Name ?? string.Empty,
+                                                FixedAmount_fc = p.FixedAmount_fc,
+                                                Quantity_fc = p.Quantity_fc,
+                                                UnitAmount_fc = p.UnitAmount_fc,
+                                                FixedAmount_rl = p.FixedAmount_rl,
+                                                Quantity_rl = p.Quantity_rl,
+                                                UnitAmount_rl = p.UnitAmount_rl
+                                            };
                                         })
                                         .ToList()
                                 };
@@ -269,7 +275,7 @@ namespace BudgetApp.Controllers
                 Budget = budget,
                 Camp = camp!,
                 Groups = groups,
-                PositionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList(),
+                PositionTypes = positionTypes.Values.OrderBy(pt => pt.Name).ToList(),
                 AllCategories = categories.Values.OrderBy(c => c.SortIndex).ToList(),
                 AllSubCategories = subCategories.Values.OrderBy(sc => sc.SortIndex).ToList()
             };

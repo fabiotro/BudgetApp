@@ -14,6 +14,7 @@ namespace BudgetApp.Models
         public int Id { get; set; }
         public required string Name { get; set; }
         public required string PositionTypeName { get; set; }
+        public bool IsIncome => PositionTypeName == "Einnahme";
         public required string CategoryName { get; set; }
         public string SubCategoryName { get; set; } = string.Empty;
         public decimal? FixedAmount { get; set; }

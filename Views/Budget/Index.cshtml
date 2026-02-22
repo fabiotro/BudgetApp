@@ -44,10 +44,14 @@ else
                     </td>
                     <td>@(item.Camp?.MainLeader ?? "–")</td>
                     <td class="text-end">
-                        <a asp-action="Detail" asp-route-id="@item.Budget.Id" class="btn btn-sm btn-outline-primary">Anzeigen</a>
+                        <a asp-action="Detail" asp-route-id="@item.Budget.Id" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         @if (item.Camp != null)
                         {
-                            <a asp-action="NewBudget" asp-route-campId="@item.Camp.Id" class="btn btn-sm btn-outline-secondary">Lager bearbeiten</a>
+                            <a asp-action="NewBudget" asp-route-campId="@item.Camp.Id" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pen"></i>    
+                            </a>
                         }
                     </td>
                 </tr>

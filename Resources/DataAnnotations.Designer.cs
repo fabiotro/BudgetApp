@@ -140,5 +140,19 @@ namespace BudgetApp.Resources {
                 return ResourceManager.GetString("StringLength", resourceCulture);
             }
         }
+
+        public static string TemplateBudgetName {
+            get
+            {
+                return ResourceManager.GetString("TemplateBudgetName", resourceCulture);
+            }
+        }
+
+        public static string TemplateBudgetDescription {
+            get
+            {
+                return ResourceManager.GetString("TemplateBudgetDescription", resourceCulture);
+            }
+        }
     }
 }

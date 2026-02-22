@@ -11,6 +11,11 @@ namespace BudgetApp.Models
         public decimal TotalAmount_fc => Groups.Sum(g => g.TotalAmount_fc);
         public decimal TotalAmount_rl => Groups.Sum(g => g.TotalAmount_rl);
 
+        public decimal TotalIncome_fc   => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => p.IsIncome).Sum(p => p.TotalAmount_fc);
+        public decimal TotalExpenses_fc => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => !p.IsIncome).Sum(p => p.TotalAmount_fc);
+        public decimal TotalIncome_rl   => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => p.IsIncome).Sum(p => p.TotalAmount_rl);
+        public decimal TotalExpenses_rl => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => !p.IsIncome).Sum(p => p.TotalAmount_rl);
+
         public List<PositionTypeModel> PositionTypes { get; set; } = [];
         public List<CategoryModel> AllCategories { get; set; } = [];
         public List<SubCategoryModel> AllSubCategories { get; set; } = [];
@@ -30,14 +35,16 @@ namespace BudgetApp.Models
         public SubCategoryModel? SubCategory { get; set; }
         public List<PositionRowViewModel> Positions { get; set; } = [];
 
-        public decimal TotalAmount_fc => Positions.Sum(p => p.TotalAmount_fc);
-        public decimal TotalAmount_rl => Positions.Sum(p => p.TotalAmount_rl);
+        public decimal TotalAmount_fc => Positions.Sum(p => p.SignedTotalAmount_fc);
+        public decimal TotalAmount_rl => Positions.Sum(p => p.SignedTotalAmount_rl);
     }
 
     public class PositionRowViewModel
     {
         public int Id { get; set; }
         public required string Name { get; set; }
+        public string PositionTypeName { get; set; } = string.Empty;
+        public bool IsIncome => PositionTypeName == "Einnahme";
         public decimal FixedAmount_fc { get; set; }
         public decimal Quantity_fc { get; set; }
         public decimal UnitAmount_fc { get; set; }
@@ -47,6 +54,9 @@ namespace BudgetApp.Models
 
         public decimal TotalAmount_fc => FixedAmount_fc + (Quantity_fc * UnitAmount_fc);
         public decimal TotalAmount_rl => (FixedAmount_rl ?? 0) + ((Quantity_rl ?? 0) * (UnitAmount_rl ?? 0));
+
+        public decimal SignedTotalAmount_fc => IsIncome ? TotalAmount_fc : -TotalAmount_fc;
+        public decimal SignedTotalAmount_rl => IsIncome ? TotalAmount_rl : -TotalAmount_rl;
     }
 
     public class PositionUpdateViewModel

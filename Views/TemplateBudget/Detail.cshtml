@@ -12,7 +12,9 @@
         }
     </div>
     <div>
-        <a asp-action="Upsert" asp-route-id="@Model.TemplateBudget.Id" class="btn btn-outline-secondary btn-sm">Bearbeiten</a>
+        <a asp-action="Upsert" asp-route-id="@Model.TemplateBudget.Id" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-pen"></i>
+        </a>
         <a asp-action="Index" class="btn btn-outline-secondary btn-sm ms-1">Zur Übersicht</a>
     </div>
 </div>
@@ -39,7 +41,7 @@
         <tbody>
             @foreach (var pos in Model.Positions)
             {
-                <tr>
+                <tr class="@(pos.IsIncome ? "table-success" : "table-danger")">
                     <td>@pos.SortIndex</td>
                     <td>@pos.Name</td>
                     <td>@pos.PositionTypeName</td>
@@ -49,13 +51,17 @@
                     <td class="text-end">@(pos.Quantity?.ToString("N2") ?? "–")</td>
                     <td class="text-end">@(pos.UnitAmount == null ? "-" : "CHF " + pos.UnitAmount?.ToString("N2"))</td>
                     <td class="text-end text-nowrap">
-                        <a asp-action="EditPosition" asp-route-id="@pos.Id" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
+                        <a asp-action="EditPosition" asp-route-id="@pos.Id" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pen"></i>
+                        </a>
                         <form asp-action="DeletePosition" method="post" class="d-inline"
                               onsubmit="return confirm('Position «@pos.Name» wirklich löschen?')">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@pos.Id" />
                             <input type="hidden" name="templateBudgetId" value="@Model.TemplateBudget.Id" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Löschen</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </form>
                     </td>
                 </tr>

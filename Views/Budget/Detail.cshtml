@@ -18,7 +18,9 @@
             }
         </small>
     </div>
-    <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">Lagerdaten bearbeiten</a>
+    <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-pen"></i>
+    </a>
 </div>
 <hr />
 
@@ -59,7 +61,7 @@
                         @foreach (var pos in subGroup.Positions)
                         {
                             <input type="hidden" name="positions[@pi].Id" value="@pos.Id" />
-                            <tr>
+                            <tr class="@(pos.IsIncome ? "table-success" : "table-danger")">
                                 <td>@pos.Name</td>
                                 <td class="text-end">CHF @pos.FixedAmount_fc.ToString("N2")</td>
                                 <td class="text-end">@pos.Quantity_fc.ToString("N2")</td>
@@ -95,9 +97,9 @@
                     <tfoot class="table-light">
                         <tr>
                             <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "–")</td>
-                            <td class="text-end fw-bold">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
+                            <td class="text-end fw-bold @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
                             <td colspan="3"></td>
-                            <td class="text-end fw-bold">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
+                            <td class="text-end fw-bold @(subGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -106,27 +108,32 @@
 
             <div class="text-end mb-3">
                 <strong>Total @catGroup.Category.Name:</strong>
-                @catGroup.TotalAmount_fc.ToString("N2") (prov.) /
-                @catGroup.TotalAmount_rl.ToString("N2") (def.)
+                <span class="@(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_fc.ToString("N2")</span> (prov.) /
+                <span class="@(catGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_rl.ToString("N2")</span> (def.)
             </div>
         }
 
         <div class="card mt-4">
             <div class="card-body">
-                <div class="row">
-                    <div class="col">
-                        <h5 class="card-title">Gesamttotal</h5>
-                    </div>
+                <h5 class="card-title mb-3">Gesamttotal</h5>
+                <div class="row mb-1">
+                    <div class="col-6 col-md-3 text-muted">Einnahmen (prov.):</div>
+                    <div class="col-6 col-md-3 text-success fw-semibold">CHF @Model.TotalIncome_fc.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-muted">Einnahmen (def.):</div>
+                    <div class="col-6 col-md-3 text-success fw-semibold">CHF @Model.TotalIncome_rl.ToString("N2")</div>
                 </div>
+                <div class="row mb-1">
+                    <div class="col-6 col-md-3 text-muted">Ausgaben (prov.):</div>
+                    <div class="col-6 col-md-3 text-danger fw-semibold">CHF @Model.TotalExpenses_fc.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-muted">Ausgaben (def.):</div>
+                    <div class="col-6 col-md-3 text-danger fw-semibold">CHF @Model.TotalExpenses_rl.ToString("N2")</div>
+                </div>
+                <hr class="my-2" />
                 <div class="row">
-                    <div class="col">
-                        <span class="text-muted">Provisorisch:</span>
-                        <strong>CHF @Model.TotalAmount_fc.ToString("N2")</strong>
-                    </div>
-                    <div class="col">
-                        <span class="text-muted">Definitiv:</span>
-                        <strong>CHF @Model.TotalAmount_rl.ToString("N2")</strong>
-                    </div>
+                    <div class="col-6 col-md-3 fw-bold">Saldo (prov.):</div>
+                    <div class="col-6 col-md-3 fw-bold @(Model.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_fc.ToString("N2")</div>
+                    <div class="col-6 col-md-3 fw-bold">Saldo (def.):</div>
+                    <div class="col-6 col-md-3 fw-bold @(Model.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_rl.ToString("N2")</div>
                 </div>
             </div>
         </div>
