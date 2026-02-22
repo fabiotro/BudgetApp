@@ -19,7 +19,7 @@
         </small>
     </div>
     <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-pen"></i>
+        Lagerdaten bearbeiten <i class="bi bi-pen"></i>
     </a>
 </div>
 <hr />
@@ -45,15 +45,19 @@
                 <table class="table table-sm table-bordered mb-2">
                     <thead class="table-light">
                         <tr>
+                            <th colspan="5" class="fw-normal fst-italic text-center w-50">Provisorisch</th>
+                            <th colspan="5" class="fw-normal fst-italic text-center w-50">Definitiv</th>
+                        </tr>
+                        <tr>
                             <th>Position</th>
-                            <th class="text-end">Fixbetrag (prov.)</th>
-                            <th class="text-end">Anzahl (prov.)</th>
-                            <th class="text-end">Einheitspreis (prov.)</th>
-                            <th class="text-end">Total (prov.)</th>
-                            <th class="text-end">Fixbetrag (def.)</th>
-                            <th class="text-end">Anzahl (def.)</th>
-                            <th class="text-end">Einheitspreis (def.)</th>
-                            <th class="text-end">Total (def.)</th>
+                            <th class="text-end">Fixbetrag</th>
+                            <th class="text-end">Anzahl</th>
+                            <th class="text-end">Einheitspreis</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Fixbetrag</th>
+                            <th class="text-end">Anzahl</th>
+                            <th class="text-end">Einheitspreis</th>
+                            <th class="text-end">Total</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -96,7 +100,7 @@
                     </tbody>
                     <tfoot class="table-light">
                         <tr>
-                            <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "–")</td>
+                            <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? catGroup.Category.Name)</td>
                             <td class="text-end fw-bold @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
                             <td colspan="3"></td>
                             <td class="text-end fw-bold @(subGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
@@ -117,29 +121,35 @@
             <div class="card-body">
                 <h5 class="card-title mb-3">Gesamttotal</h5>
                 <div class="row mb-1">
-                    <div class="col-6 col-md-3 text-muted">Einnahmen (prov.):</div>
+                    <div class="col-md-6 fst-italic">Provisorisch</div>
+                    <div class="col-md-6 fst-italic">Definitiv</div>
+                </div>
+                <hr class="my-2" />
+                <div class="row mb-1">
+                    <div class="col-6 col-md-3">Einnahmen</div>
                     <div class="col-6 col-md-3 text-success fw-semibold">CHF @Model.TotalIncome_fc.ToString("N2")</div>
-                    <div class="col-6 col-md-3 text-muted">Einnahmen (def.):</div>
+                    <div class="col-6 col-md-3">Einnahmen</div>
                     <div class="col-6 col-md-3 text-success fw-semibold">CHF @Model.TotalIncome_rl.ToString("N2")</div>
                 </div>
                 <div class="row mb-1">
-                    <div class="col-6 col-md-3 text-muted">Ausgaben (prov.):</div>
+                    <div class="col-6 col-md-3">Ausgaben</div>
                     <div class="col-6 col-md-3 text-danger fw-semibold">CHF @Model.TotalExpenses_fc.ToString("N2")</div>
-                    <div class="col-6 col-md-3 text-muted">Ausgaben (def.):</div>
+                    <div class="col-6 col-md-3">Ausgaben</div>
                     <div class="col-6 col-md-3 text-danger fw-semibold">CHF @Model.TotalExpenses_rl.ToString("N2")</div>
                 </div>
                 <hr class="my-2" />
                 <div class="row">
-                    <div class="col-6 col-md-3 fw-bold">Saldo (prov.):</div>
+                    <div class="col-6 col-md-3 fw-bold">Saldo</div>
                     <div class="col-6 col-md-3 fw-bold @(Model.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_fc.ToString("N2")</div>
-                    <div class="col-6 col-md-3 fw-bold">Saldo (def.):</div>
+                    <div class="col-6 col-md-3 fw-bold">Saldo</div>
                     <div class="col-6 col-md-3 fw-bold @(Model.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_rl.ToString("N2")</div>
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary mt-3">Definitiv-Beträge speichern</button>
-        <a asp-action="Index" class="btn btn-outline-secondary mt-3 ms-2">Zur Übersicht</a>
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary mt-3">Änderungen speichern <i class="bi bi-floppy"></i></button>
+        </div>
     </form>
 
     @* Hidden delete forms — associated via HTML5 form attribute to buttons inside the SaveRealAmounts form *@

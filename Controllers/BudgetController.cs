@@ -308,7 +308,7 @@ namespace BudgetApp.Controllers
                 toast = new ToastMessageViewModel
                 {
                     Title = "Erfolg",
-                    Message = "Definitiv-Beträge gespeichert.",
+                    Message = "Änderungen gespeichert.",
                     Type = ToastType.Success
                 };
             }

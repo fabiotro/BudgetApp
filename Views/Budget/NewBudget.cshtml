@@ -72,7 +72,9 @@
             </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Lagerdaten speichern</button>
+    <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary">Lagerdaten speichern <i class="bi bi-floppy ml-3"></i></button>
+    </div>
 }
 
 <hr />
@@ -100,8 +102,10 @@ else
                     <tr>
                         <td>@budget.Name</td>
                         <td>@budget.Description</td>
-                        <td>
-                            <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary">Anzeigen</a>
+                        <td class="text-end">
+                            <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
                         </td>
                     </tr>
                 }
@@ -132,7 +136,9 @@ else
             <label class="form-label">Beschreibung</label>
             <input type="text" name="BudgetDescription" class="form-control" />
         </div>
-        <button type="submit" class="btn btn-primary">Budget erstellen</button>
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Budget erstellen</button>
+        </div>
     </form>
 }
 
