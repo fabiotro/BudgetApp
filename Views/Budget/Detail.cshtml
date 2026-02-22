@@ -157,83 +157,15 @@ else
     <a asp-action="Index" class="btn btn-outline-secondary">Zur Übersicht</a>
 }
 
-<hr class="mt-4" />
-<h5>Position hinzufügen</h5>
-<form asp-action="AddBudgetPosition" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="BudgetId" value="@Model.Budget.Id" />
-
-    <div class="row g-2 align-items-end mb-2">
-        <div class="col-md-3">
-            <label class="form-label">Name</label>
-            <input type="text" name="Name" class="form-control form-control-sm" required />
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Typ</label>
-            <select name="PositionTypeId" class="form-select form-select-sm" required>
-                <option value="0">– Typ –</option>
-                @foreach (var pt in Model.PositionTypes)
-                {
-                    <option value="@pt.Id">@pt.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Kategorie</label>
-            <select name="CategoryId" id="budgetAddCategoryId" class="form-select form-select-sm" required>
-                <option value="0">– Kategorie –</option>
-                @foreach (var cat in Model.AllCategories)
-                {
-                    <option value="@cat.Id">@cat.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Unterkategorie</label>
-            <select name="SubCategoryId" id="budgetAddSubCategoryId" class="form-select form-select-sm">
-                <option value="">– Unterkategorie –</option>
-                @foreach (var sub in Model.AllSubCategories)
-                {
-                    <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Fixbetrag</label>
-            <input type="number" name="FixedAmount_fc" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Anzahl</label>
-            <input type="number" name="Quantity_fc" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Einheitspreis</label>
-            <input type="number" name="UnitAmount_fc" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
-        </div>
-        <div class="col-md-1 d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-square"></i>
-            </button>
-        </div>
-    </div>
-</form>
-
-@section Scripts {
-    <script>
-        (function () {
-            const categorySelect = document.getElementById('budgetAddCategoryId');
-            const subCategorySelect = document.getElementById('budgetAddSubCategoryId');
-            const allSubOptions = Array.from(subCategorySelect.querySelectorAll('option[data-category]'));
-
-            function filterSubCategories() {
-                const selectedCategoryId = categorySelect.value;
-                subCategorySelect.innerHTML = '<option value="">– Unterkategorie –</option>';
-                allSubOptions
-                    .filter(opt => !selectedCategoryId || selectedCategoryId === '0' || opt.dataset.category === selectedCategoryId)
-                    .forEach(opt => subCategorySelect.appendChild(opt.cloneNode(true)));
-            }
-
-            categorySelect.addEventListener('change', filterSubCategories);
-        })();
-    </script>
-}
+@await Html.PartialAsync("_AddPosition", new AddPositionPartialViewModel
+{
+    FormAction = "AddBudgetPosition",
+    FormController = "Budget",
+    ParentIdFieldName = "BudgetId",
+    ParentId = Model.Budget.Id,
+    CategorySelectId = "budgetAddCategoryId",
+    SubCategorySelectId = "budgetAddSubCategoryId",
+    PositionTypes = Model.PositionTypes,
+    Categories = Model.AllCategories,
+    SubCategories = Model.AllSubCategories
+})

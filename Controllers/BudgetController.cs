@@ -349,9 +349,9 @@ namespace BudgetApp.Controllers
                     CategoryId = vm.CategoryId,
                     SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId,
                     Name = vm.Name,
-                    FixedAmount_fc = vm.FixedAmount_fc,
-                    Quantity_fc = vm.Quantity_fc,
-                    UnitAmount_fc = vm.UnitAmount_fc,
+                    FixedAmount_fc = vm.FixedAmount,
+                    Quantity_fc = vm.Quantity,
+                    UnitAmount_fc = vm.UnitAmount,
                     SortIndex = nextSortIndex
                 };
                 await _positionRepo.Create(position);

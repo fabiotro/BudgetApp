@@ -76,12 +76,12 @@ namespace BudgetApp.Models
         public string Name { get; set; } = string.Empty;
 
         [Range(0, double.MaxValue)]
-        public decimal FixedAmount_fc { get; set; }
+        public decimal FixedAmount { get; set; }
 
         [Range(0, double.MaxValue)]
-        public decimal Quantity_fc { get; set; }
+        public decimal Quantity { get; set; }
 
         [Range(0, double.MaxValue)]
-        public decimal UnitAmount_fc { get; set; }
+        public decimal UnitAmount { get; set; }
     }
 }
