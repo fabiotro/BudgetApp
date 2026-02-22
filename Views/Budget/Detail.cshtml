@@ -61,10 +61,10 @@
                             <input type="hidden" name="positions[@pi].Id" value="@pos.Id" />
                             <tr>
                                 <td>@pos.Name</td>
-                                <td class="text-end">@pos.FixedAmount_fc.ToString("N2")</td>
+                                <td class="text-end">CHF @pos.FixedAmount_fc.ToString("N2")</td>
                                 <td class="text-end">@pos.Quantity_fc.ToString("N2")</td>
-                                <td class="text-end">@pos.UnitAmount_fc.ToString("N2")</td>
-                                <td class="text-end fw-semibold">@pos.TotalAmount_fc.ToString("N2")</td>
+                                <td class="text-end">CHF @pos.UnitAmount_fc.ToString("N2")</td>
+                                <td class="text-end fw-semibold">CHF @pos.TotalAmount_fc.ToString("N2")</td>
                                 <td>
                                     <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
                                            name="positions[@pi].FixedAmount_rl"
@@ -80,7 +80,7 @@
                                            name="positions[@pi].UnitAmount_rl"
                                            value="@pos.UnitAmount_rl" />
                                 </td>
-                                <td class="text-end fw-semibold">@pos.TotalAmount_rl.ToString("N2")</td>
+                                <td class="text-end fw-semibold">CHF @pos.TotalAmount_rl.ToString("N2")</td>
                                 <td>
                                     <button type="submit" form="deletePos-@pos.Id"
                                             class="btn btn-sm btn-outline-danger"
@@ -95,9 +95,9 @@
                     <tfoot class="table-light">
                         <tr>
                             <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "–")</td>
-                            <td class="text-end fw-bold">@subGroup.TotalAmount_fc.ToString("N2")</td>
+                            <td class="text-end fw-bold">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
                             <td colspan="3"></td>
-                            <td class="text-end fw-bold">@subGroup.TotalAmount_rl.ToString("N2")</td>
+                            <td class="text-end fw-bold">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
                             <td></td>
                         </tr>
                     </tfoot>

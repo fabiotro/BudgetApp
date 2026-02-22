@@ -45,9 +45,9 @@
                     <td>@pos.PositionTypeName</td>
                     <td>@pos.CategoryName</td>
                     <td>@pos.SubCategoryName</td>
-                    <td class="text-end">@(pos.FixedAmount?.ToString("N2") ?? "–")</td>
+                    <td class="text-end">@(pos.FixedAmount == null ? "–" : "CHF " + pos.FixedAmount?.ToString("N2"))</td>
                     <td class="text-end">@(pos.Quantity?.ToString("N2") ?? "–")</td>
-                    <td class="text-end">@(pos.UnitAmount?.ToString("N2") ?? "–")</td>
+                    <td class="text-end">@(pos.UnitAmount == null ? "-" : "CHF " + pos.UnitAmount?.ToString("N2"))</td>
                     <td class="text-end text-nowrap">
                         <a asp-action="EditPosition" asp-route-id="@pos.Id" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
                         <form asp-action="DeletePosition" method="post" class="d-inline"
