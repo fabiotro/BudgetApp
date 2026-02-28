@@ -12,11 +12,11 @@
                 <input type="hidden" name="@Model.ParentIdFieldName" value="@Model.ParentId" />
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
                         <input type="text" name="Name" class="form-control" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Typ</label>
+                        <label class="form-label">Typ <span class="text-danger">*</span></label>
                         <select name="PositionTypeId" class="form-select" required>
                             <option value="0">– Typ –</option>
                             @foreach (var pt in Model.PositionTypes)
@@ -26,7 +26,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Kategorie</label>
+                        <label class="form-label">Kategorie <span class="text-danger">*</span></label>
                         <select name="CategoryId" id="@Model.CategorySelectId" class="form-select" required>
                             <option value="0">– Kategorie –</option>
                             @foreach (var cat in Model.Categories)

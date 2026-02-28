@@ -77,14 +77,14 @@
                         @if (subGroup.SubCategory != null)
                         {
                             <tr class="table-secondary">
-                                <td colspan="10" class="fst-italic py-1">@subGroup.SubCategory.Name</td>
+                                <td colspan="10" class="fw-semibold py-1">@subGroup.SubCategory.Name</td>
                             </tr>
                         }
                         @foreach (var pos in subGroup.Positions)
                         {
                             <input type="hidden" name="positions[@pi].Id" value="@pos.Id" />
                             <tr class="@(pos.IsIncome ? "table-success" : "table-danger")">
-                                <td>@pos.Name</td>
+                                <td class="@(subGroup.SubCategory != null ? "ps-3" : "")">@pos.Name</td>
                                 <td class="text-end">CHF @pos.FixedAmount_fc.ToString("N2")</td>
                                 <td class="text-end">
                                     @if (pos.QuantityVar_fc != null)
@@ -111,7 +111,7 @@
                                     <select class="form-select form-select-sm mb-1"
                                             data-initial="@pos.QuantityVar_rl"
                                             onchange="syncQvarRl(@pi, this.value)">
-                                        <option value="">Variabel</option>
+                                        <option value="">- Variabel -</option>
                                         <option value="ParticipantsCount_rl">Teilnehmer (@(Model.Camp.ParticipantsCount_rl.HasValue ? Model.Camp.ParticipantsCount_rl.ToString() : "–"))</option>
                                         <option value="js_PersonsCount_rl">J+S Pers. (@(Model.Camp.js_PersonsCount_rl.HasValue ? Model.Camp.js_PersonsCount_rl.ToString() : "–"))</option>
                                         <option value="LeadersTeamCount_rl">Leitungsteam (@(Model.Camp.LeadersTeamCount_rl.HasValue ? Model.Camp.LeadersTeamCount_rl.ToString() : "–"))</option>
@@ -140,7 +140,7 @@
                             </tr>
                             pi++;
                         }
-                        <tr class="table-light">
+                        <tr class="table-light border-top border-secondary border-opacity-25">
                             <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "übrige Positionen")</td>
                             <td class="text-end @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
                             <td colspan="3"></td>
@@ -150,7 +150,7 @@
                     }
                 </tbody>
                 <tfoot>
-                    <tr>
+                    <tr class="table-secondary">
                         <td colspan="4" class="fw-bold">Total @(catGroup.Category.Name)</td>
                         <td class="fw-bold text-end @(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_fc.ToString("N2")</td>
                         <td colspan="3"></td>
@@ -171,22 +171,22 @@
                 <hr class="my-2" />
                 <div class="row mb-1">
                     <div class="col-6 col-md-3">Einnahmen</div>
-                    <div class="col-6 col-md-3 text-success fw-semibold">CHF @Model.TotalIncome_fc.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-success text-end">CHF @Model.TotalIncome_fc.ToString("N2")</div>
                     <div class="col-6 col-md-3">Einnahmen</div>
-                    <div class="col-6 col-md-3 text-success fw-semibold">CHF @Model.TotalIncome_rl.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-success text-end">CHF @Model.TotalIncome_rl.ToString("N2")</div>
                 </div>
                 <div class="row mb-1">
                     <div class="col-6 col-md-3">Ausgaben</div>
-                    <div class="col-6 col-md-3 text-danger fw-semibold">CHF @Model.TotalExpenses_fc.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-danger text-end">CHF @Model.TotalExpenses_fc.ToString("N2")</div>
                     <div class="col-6 col-md-3">Ausgaben</div>
-                    <div class="col-6 col-md-3 text-danger fw-semibold">CHF @Model.TotalExpenses_rl.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-danger text-end">CHF @Model.TotalExpenses_rl.ToString("N2")</div>
                 </div>
                 <hr class="my-2" />
                 <div class="row">
                     <div class="col-6 col-md-3 fw-bold">Saldo</div>
-                    <div class="col-6 col-md-3 fw-bold @(Model.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_fc.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-end fw-bold @(Model.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_fc.ToString("N2")</div>
                     <div class="col-6 col-md-3 fw-bold">Saldo</div>
-                    <div class="col-6 col-md-3 fw-bold @(Model.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_rl.ToString("N2")</div>
+                    <div class="col-6 col-md-3 text-end fw-bold @(Model.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_rl.ToString("N2")</div>
                 </div>
             </div>
         </div>
