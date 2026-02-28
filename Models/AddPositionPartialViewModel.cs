@@ -12,6 +12,8 @@ namespace BudgetApp.Models
         public List<CategoryModel> Categories { get; set; } = [];
         public List<SubCategoryModel> SubCategories { get; set; } = [];
 
+        public string ModalId { get; set; } = "addPositionModal";
+
         public bool ShowCampVariables { get; set; } = false;
         public int CampParticipantsCount_fc { get; set; }
         public int CampJs_PersonsCount_fc { get; set; }

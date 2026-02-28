@@ -29,9 +29,14 @@
             }
         </small>
     </div>
-    <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">
-        Lagerdaten bearbeiten <i class="bi bi-pen"></i>
-    </a>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#budgetAddPositionModal">
+            Position hinzufügen <i class="bi bi-plus-square"></i>
+        </button>
+        <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">
+            Lagerdaten bearbeiten <i class="bi bi-pen"></i>
+        </a>
+    </div>
 </div>
 <hr />
 
@@ -94,16 +99,19 @@
                                 <td class="text-end">CHF @pos.UnitAmount_fc.ToString("N2")</td>
                                 <td class="text-end fw-semibold">CHF @pos.TotalAmount_fc.ToString("N2")</td>
                                 <td>
-                                    <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">CHF</span>
+                                        <input class="form-control text-end" type="number" step="0.01" min="0"
                                            name="positions[@pi].FixedAmount_rl"
                                            value="@pos.FixedAmount_rl" />
+                                    </div>
                                 </td>
                                 <td>
                                     <input type="hidden" id="qvar_rl_@pi" name="positions[@pi].QuantityVar_rl" value="@pos.QuantityVar_rl" />
                                     <select class="form-select form-select-sm mb-1"
                                             data-initial="@pos.QuantityVar_rl"
                                             onchange="syncQvarRl(@pi, this.value)">
-                                        <option value="">– Zahl –</option>
+                                        <option value="">Variabel</option>
                                         <option value="ParticipantsCount_rl">Teilnehmer (@(Model.Camp.ParticipantsCount_rl.HasValue ? Model.Camp.ParticipantsCount_rl.ToString() : "–"))</option>
                                         <option value="js_PersonsCount_rl">J+S Pers. (@(Model.Camp.js_PersonsCount_rl.HasValue ? Model.Camp.js_PersonsCount_rl.ToString() : "–"))</option>
                                         <option value="LeadersTeamCount_rl">Leitungsteam (@(Model.Camp.LeadersTeamCount_rl.HasValue ? Model.Camp.LeadersTeamCount_rl.ToString() : "–"))</option>
@@ -114,9 +122,12 @@
                                            value="@pos.Quantity_rl" />
                                 </td>
                                 <td>
-                                    <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">CHF</span>
+                                        <input class="form-control text-end" type="number" step="0.01" min="0"
                                            name="positions[@pi].UnitAmount_rl"
                                            value="@pos.UnitAmount_rl" />
+                                    </div>
                                 </td>
                                 <td class="text-end fw-semibold">CHF @pos.TotalAmount_rl.ToString("N2")</td>
                                 <td>
@@ -130,30 +141,24 @@
                             pi++;
                         }
                         <tr class="table-light">
-                            <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? catGroup.Category.Name)</td>
-                            <td class="text-end fw-bold @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
+                            <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "übrige Positionen")</td>
+                            <td class="text-end @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
                             <td colspan="3"></td>
-                            <td class="text-end fw-bold @(subGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
+                            <td class="text-end @(subGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
                             <td></td>
                         </tr>
                     }
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td></td>
-                        <td>CHF @catGroup.TotalAmount_fc.ToString("N2")</td>
-                        <td></td>
-                        <td>CHF @catGroup.TotalAmount_rl.ToString("N2")</td>
+                        <td colspan="4" class="fw-bold">Total @(catGroup.Category.Name)</td>
+                        <td class="fw-bold text-end @(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_fc.ToString("N2")</td>
+                        <td colspan="3"></td>
+                        <td class="fw-bold text-end @(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_rl.ToString("N2")</td>
                         <td></td>
                     </tr>
                 </tfoot>
             </table>
-
-            <div class="text-end mb-3">
-                <strong>Total @catGroup.Category.Name:</strong>
-                <span class="@(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_fc.ToString("N2")</span> (prov.) /
-                <span class="@(catGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_rl.ToString("N2")</span> (def.)
-            </div>
         }
 
         <div class="card mt-4">
@@ -254,6 +259,7 @@ else
 
 @await Html.PartialAsync("_AddPosition", new AddPositionPartialViewModel
 {
+    ModalId = "budgetAddPositionModal",
     FormAction = "AddBudgetPosition",
     FormController = "Budget",
     ParentIdFieldName = "BudgetId",

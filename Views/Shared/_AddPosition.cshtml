@@ -1,78 +1,90 @@
 @model AddPositionPartialViewModel
 
-<hr class="mt-4" />
-<h5>Position hinzufügen</h5>
-<form asp-action="@Model.FormAction" asp-controller="@Model.FormController" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="@Model.ParentIdFieldName" value="@Model.ParentId" />
-
-    <div class="row g-2 align-items-end mb-2">
-        <div class="col-md-3">
-            <label class="form-label">Name</label>
-            <input type="text" name="Name" class="form-control form-control-sm" required />
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Typ</label>
-            <select name="PositionTypeId" class="form-select form-select-sm" required>
-                <option value="0">– Typ –</option>
-                @foreach (var pt in Model.PositionTypes)
-                {
-                    <option value="@pt.Id">@pt.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Kategorie</label>
-            <select name="CategoryId" id="@Model.CategorySelectId" class="form-select form-select-sm" required>
-                <option value="0">– Kategorie –</option>
-                @foreach (var cat in Model.Categories)
-                {
-                    <option value="@cat.Id">@cat.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Unterkategorie</label>
-            <select name="SubCategoryId" id="@Model.SubCategorySelectId" class="form-select form-select-sm">
-                <option value="">– Unterkategorie –</option>
-                @foreach (var sub in Model.SubCategories)
-                {
-                    <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Fixbetrag</label>
-            <input type="number" name="FixedAmount" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Anzahl</label>
-            @if (Model.ShowCampVariables)
-            {
-                <select name="QuantityVar" id="@(Model.CategorySelectId)_qvar" class="form-select form-select-sm mb-1">
-                    <option value="">– Zahl –</option>
-                    <option value="ParticipantsCount_fc">Teilnehmer (@Model.CampParticipantsCount_fc)</option>
-                    <option value="js_PersonsCount_fc">J+S Pers. (@Model.CampJs_PersonsCount_fc)</option>
-                    <option value="LeadersTeamCount_fc">Leitungsteam (@Model.CampLeadersTeamCount_fc)</option>
-                </select>
-                <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
-            }
-            else
-            {
-                <input type="number" name="Quantity" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
-            }
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Einheitspreis</label>
-            <input type="number" name="UnitAmount" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
-        </div>
-        <div class="col-md-1 d-flex justify-content-end align-items-end">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-square"></i>
-            </button>
+<div class="modal fade" id="@Model.ModalId" tabindex="-1" aria-labelledby="@(Model.ModalId)Label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="@(Model.ModalId)Label">Position hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <form asp-action="@Model.FormAction" asp-controller="@Model.FormController" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="@Model.ParentIdFieldName" value="@Model.ParentId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Typ</label>
+                        <select name="PositionTypeId" class="form-select" required>
+                            <option value="0">– Typ –</option>
+                            @foreach (var pt in Model.PositionTypes)
+                            {
+                                <option value="@pt.Id">@pt.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategorie</label>
+                        <select name="CategoryId" id="@Model.CategorySelectId" class="form-select" required>
+                            <option value="0">– Kategorie –</option>
+                            @foreach (var cat in Model.Categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unterkategorie</label>
+                        <select name="SubCategoryId" id="@Model.SubCategorySelectId" class="form-select">
+                            <option value="">– Unterkategorie –</option>
+                            @foreach (var sub in Model.SubCategories)
+                            {
+                                <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fixbetrag</label>
+                        <div class="input-group">
+                            <span class="input-group-text">CHF</span>
+                            <input type="number" name="FixedAmount" class="form-control text-end" step="0.01" min="0" value="0" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Anzahl</label>
+                        @if (Model.ShowCampVariables)
+                        {
+                            <select name="QuantityVar" id="@(Model.CategorySelectId)_qvar" class="form-select mb-2">
+                                <option value="">– Zahl –</option>
+                                <option value="ParticipantsCount_fc">Teilnehmer (@Model.CampParticipantsCount_fc)</option>
+                                <option value="js_PersonsCount_fc">J+S Pers. (@Model.CampJs_PersonsCount_fc)</option>
+                                <option value="LeadersTeamCount_fc">Leitungsteam (@Model.CampLeadersTeamCount_fc)</option>
+                            </select>
+                            <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" step="0.01" min="0" value="0" />
+                        }
+                        else
+                        {
+                            <input type="number" name="Quantity" class="form-control text-end" step="0.01" min="0" value="0" />
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Einheitspreis</label>
+                        <div class="input-group">
+                            <span class="input-group-text">CHF</span>
+                            <input type="number" name="UnitAmount" class="form-control text-end" step="0.01" min="0" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Hinzufügen <i class="bi bi-plus-square"></i></button>
+                </div>
+            </form>
         </div>
     </div>
-</form>
+</div>
 
 <script>
     (function () {
