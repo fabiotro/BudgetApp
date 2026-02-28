@@ -45,6 +45,12 @@ namespace BudgetApp.Models
         [Range(0, int.MaxValue)]
         public decimal? UnitAmount_rl { get; set; }
 
+        [StringLength(50)]
+        public string? QuantityVar_fc { get; set; }
+
+        [StringLength(50)]
+        public string? QuantityVar_rl { get; set; }
+
         [Required]
         [Range(0, int.MaxValue)]
         public int SortIndex { get; set; }

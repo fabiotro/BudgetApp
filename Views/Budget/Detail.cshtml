@@ -1,6 +1,17 @@
 @model BudgetDetailViewModel
 @{
     ViewData["Title"] = Model.Budget.Name;
+
+    string QvarLabel(string? varName) => varName switch
+    {
+        "ParticipantsCount_fc" => "Teilnehmer",
+        "js_PersonsCount_fc"   => "J+S Pers.",
+        "LeadersTeamCount_fc"  => "Leitungsteam",
+        "ParticipantsCount_rl" => "Teilnehmer",
+        "js_PersonsCount_rl"   => "J+S Pers.",
+        "LeadersTeamCount_rl"  => "Leitungsteam",
+        _                      => varName ?? string.Empty
+    };
 }
 
 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -36,39 +47,50 @@
         {
             <h4 class="mt-4">@catGroup.Category.Name</h4>
 
-            @foreach (var subGroup in catGroup.SubGroups)
-            {
-                @if (subGroup.SubCategory != null)
-                {
-                    <h6 class="text-muted">@subGroup.SubCategory.Name</h6>
-                }
-                <table class="table table-sm table-bordered mb-2">
-                    <thead class="table-light">
-                        <tr>
-                            <th colspan="5" class="fw-normal fst-italic text-center w-50">Provisorisch</th>
-                            <th colspan="5" class="fw-normal fst-italic text-center w-50">Definitiv</th>
-                        </tr>
-                        <tr>
-                            <th>Position</th>
-                            <th class="text-end">Fixbetrag</th>
-                            <th class="text-end">Anzahl</th>
-                            <th class="text-end">Einheitspreis</th>
-                            <th class="text-end">Total</th>
-                            <th class="text-end">Fixbetrag</th>
-                            <th class="text-end">Anzahl</th>
-                            <th class="text-end">Einheitspreis</th>
-                            <th class="text-end">Total</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <table class="table table-sm table-bordered mb-2">
+                <thead class="table-light">
+                    <tr>
+                        <th colspan="5" class="fw-normal fst-italic text-center w-50">Provisorisch</th>
+                        <th colspan="5" class="fw-normal fst-italic text-center w-50">Definitiv</th>
+                    </tr>
+                    <tr>
+                        <th>Position</th>
+                        <th class="text-end">Fixbetrag</th>
+                        <th class="text-end">Anzahl</th>
+                        <th class="text-end">Einheitspreis</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-end">Fixbetrag</th>
+                        <th class="text-end">Anzahl</th>
+                        <th class="text-end">Einheitspreis</th>
+                        <th class="text-end">Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var subGroup in catGroup.SubGroups)
+                    {
+                        @if (subGroup.SubCategory != null)
+                        {
+                            <tr class="table-secondary">
+                                <td colspan="10" class="fst-italic py-1">@subGroup.SubCategory.Name</td>
+                            </tr>
+                        }
                         @foreach (var pos in subGroup.Positions)
                         {
                             <input type="hidden" name="positions[@pi].Id" value="@pos.Id" />
                             <tr class="@(pos.IsIncome ? "table-success" : "table-danger")">
                                 <td>@pos.Name</td>
                                 <td class="text-end">CHF @pos.FixedAmount_fc.ToString("N2")</td>
-                                <td class="text-end">@pos.Quantity_fc.ToString("N2")</td>
+                                <td class="text-end">
+                                    @if (pos.QuantityVar_fc != null)
+                                    {
+                                        <span class="badge bg-info text-dark" title="Variable: @pos.QuantityVar_fc">@QvarLabel(pos.QuantityVar_fc) (@pos.Quantity_fc.ToString("N0"))</span>
+                                    }
+                                    else
+                                    {
+                                        @pos.Quantity_fc.ToString("N2")
+                                    }
+                                </td>
                                 <td class="text-end">CHF @pos.UnitAmount_fc.ToString("N2")</td>
                                 <td class="text-end fw-semibold">CHF @pos.TotalAmount_fc.ToString("N2")</td>
                                 <td>
@@ -77,7 +99,17 @@
                                            value="@pos.FixedAmount_rl" />
                                 </td>
                                 <td>
+                                    <input type="hidden" id="qvar_rl_@pi" name="positions[@pi].QuantityVar_rl" value="@pos.QuantityVar_rl" />
+                                    <select class="form-select form-select-sm mb-1"
+                                            data-initial="@pos.QuantityVar_rl"
+                                            onchange="syncQvarRl(@pi, this.value)">
+                                        <option value="">– Zahl –</option>
+                                        <option value="ParticipantsCount_rl">Teilnehmer (@(Model.Camp.ParticipantsCount_rl.HasValue ? Model.Camp.ParticipantsCount_rl.ToString() : "–"))</option>
+                                        <option value="js_PersonsCount_rl">J+S Pers. (@(Model.Camp.js_PersonsCount_rl.HasValue ? Model.Camp.js_PersonsCount_rl.ToString() : "–"))</option>
+                                        <option value="LeadersTeamCount_rl">Leitungsteam (@(Model.Camp.LeadersTeamCount_rl.HasValue ? Model.Camp.LeadersTeamCount_rl.ToString() : "–"))</option>
+                                    </select>
                                     <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
+                                           id="qty_rl_@pi"
                                            name="positions[@pi].Quantity_rl"
                                            value="@pos.Quantity_rl" />
                                 </td>
@@ -97,18 +129,16 @@
                             </tr>
                             pi++;
                         }
-                    </tbody>
-                    <tfoot class="table-light">
-                        <tr>
+                        <tr class="table-light">
                             <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? catGroup.Category.Name)</td>
                             <td class="text-end fw-bold @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
                             <td colspan="3"></td>
                             <td class="text-end fw-bold @(subGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
                             <td></td>
                         </tr>
-                    </tfoot>
-                </table>
-            }
+                    }
+                </tbody>
+            </table>
 
             <div class="text-end mb-3">
                 <strong>Total @catGroup.Category.Name:</strong>
@@ -152,6 +182,34 @@
         </div>
     </form>
 
+    <script>
+        function syncQvarRl(pi, varName) {
+            document.getElementById('qvar_rl_' + pi).value = varName;
+            const qtyInput = document.getElementById('qty_rl_' + pi);
+            if (varName) {
+                qtyInput.value = '0';
+                qtyInput.disabled = true;
+            } else {
+                qtyInput.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('select[data-initial]').forEach(function (sel) {
+                const initial = sel.dataset.initial;
+                if (initial) {
+                    sel.value = initial;
+                    const pi = sel.getAttribute('onchange').match(/\d+/)[0];
+                    const qtyInput = document.getElementById('qty_rl_' + pi);
+                    if (qtyInput) {
+                        qtyInput.value = '0';
+                        qtyInput.disabled = true;
+                    }
+                }
+            });
+        });
+    </script>
+
     @* Hidden delete forms — associated via HTML5 form attribute to buttons inside the SaveRealAmounts form *@
     @foreach (var catGroup in Model.Groups)
     {
@@ -184,5 +242,9 @@ else
     SubCategorySelectId = "budgetAddSubCategoryId",
     PositionTypes = Model.PositionTypes,
     Categories = Model.AllCategories,
-    SubCategories = Model.AllSubCategories
+    SubCategories = Model.AllSubCategories,
+    ShowCampVariables = true,
+    CampParticipantsCount_fc = Model.Camp.ParticipantsCount_fc,
+    CampJs_PersonsCount_fc = Model.Camp.js_PersonsCount_fc,
+    CampLeadersTeamCount_fc = Model.Camp.LeadersTeamCount_fc
 })

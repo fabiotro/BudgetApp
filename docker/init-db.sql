@@ -103,12 +103,21 @@ CREATE TABLE [dbo].[Position](
     [FixedAmount_rl] [decimal](18, 2) NULL,
     [Quantity_rl] [decimal](18, 2) NULL,
     [UnitAmount_rl] [decimal](18, 2) NULL,
+    [QuantityVar_fc] [nvarchar](50) NULL,
+    [QuantityVar_rl] [nvarchar](50) NULL,
     [SortIndex] [int] NULL,
     [CreateDate] [datetime] NULL,
     [ChangeDate] [datetime] NULL,
     CONSTRAINT [PK_Position] PRIMARY KEY CLUSTERED ([Id] ASC)
 )
 END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Position]') AND name = 'QuantityVar_fc')
+    ALTER TABLE [dbo].[Position] ADD [QuantityVar_fc] [nvarchar](50) NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Position]') AND name = 'QuantityVar_rl')
+    ALTER TABLE [dbo].[Position] ADD [QuantityVar_rl] [nvarchar](50) NULL;
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TemplateBudget]') AND type = N'U')

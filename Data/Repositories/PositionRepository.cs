@@ -25,6 +25,8 @@ namespace BudgetApp.Data.Repositories
                   ,[FixedAmount_rl]
                   ,[Quantity_rl]
                   ,[UnitAmount_rl]
+                  ,[QuantityVar_fc]
+                  ,[QuantityVar_rl]
                   ,[SortIndex]
               FROM [dbo].[Position]
             ";
@@ -49,6 +51,8 @@ namespace BudgetApp.Data.Repositories
                   ,[FixedAmount_rl]
                   ,[Quantity_rl]
                   ,[UnitAmount_rl]
+                  ,[QuantityVar_fc]
+                  ,[QuantityVar_rl]
                   ,[SortIndex]
                 FROM [dbo].[Position]
                 WHERE [Id] = @Id
@@ -73,6 +77,8 @@ namespace BudgetApp.Data.Repositories
                   ,[FixedAmount_rl]
                   ,[Quantity_rl]
                   ,[UnitAmount_rl]
+                  ,[QuantityVar_fc]
+                  ,[QuantityVar_rl]
                   ,[SortIndex]
               FROM [dbo].[Position]
               WHERE [BudgetId] = @BudgetId
@@ -97,6 +103,8 @@ namespace BudgetApp.Data.Repositories
                     ,[FixedAmount_rl]
                     ,[Quantity_rl]
                     ,[UnitAmount_rl]
+                    ,[QuantityVar_fc]
+                    ,[QuantityVar_rl]
                     ,[SortIndex])
                 VALUES
                     (@BudgetId
@@ -110,6 +118,8 @@ namespace BudgetApp.Data.Repositories
                     ,@FixedAmount_rl
                     ,@Quantity_rl
                     ,@UnitAmount_rl
+                    ,@QuantityVar_fc
+                    ,@QuantityVar_rl
                     ,@SortIndex);
                 SELECT CAST(SCOPE_IDENTITY() as int);
             ";
@@ -133,6 +143,8 @@ namespace BudgetApp.Data.Repositories
                     ,[FixedAmount_rl] = @FixedAmount_rl
                     ,[Quantity_rl] = @Quantity_rl
                     ,[UnitAmount_rl] = @UnitAmount_rl
+                    ,[QuantityVar_fc] = @QuantityVar_fc
+                    ,[QuantityVar_rl] = @QuantityVar_rl
                     ,[SortIndex] = @SortIndex
                 WHERE [Id] = @Id
             ";

@@ -253,11 +253,25 @@ namespace BudgetApp.Controllers
                                                 Name = p.Name,
                                                 PositionTypeName = pt?.Name ?? string.Empty,
                                                 FixedAmount_fc = p.FixedAmount_fc,
-                                                Quantity_fc = p.Quantity_fc,
+                                                Quantity_fc = p.QuantityVar_fc switch
+                                                {
+                                                    "ParticipantsCount_fc" => (decimal)camp!.ParticipantsCount_fc,
+                                                    "js_PersonsCount_fc"   => (decimal)camp!.js_PersonsCount_fc,
+                                                    "LeadersTeamCount_fc"  => (decimal)camp!.LeadersTeamCount_fc,
+                                                    _                      => p.Quantity_fc
+                                                },
                                                 UnitAmount_fc = p.UnitAmount_fc,
                                                 FixedAmount_rl = p.FixedAmount_rl,
-                                                Quantity_rl = p.Quantity_rl,
-                                                UnitAmount_rl = p.UnitAmount_rl
+                                                Quantity_rl = p.QuantityVar_rl switch
+                                                {
+                                                    "ParticipantsCount_rl" => (decimal?)(camp!.ParticipantsCount_rl ?? 0),
+                                                    "js_PersonsCount_rl"   => (decimal?)(camp!.js_PersonsCount_rl ?? 0),
+                                                    "LeadersTeamCount_rl"  => (decimal?)(camp!.LeadersTeamCount_rl ?? 0),
+                                                    _                      => p.Quantity_rl
+                                                },
+                                                UnitAmount_rl = p.UnitAmount_rl,
+                                                QuantityVar_fc = p.QuantityVar_fc,
+                                                QuantityVar_rl = p.QuantityVar_rl
                                             };
                                         })
                                         .ToList()
@@ -299,7 +313,8 @@ namespace BudgetApp.Controllers
                     if (currentPositions.TryGetValue(update.Id, out var pos))
                     {
                         pos.FixedAmount_rl = update.FixedAmount_rl;
-                        pos.Quantity_rl = update.Quantity_rl;
+                        pos.QuantityVar_rl = string.IsNullOrEmpty(update.QuantityVar_rl) ? null : update.QuantityVar_rl;
+                        pos.Quantity_rl = string.IsNullOrEmpty(update.QuantityVar_rl) ? update.Quantity_rl : 0m;
                         pos.UnitAmount_rl = update.UnitAmount_rl;
                         await _positionRepo.Update(pos);
                     }
@@ -356,7 +371,8 @@ namespace BudgetApp.Controllers
                     SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId,
                     Name = vm.Name,
                     FixedAmount_fc = vm.FixedAmount,
-                    Quantity_fc = vm.Quantity,
+                    QuantityVar_fc = string.IsNullOrEmpty(vm.QuantityVar) ? null : vm.QuantityVar,
+                    Quantity_fc = string.IsNullOrEmpty(vm.QuantityVar) ? vm.Quantity : 0m,
                     UnitAmount_fc = vm.UnitAmount,
                     SortIndex = nextSortIndex
                 };

@@ -51,6 +51,8 @@ namespace BudgetApp.Models
         public decimal? FixedAmount_rl { get; set; }
         public decimal? Quantity_rl { get; set; }
         public decimal? UnitAmount_rl { get; set; }
+        public string? QuantityVar_fc { get; set; }
+        public string? QuantityVar_rl { get; set; }
 
         public decimal TotalAmount_fc => FixedAmount_fc + (Quantity_fc * UnitAmount_fc);
         public decimal TotalAmount_rl => (FixedAmount_rl ?? 0) + ((Quantity_rl ?? 0) * (UnitAmount_rl ?? 0));
@@ -65,6 +67,8 @@ namespace BudgetApp.Models
         public decimal? FixedAmount_rl { get; set; }
         public decimal? Quantity_rl { get; set; }
         public decimal? UnitAmount_rl { get; set; }
+        [StringLength(50)]
+        public string? QuantityVar_rl { get; set; }
     }
 
     public class AddBudgetPositionViewModel
@@ -87,6 +91,9 @@ namespace BudgetApp.Models
 
         [Range(0, double.MaxValue)]
         public decimal FixedAmount { get; set; }
+
+        [StringLength(50)]
+        public string? QuantityVar { get; set; }
 
         [Range(0, double.MaxValue)]
         public decimal Quantity { get; set; }

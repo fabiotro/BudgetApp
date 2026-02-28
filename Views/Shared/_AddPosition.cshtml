@@ -47,13 +47,26 @@
         </div>
         <div class="col-md-1">
             <label class="form-label">Anzahl</label>
-            <input type="number" name="Quantity" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
+            @if (Model.ShowCampVariables)
+            {
+                <select name="QuantityVar" id="@(Model.CategorySelectId)_qvar" class="form-select form-select-sm mb-1">
+                    <option value="">– Zahl –</option>
+                    <option value="ParticipantsCount_fc">Teilnehmer (@Model.CampParticipantsCount_fc)</option>
+                    <option value="js_PersonsCount_fc">J+S Pers. (@Model.CampJs_PersonsCount_fc)</option>
+                    <option value="LeadersTeamCount_fc">Leitungsteam (@Model.CampLeadersTeamCount_fc)</option>
+                </select>
+                <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
+            }
+            else
+            {
+                <input type="number" name="Quantity" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
+            }
         </div>
         <div class="col-md-1">
             <label class="form-label">Einheitspreis</label>
             <input type="number" name="UnitAmount" class="form-control form-control-sm text-end" step="0.01" min="0" value="0" />
         </div>
-        <div class="col-md-1 d-flex justify-content-end">
+        <div class="col-md-1 d-flex justify-content-end align-items-end">
             <button type="submit" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-square"></i>
             </button>
@@ -77,5 +90,25 @@
 
         filterSubCategories();
         categorySelect.addEventListener('change', filterSubCategories);
+
+        @if (Model.ShowCampVariables)
+        {
+            <text>
+        const qvarSelect = document.getElementById('@(Model.CategorySelectId)_qvar');
+        const qtyInput = document.getElementById('@(Model.CategorySelectId)_qty');
+
+        function syncQuantityVar() {
+            if (qvarSelect.value) {
+                qtyInput.value = '0';
+                qtyInput.disabled = true;
+            } else {
+                qtyInput.disabled = false;
+            }
+        }
+
+        syncQuantityVar();
+        qvarSelect.addEventListener('change', syncQuantityVar);
+            </text>
+        }
     })();
 </script>
