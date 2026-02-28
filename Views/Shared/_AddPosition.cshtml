@@ -106,8 +106,13 @@
             }
         }
 
+        function syncQtyInput() {
+            qvarSelect.disabled = qtyInput.value !== '' && parseFloat(qtyInput.value) !== 0;
+        }
+
         syncQuantityVar();
         qvarSelect.addEventListener('change', syncQuantityVar);
+        qtyInput.addEventListener('input', syncQtyInput);
             </text>
         }
     })();

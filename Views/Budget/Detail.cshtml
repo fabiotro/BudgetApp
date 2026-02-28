@@ -138,6 +138,15 @@
                         </tr>
                     }
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td></td>
+                        <td>CHF @catGroup.TotalAmount_fc.ToString("N2")</td>
+                        <td></td>
+                        <td>CHF @catGroup.TotalAmount_rl.ToString("N2")</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
 
             <div class="text-end mb-3">
@@ -194,6 +203,12 @@
             }
         }
 
+        function syncQtyRlInput(pi) {
+            const qtyInput = document.getElementById('qty_rl_' + pi);
+            const sel = qtyInput.closest('td').querySelector('select');
+            sel.disabled = qtyInput.value !== '' && parseFloat(qtyInput.value) !== 0;
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('select[data-initial]').forEach(function (sel) {
                 const initial = sel.dataset.initial;
@@ -206,6 +221,11 @@
                         qtyInput.disabled = true;
                     }
                 }
+            });
+
+            document.querySelectorAll('input[id^="qty_rl_"]').forEach(function (qtyInput) {
+                const pi = qtyInput.id.replace('qty_rl_', '');
+                qtyInput.addEventListener('input', function () { syncQtyRlInput(pi); });
             });
         });
     </script>
