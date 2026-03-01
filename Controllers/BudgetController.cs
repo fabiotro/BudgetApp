@@ -308,39 +308,83 @@ namespace BudgetApp.Controllers
             return View(vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> EditPositionModal(int id)
+        {
+            var pos = await _positionRepo.GetById(id);
+            if (pos == null) return NotFound();
+
+            var budget = await _budgetRepo.GetById(pos.BudgetId);
+            if (budget == null) return NotFound();
+
+            var camp = await _campRepo.GetById(budget.CampId);
+            var positionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList();
+            var categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
+            var subCategories = (await _subCategoryRepo.GetAll()).OrderBy(sc => sc.SortIndex).ToList();
+
+            var vm = new EditBudgetPositionViewModel
+            {
+                Id = pos.Id,
+                BudgetId = pos.BudgetId,
+                Name = pos.Name,
+                PositionTypeId = pos.PositionTypeId,
+                CategoryId = pos.CategoryId,
+                SubCategoryId = pos.SubCategoryId,
+                FixedAmount_fc = pos.FixedAmount_fc,
+                QuantityVar_fc = pos.QuantityVar_fc,
+                Quantity_fc = pos.Quantity_fc,
+                UnitAmount_fc = pos.UnitAmount_fc,
+                FixedAmount_rl = pos.FixedAmount_rl,
+                QuantityVar_rl = pos.QuantityVar_rl,
+                Quantity_rl = pos.Quantity_rl,
+                UnitAmount_rl = pos.UnitAmount_rl,
+                PositionTypes = positionTypes,
+                Categories = categories,
+                SubCategories = subCategories,
+                CampParticipantsCount_fc = camp?.ParticipantsCount_fc ?? 0,
+                CampJs_PersonsCount_fc = camp?.js_PersonsCount_fc ?? 0,
+                CampLeadersTeamCount_fc = camp?.LeadersTeamCount_fc ?? 0,
+                CampParticipantsCount_rl = camp?.ParticipantsCount_rl,
+                CampJs_PersonsCount_rl = camp?.js_PersonsCount_rl,
+                CampLeadersTeamCount_rl = camp?.LeadersTeamCount_rl
+            };
+            return PartialView("_EditPositionModal", vm);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveRealAmounts(int budgetId, List<PositionUpdateViewModel> positions)
+        public async Task<IActionResult> SavePosition(EditBudgetPositionViewModel vm)
         {
             var toast = new ToastMessageViewModel();
-
             try
             {
-                var currentPositions = (await _positionRepo.GetByBudgetId(budgetId))
-                    .ToDictionary(p => p.Id);
-
-                foreach (var update in positions)
+                var pos = await _positionRepo.GetById(vm.Id);
+                if (pos != null)
                 {
-                    if (currentPositions.TryGetValue(update.Id, out var pos))
-                    {
-                        pos.FixedAmount_rl = update.FixedAmount_rl;
-                        pos.QuantityVar_rl = string.IsNullOrEmpty(update.QuantityVar_rl) ? null : update.QuantityVar_rl;
-                        pos.Quantity_rl = string.IsNullOrEmpty(update.QuantityVar_rl) ? update.Quantity_rl : 0m;
-                        pos.UnitAmount_rl = update.UnitAmount_rl;
-                        await _positionRepo.Update(pos);
-                    }
+                    pos.Name = vm.Name;
+                    pos.PositionTypeId = vm.PositionTypeId;
+                    pos.CategoryId = vm.CategoryId;
+                    pos.SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId;
+                    pos.FixedAmount_fc = vm.FixedAmount_fc ?? 0;
+                    pos.QuantityVar_fc = string.IsNullOrEmpty(vm.QuantityVar_fc) ? null : vm.QuantityVar_fc;
+                    pos.Quantity_fc = string.IsNullOrEmpty(vm.QuantityVar_fc) ? (vm.Quantity_fc ?? 0) : 0m;
+                    pos.UnitAmount_fc = vm.UnitAmount_fc ?? 0;
+                    pos.FixedAmount_rl = vm.FixedAmount_rl;
+                    pos.QuantityVar_rl = string.IsNullOrEmpty(vm.QuantityVar_rl) ? null : vm.QuantityVar_rl;
+                    pos.Quantity_rl = string.IsNullOrEmpty(vm.QuantityVar_rl) ? vm.Quantity_rl : 0m;
+                    pos.UnitAmount_rl = vm.UnitAmount_rl;
+                    await _positionRepo.Update(pos);
                 }
-
                 toast = new ToastMessageViewModel
                 {
                     Title = "Erfolg",
-                    Message = "Änderungen gespeichert.",
+                    Message = "Position gespeichert.",
                     Type = ToastType.Success
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in SaveRealAmounts");
+                _logger.LogError(ex, "Error in SavePosition");
                 toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
@@ -348,9 +392,8 @@ namespace BudgetApp.Controllers
                     Type = ToastType.Error
                 };
             }
-
             TempData.Put("ToastMsg", toast);
-            return RedirectToAction(nameof(Detail), new { id = budgetId });
+            return RedirectToAction(nameof(Detail), new { id = vm.BudgetId });
         }
 
         [HttpPost]

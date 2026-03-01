@@ -71,6 +71,53 @@ namespace BudgetApp.Models
         public string? QuantityVar_rl { get; set; }
     }
 
+    public class EditBudgetPositionViewModel
+    {
+        public int Id { get; set; }
+        public int BudgetId { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int PositionTypeId { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int CategoryId { get; set; }
+
+        public int? SubCategoryId { get; set; }
+
+        // Provisorisch
+        public decimal? FixedAmount_fc { get; set; }
+        [StringLength(50)]
+        public string? QuantityVar_fc { get; set; }
+        public decimal? Quantity_fc { get; set; }
+        public decimal? UnitAmount_fc { get; set; }
+
+        // Definitiv
+        public decimal? FixedAmount_rl { get; set; }
+        [StringLength(50)]
+        public string? QuantityVar_rl { get; set; }
+        public decimal? Quantity_rl { get; set; }
+        public decimal? UnitAmount_rl { get; set; }
+
+        // Select lists (not submitted)
+        public List<PositionTypeModel> PositionTypes { get; set; } = [];
+        public List<CategoryModel> Categories { get; set; } = [];
+        public List<SubCategoryModel> SubCategories { get; set; } = [];
+
+        // Camp variable values for dropdowns
+        public int CampParticipantsCount_fc { get; set; }
+        public int CampJs_PersonsCount_fc { get; set; }
+        public int CampLeadersTeamCount_fc { get; set; }
+        public int? CampParticipantsCount_rl { get; set; }
+        public int? CampJs_PersonsCount_rl { get; set; }
+        public int? CampLeadersTeamCount_rl { get; set; }
+    }
+
     public class AddBudgetPositionViewModel
     {
         public int BudgetId { get; set; }

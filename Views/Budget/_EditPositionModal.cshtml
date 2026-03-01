@@ -1,0 +1,177 @@
+@model EditBudgetPositionViewModel
+
+<div class="modal fade" id="editPositionModal" tabindex="-1" aria-labelledby="editPositionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPositionModalLabel">Position bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <form asp-action="SavePosition" asp-controller="Budget" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <input type="hidden" name="BudgetId" value="@Model.BudgetId" />
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Typ <span class="text-danger">*</span></label>
+                        <select asp-for="PositionTypeId" class="form-select" required
+                                asp-items="@(new SelectList(Model.PositionTypes, "Id", "Name"))">
+                            <option value="0">– Typ –</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Kategorie <span class="text-danger">*</span></label>
+                            <select asp-for="CategoryId" id="editBpCategoryId" class="form-select" required
+                                    asp-items="@(new SelectList(Model.Categories, "Id", "Name"))">
+                                <option value="0">– Kategorie –</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unterkategorie</label>
+                            <select asp-for="SubCategoryId" id="editBpSubCategoryId" class="form-select">
+                                <option value="">– Unterkategorie –</option>
+                                @foreach (var sub in Model.SubCategories)
+                                {
+                                    <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="fst-italic text-muted mb-3">Provisorisch</p>
+
+                            <div class="mb-3">
+                                <label class="form-label">Fixbetrag</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">CHF</span>
+                                    <input asp-for="FixedAmount_fc" type="text" inputmode="decimal" class="form-control text-end" />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Anzahl</label>
+                                <input type="hidden" id="editBpQvar_fc" name="QuantityVar_fc" value="@Model.QuantityVar_fc" />
+                                <select id="editBpQvarSelect_fc" class="form-select mb-2" data-initial="@Model.QuantityVar_fc">
+                                    <option value="">– Zahl –</option>
+                                    <option value="ParticipantsCount_fc">Teilnehmer (@Model.CampParticipantsCount_fc)</option>
+                                    <option value="js_PersonsCount_fc">J+S Pers. (@Model.CampJs_PersonsCount_fc)</option>
+                                    <option value="LeadersTeamCount_fc">Leitungsteam (@Model.CampLeadersTeamCount_fc)</option>
+                                </select>
+                                <input asp-for="Quantity_fc" type="number" id="editBpQty_fc" class="form-control text-end" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Einheitspreis</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">CHF</span>
+                                    <input asp-for="UnitAmount_fc" type="text" inputmode="decimal" class="form-control text-end" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 border-start ps-4">
+                            <p class="fst-italic text-muted mb-3">Definitiv</p>
+
+                            <div class="mb-3">
+                                <label class="form-label">Fixbetrag</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">CHF</span>
+                                    <input asp-for="FixedAmount_rl" type="text" inputmode="decimal" class="form-control text-end" />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Anzahl</label>
+                                <input type="hidden" id="editBpQvar_rl" name="QuantityVar_rl" value="@Model.QuantityVar_rl" />
+                                <select id="editBpQvarSelect_rl" class="form-select mb-2" data-initial="@Model.QuantityVar_rl">
+                                    <option value="">– Zahl –</option>
+                                    <option value="ParticipantsCount_rl">Teilnehmer (@(Model.CampParticipantsCount_rl.HasValue ? Model.CampParticipantsCount_rl.ToString() : "–"))</option>
+                                    <option value="js_PersonsCount_rl">J+S Pers. (@(Model.CampJs_PersonsCount_rl.HasValue ? Model.CampJs_PersonsCount_rl.ToString() : "–"))</option>
+                                    <option value="LeadersTeamCount_rl">Leitungsteam (@(Model.CampLeadersTeamCount_rl.HasValue ? Model.CampLeadersTeamCount_rl.ToString() : "–"))</option>
+                                </select>
+                                <input asp-for="Quantity_rl" type="number" id="editBpQty_rl" class="form-control text-end" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Einheitspreis</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">CHF</span>
+                                    <input asp-for="UnitAmount_rl" type="text" inputmode="decimal" class="form-control text-end" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Speichern <i class="bi bi-floppy"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        // Category / SubCategory filtering
+        const categorySelect    = document.getElementById('editBpCategoryId');
+        const subCategorySelect = document.getElementById('editBpSubCategoryId');
+        const allSubOptions     = Array.from(subCategorySelect.querySelectorAll('option[data-category]'));
+        const initialSubId      = '@Model.SubCategoryId';
+
+        function filterSubCategories(keepSelection) {
+            const selCatId = categorySelect.value;
+            subCategorySelect.innerHTML = '<option value="">– Unterkategorie –</option>';
+            allSubOptions
+                .filter(opt => selCatId && selCatId !== '0' && opt.dataset.category === selCatId)
+                .forEach(opt => {
+                    const clone = opt.cloneNode(true);
+                    if (keepSelection && clone.value === initialSubId) clone.selected = true;
+                    subCategorySelect.appendChild(clone);
+                });
+        }
+        filterSubCategories(true);
+        categorySelect.addEventListener('change', () => filterSubCategories(false));
+
+        // Provisorisch quantity variable
+        const qvarHidden_fc = document.getElementById('editBpQvar_fc');
+        const qvarSelect_fc = document.getElementById('editBpQvarSelect_fc');
+        const qtyInput_fc   = document.getElementById('editBpQty_fc');
+
+        function syncQvar_fc(v) {
+            qvarHidden_fc.value = v;
+            if (v) { qtyInput_fc.value = '0'; qtyInput_fc.disabled = true; }
+            else   { qtyInput_fc.disabled = false; }
+        }
+        const initial_fc = qvarSelect_fc.dataset.initial;
+        if (initial_fc) { qvarSelect_fc.value = initial_fc; syncQvar_fc(initial_fc); }
+        qvarSelect_fc.addEventListener('change', function () { syncQvar_fc(this.value); });
+        qtyInput_fc.addEventListener('input', function () {
+            qvarSelect_fc.disabled = this.value !== '' && parseFloat(this.value) !== 0;
+        });
+
+        // Definitiv quantity variable
+        const qvarHidden_rl = document.getElementById('editBpQvar_rl');
+        const qvarSelect_rl = document.getElementById('editBpQvarSelect_rl');
+        const qtyInput_rl   = document.getElementById('editBpQty_rl');
+
+        function syncQvar_rl(v) {
+            qvarHidden_rl.value = v;
+            if (v) { qtyInput_rl.value = '0'; qtyInput_rl.disabled = true; }
+            else   { qtyInput_rl.disabled = false; }
+        }
+        const initial_rl = qvarSelect_rl.dataset.initial;
+        if (initial_rl) { qvarSelect_rl.value = initial_rl; syncQvar_rl(initial_rl); }
+        qvarSelect_rl.addEventListener('change', function () { syncQvar_rl(this.value); });
+        qtyInput_rl.addEventListener('input', function () {
+            qvarSelect_rl.disabled = this.value !== '' && parseFloat(this.value) !== 0;
+        });
+    })();
+</script>

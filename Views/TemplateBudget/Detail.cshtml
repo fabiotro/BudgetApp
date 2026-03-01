@@ -124,6 +124,7 @@ else
                 const container = document.getElementById('editPositionModalContainer');
                 container.innerHTML = html;
                 initCurrencyInputs(container);
+                initCountInputs(container);
                 new bootstrap.Modal(container.querySelector('.modal')).show();
             });
     }

@@ -42,220 +42,157 @@
 
 @if (Model.Groups.Any())
 {
-    <form asp-action="SaveRealAmounts" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="budgetId" value="@Model.Budget.Id" />
-
-        @{ int pi = 0; }
-
-        @foreach (var catGroup in Model.Groups)
-        {
-            <h4 class="mt-4">@catGroup.Category.Name</h4>
-
-            <table class="table table-sm table-bordered mb-2">
-                <thead class="table-light">
-                    <tr>
-                        <th colspan="5" class="fw-normal fst-italic text-center w-50">Provisorisch</th>
-                        <th colspan="5" class="fw-normal fst-italic text-center w-50">Definitiv</th>
-                    </tr>
-                    <tr>
-                        <th>Position</th>
-                        <th class="text-end">Fixbetrag</th>
-                        <th class="text-end">Anzahl</th>
-                        <th class="text-end">Einheitspreis</th>
-                        <th class="text-end">Total</th>
-                        <th class="text-end">Fixbetrag</th>
-                        <th class="text-end">Anzahl</th>
-                        <th class="text-end">Einheitspreis</th>
-                        <th class="text-end">Total</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var subGroup in catGroup.SubGroups)
-                    {
-                        @if (subGroup.SubCategory != null)
-                        {
-                            <tr class="table-secondary">
-                                <td colspan="10" class="fw-semibold py-1">@subGroup.SubCategory.Name</td>
-                            </tr>
-                        }
-                        @foreach (var pos in subGroup.Positions)
-                        {
-                            <input type="hidden" name="positions[@pi].Id" value="@pos.Id" />
-                            <tr class="@(pos.IsIncome ? "table-success" : "table-danger")">
-                                <td class="@(subGroup.SubCategory != null ? "ps-3" : "")">@pos.Name</td>
-                                <td class="text-end">CHF @pos.FixedAmount_fc.ToString("N2")</td>
-                                <td class="text-end">
-                                    @if (pos.QuantityVar_fc != null)
-                                    {
-                                        <span class="badge bg-info text-dark" title="Variable: @pos.QuantityVar_fc">@QvarLabel(pos.QuantityVar_fc) (@pos.Quantity_fc.ToString("N0"))</span>
-                                    }
-                                    else
-                                    {
-                                        @pos.Quantity_fc.ToString("N2")
-                                    }
-                                </td>
-                                <td class="text-end">CHF @pos.UnitAmount_fc.ToString("N2")</td>
-                                <td class="text-end fw-semibold">CHF @pos.TotalAmount_fc.ToString("N2")</td>
-                                <td>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">CHF</span>
-                                        <input class="form-control text-end" type="number" step="0.01" min="0"
-                                           name="positions[@pi].FixedAmount_rl"
-                                           value="@pos.FixedAmount_rl" />
-                                    </div>
-                                </td>
-                                <td>
-                                    <input type="hidden" id="qvar_rl_@pi" name="positions[@pi].QuantityVar_rl" value="@pos.QuantityVar_rl" />
-                                    <select class="form-select form-select-sm mb-1"
-                                            data-initial="@pos.QuantityVar_rl"
-                                            onchange="syncQvarRl(@pi, this.value)">
-                                        <option value="">- Variabel -</option>
-                                        <option value="ParticipantsCount_rl">Teilnehmer (@(Model.Camp.ParticipantsCount_rl.HasValue ? Model.Camp.ParticipantsCount_rl.ToString() : "–"))</option>
-                                        <option value="js_PersonsCount_rl">J+S Pers. (@(Model.Camp.js_PersonsCount_rl.HasValue ? Model.Camp.js_PersonsCount_rl.ToString() : "–"))</option>
-                                        <option value="LeadersTeamCount_rl">Leitungsteam (@(Model.Camp.LeadersTeamCount_rl.HasValue ? Model.Camp.LeadersTeamCount_rl.ToString() : "–"))</option>
-                                    </select>
-                                    <input class="form-control form-control-sm text-end" type="number" step="0.01" min="0"
-                                           id="qty_rl_@pi"
-                                           name="positions[@pi].Quantity_rl"
-                                           value="@pos.Quantity_rl" />
-                                </td>
-                                <td>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">CHF</span>
-                                        <input class="form-control text-end" type="number" step="0.01" min="0"
-                                           name="positions[@pi].UnitAmount_rl"
-                                           value="@pos.UnitAmount_rl" />
-                                    </div>
-                                </td>
-                                <td class="text-end fw-semibold">CHF @pos.TotalAmount_rl.ToString("N2")</td>
-                                <td>
-                                    <button type="submit" form="deletePos-@pos.Id"
-                                            class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Position «@pos.Name» wirklich löschen?')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            pi++;
-                        }
-                        <tr class="table-light border-top border-secondary border-opacity-25">
-                            <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "übrige Positionen")</td>
-                            <td class="text-end @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
-                            <td colspan="3"></td>
-                            <td class="text-end @(subGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
-                            <td></td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr class="table-secondary">
-                        <td colspan="4" class="fw-bold">Total @(catGroup.Category.Name)</td>
-                        <td class="fw-bold text-end @(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_fc.ToString("N2")</td>
-                        <td colspan="3"></td>
-                        <td class="fw-bold text-end @(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_rl.ToString("N2")</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
-        }
-
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Gesamttotal</h5>
-                <div class="row mb-1">
-                    <div class="col-md-6 fst-italic">Provisorisch</div>
-                    <div class="col-md-6 fst-italic">Definitiv</div>
-                </div>
-                <hr class="my-2" />
-                <div class="row mb-1">
-                    <div class="col-6 col-md-3">Einnahmen</div>
-                    <div class="col-6 col-md-3 text-success text-end">CHF @Model.TotalIncome_fc.ToString("N2")</div>
-                    <div class="col-6 col-md-3">Einnahmen</div>
-                    <div class="col-6 col-md-3 text-success text-end">CHF @Model.TotalIncome_rl.ToString("N2")</div>
-                </div>
-                <div class="row mb-1">
-                    <div class="col-6 col-md-3">Ausgaben</div>
-                    <div class="col-6 col-md-3 text-danger text-end">CHF @Model.TotalExpenses_fc.ToString("N2")</div>
-                    <div class="col-6 col-md-3">Ausgaben</div>
-                    <div class="col-6 col-md-3 text-danger text-end">CHF @Model.TotalExpenses_rl.ToString("N2")</div>
-                </div>
-                <hr class="my-2" />
-                <div class="row">
-                    <div class="col-6 col-md-3 fw-bold">Saldo</div>
-                    <div class="col-6 col-md-3 text-end fw-bold @(Model.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_fc.ToString("N2")</div>
-                    <div class="col-6 col-md-3 fw-bold">Saldo</div>
-                    <div class="col-6 col-md-3 text-end fw-bold @(Model.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_rl.ToString("N2")</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary mt-3">Änderungen speichern <i class="bi bi-floppy"></i></button>
-        </div>
-    </form>
-
-    <script>
-        function syncQvarRl(pi, varName) {
-            document.getElementById('qvar_rl_' + pi).value = varName;
-            const qtyInput = document.getElementById('qty_rl_' + pi);
-            if (varName) {
-                qtyInput.value = '0';
-                qtyInput.disabled = true;
-            } else {
-                qtyInput.disabled = false;
-            }
-        }
-
-        function syncQtyRlInput(pi) {
-            const qtyInput = document.getElementById('qty_rl_' + pi);
-            const sel = qtyInput.closest('td').querySelector('select');
-            sel.disabled = qtyInput.value !== '' && parseFloat(qtyInput.value) !== 0;
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('select[data-initial]').forEach(function (sel) {
-                const initial = sel.dataset.initial;
-                if (initial) {
-                    sel.value = initial;
-                    const pi = sel.getAttribute('onchange').match(/\d+/)[0];
-                    const qtyInput = document.getElementById('qty_rl_' + pi);
-                    if (qtyInput) {
-                        qtyInput.value = '0';
-                        qtyInput.disabled = true;
-                    }
-                }
-            });
-
-            document.querySelectorAll('input[id^="qty_rl_"]').forEach(function (qtyInput) {
-                const pi = qtyInput.id.replace('qty_rl_', '');
-                qtyInput.addEventListener('input', function () { syncQtyRlInput(pi); });
-            });
-        });
-    </script>
-
-    @* Hidden delete forms — associated via HTML5 form attribute to buttons inside the SaveRealAmounts form *@
     @foreach (var catGroup in Model.Groups)
     {
-        @foreach (var subGroup in catGroup.SubGroups)
-        {
-            @foreach (var pos in subGroup.Positions)
-            {
-                <form id="deletePos-@pos.Id" asp-action="DeleteBudgetPosition" method="post" style="display:none">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@pos.Id" />
-                    <input type="hidden" name="budgetId" value="@Model.Budget.Id" />
-                </form>
-            }
-        }
+        <h4 class="mt-4">@catGroup.Category.Name</h4>
+
+        <table class="table table-sm table-bordered mb-2">
+            <thead class="table-light">
+                <tr>
+                    <th colspan="5" class="fw-normal fst-italic text-center w-50">Provisorisch</th>
+                    <th colspan="5" class="fw-normal fst-italic text-center w-50">Definitiv</th>
+                </tr>
+                <tr>
+                    <th>Position</th>
+                    <th class="text-end">Fixbetrag</th>
+                    <th class="text-end">Anzahl</th>
+                    <th class="text-end">Einheitspreis</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-end">Fixbetrag</th>
+                    <th class="text-end">Anzahl</th>
+                    <th class="text-end">Einheitspreis</th>
+                    <th class="text-end">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var subGroup in catGroup.SubGroups)
+                {
+                    @if (subGroup.SubCategory != null)
+                    {
+                        <tr class="table-secondary">
+                            <td colspan="10" class="fw-semibold py-1">@subGroup.SubCategory.Name</td>
+                        </tr>
+                    }
+                    @foreach (var pos in subGroup.Positions)
+                    {
+                        <tr class="@(pos.IsIncome ? "table-success" : "table-danger")">
+                            <td class="@(subGroup.SubCategory != null ? "ps-3" : "")">@pos.Name</td>
+                            <td class="text-end">CHF @pos.FixedAmount_fc.ToString("N2")</td>
+                            <td class="text-end">
+                                @if (pos.QuantityVar_fc != null)
+                                {
+                                    <span class="badge bg-info text-dark" title="Variable: @pos.QuantityVar_fc">@QvarLabel(pos.QuantityVar_fc) (@pos.Quantity_fc.ToString("N0"))</span>
+                                }
+                                else
+                                {
+                                    @pos.Quantity_fc.ToString("N0")
+                                }
+                            </td>
+                            <td class="text-end">CHF @pos.UnitAmount_fc.ToString("N2")</td>
+                            <td class="text-end fw-semibold">CHF @pos.TotalAmount_fc.ToString("N2")</td>
+                            <td class="text-end">@(pos.FixedAmount_rl == null ? "–" : "CHF " + pos.FixedAmount_rl.Value.ToString("N2"))</td>
+                            <td class="text-end">
+                                @if (pos.QuantityVar_rl != null)
+                                {
+                                    <span class="badge bg-info text-dark" title="Variable: @pos.QuantityVar_rl">@QvarLabel(pos.QuantityVar_rl) (@pos.Quantity_rl?.ToString("N0"))</span>
+                                }
+                                else
+                                {
+                                    @(pos.Quantity_rl?.ToString("N0") ?? "–")
+                                }
+                            </td>
+                            <td class="text-end">@(pos.UnitAmount_rl == null ? "–" : "CHF " + pos.UnitAmount_rl.Value.ToString("N2"))</td>
+                            <td class="text-end fw-semibold">CHF @pos.TotalAmount_rl.ToString("N2")</td>
+                            <td class="text-end text-nowrap">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick="openEditPositionModal(@pos.Id)">
+                                    <i class="bi bi-pen"></i>
+                                </button>
+                                <form asp-action="DeleteBudgetPosition" method="post" class="d-inline"
+                                      onsubmit="return confirm('Position «@pos.Name» wirklich löschen?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@pos.Id" />
+                                    <input type="hidden" name="budgetId" value="@Model.Budget.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    <tr class="table-light border-top border-secondary border-opacity-25">
+                        <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "übrige Positionen")</td>
+                        <td class="text-end @(subGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_fc.ToString("N2")</td>
+                        <td colspan="3"></td>
+                        <td class="text-end @(subGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount_rl.ToString("N2")</td>
+                        <td></td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-secondary">
+                    <td colspan="4" class="fw-bold">Total @catGroup.Category.Name</td>
+                    <td class="fw-bold text-end @(catGroup.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_fc.ToString("N2")</td>
+                    <td colspan="3"></td>
+                    <td class="fw-bold text-end @(catGroup.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount_rl.ToString("N2")</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
     }
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Gesamttotal</h5>
+            <div class="row mb-1">
+                <div class="col-md-6 fst-italic">Provisorisch</div>
+                <div class="col-md-6 fst-italic">Definitiv</div>
+            </div>
+            <hr class="my-2" />
+            <div class="row mb-1">
+                <div class="col-6 col-md-3">Einnahmen</div>
+                <div class="col-6 col-md-3 text-success text-end">CHF @Model.TotalIncome_fc.ToString("N2")</div>
+                <div class="col-6 col-md-3">Einnahmen</div>
+                <div class="col-6 col-md-3 text-success text-end">CHF @Model.TotalIncome_rl.ToString("N2")</div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-6 col-md-3">Ausgaben</div>
+                <div class="col-6 col-md-3 text-danger text-end">CHF @Model.TotalExpenses_fc.ToString("N2")</div>
+                <div class="col-6 col-md-3">Ausgaben</div>
+                <div class="col-6 col-md-3 text-danger text-end">CHF @Model.TotalExpenses_rl.ToString("N2")</div>
+            </div>
+            <hr class="my-2" />
+            <div class="row">
+                <div class="col-6 col-md-3 fw-bold">Saldo</div>
+                <div class="col-6 col-md-3 text-end fw-bold @(Model.TotalAmount_fc >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_fc.ToString("N2")</div>
+                <div class="col-6 col-md-3 fw-bold">Saldo</div>
+                <div class="col-6 col-md-3 text-end fw-bold @(Model.TotalAmount_rl >= 0 ? "text-success" : "text-danger")">CHF @Model.TotalAmount_rl.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
 }
 else
 {
     <p class="text-muted">Keine Positionen vorhanden.</p>
     <a asp-action="Index" class="btn btn-outline-secondary">Zur Übersicht</a>
 }
+
+<div id="editPositionModalContainer"></div>
+
+<script>
+    function openEditPositionModal(id) {
+        fetch('@Url.Action("EditPositionModal", "Budget")?id=' + id)
+            .then(r => r.text())
+            .then(html => {
+                const container = document.getElementById('editPositionModalContainer');
+                container.innerHTML = html;
+                initCurrencyInputs(container);
+                initCountInputs(container);
+                new bootstrap.Modal(container.querySelector('.modal')).show();
+            });
+    }
+</script>
 
 @await Html.PartialAsync("_AddPosition", new AddPositionPartialViewModel
 {

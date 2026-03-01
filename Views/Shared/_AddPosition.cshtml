@@ -49,7 +49,7 @@
                         <label class="form-label">Fixbetrag</label>
                         <div class="input-group">
                             <span class="input-group-text">CHF</span>
-                            <input type="number" name="FixedAmount" class="form-control text-end" step="0.01" min="0" value="0" />
+                            <input type="text" inputmode="decimal" name="FixedAmount" class="form-control text-end" value="0" />
                         </div>
                     </div>
                     <div class="mb-3">
@@ -62,18 +62,18 @@
                                 <option value="js_PersonsCount_fc">J+S Pers. (@Model.CampJs_PersonsCount_fc)</option>
                                 <option value="LeadersTeamCount_fc">Leitungsteam (@Model.CampLeadersTeamCount_fc)</option>
                             </select>
-                            <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" step="0.01" min="0" value="0" />
+                            <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" value="0" />
                         }
                         else
                         {
-                            <input type="number" name="Quantity" class="form-control text-end" step="0.01" min="0" value="0" />
+                            <input type="number" name="Quantity" class="form-control text-end" value="0" />
                         }
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Einheitspreis</label>
                         <div class="input-group">
                             <span class="input-group-text">CHF</span>
-                            <input type="number" name="UnitAmount" class="form-control text-end" step="0.01" min="0" value="0" />
+                            <input type="text" inputmode="decimal" name="UnitAmount" class="form-control text-end" value="0" />
                         </div>
                     </div>
                 </div>
