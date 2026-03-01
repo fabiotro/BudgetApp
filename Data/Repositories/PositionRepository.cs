@@ -25,6 +25,8 @@ namespace BudgetApp.Data.Repositories
                   ,[FixedAmount_rl]
                   ,[Quantity_rl]
                   ,[UnitAmount_rl]
+                  ,[QuantityVar_fc]
+                  ,[QuantityVar_rl]
                   ,[SortIndex]
               FROM [dbo].[Position]
             ";
@@ -49,11 +51,39 @@ namespace BudgetApp.Data.Repositories
                   ,[FixedAmount_rl]
                   ,[Quantity_rl]
                   ,[UnitAmount_rl]
+                  ,[QuantityVar_fc]
+                  ,[QuantityVar_rl]
                   ,[SortIndex]
                 FROM [dbo].[Position]
                 WHERE [Id] = @Id
             ";
             return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Id = id });
+        }
+
+        public async Task<IEnumerable<T>> GetByBudgetId(int budgetId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+            @"
+            SELECT [Id]
+                  ,[BudgetId]
+                  ,[PositionTypeId]
+                  ,[CategoryId]
+                  ,[SubCategoryId]
+                  ,[Name]
+                  ,[FixedAmount_fc]
+                  ,[Quantity_fc]
+                  ,[UnitAmount_fc]
+                  ,[FixedAmount_rl]
+                  ,[Quantity_rl]
+                  ,[UnitAmount_rl]
+                  ,[QuantityVar_fc]
+                  ,[QuantityVar_rl]
+                  ,[SortIndex]
+              FROM [dbo].[Position]
+              WHERE [BudgetId] = @BudgetId
+            ";
+            return await conn.QueryAsync<T>(sql, new { BudgetId = budgetId });
         }
 
         public async Task<int> Create(T position)
@@ -73,6 +103,8 @@ namespace BudgetApp.Data.Repositories
                     ,[FixedAmount_rl]
                     ,[Quantity_rl]
                     ,[UnitAmount_rl]
+                    ,[QuantityVar_fc]
+                    ,[QuantityVar_rl]
                     ,[SortIndex])
                 VALUES
                     (@BudgetId
@@ -86,6 +118,8 @@ namespace BudgetApp.Data.Repositories
                     ,@FixedAmount_rl
                     ,@Quantity_rl
                     ,@UnitAmount_rl
+                    ,@QuantityVar_fc
+                    ,@QuantityVar_rl
                     ,@SortIndex);
                 SELECT CAST(SCOPE_IDENTITY() as int);
             ";
@@ -109,6 +143,8 @@ namespace BudgetApp.Data.Repositories
                     ,[FixedAmount_rl] = @FixedAmount_rl
                     ,[Quantity_rl] = @Quantity_rl
                     ,[UnitAmount_rl] = @UnitAmount_rl
+                    ,[QuantityVar_fc] = @QuantityVar_fc
+                    ,[QuantityVar_rl] = @QuantityVar_rl
                     ,[SortIndex] = @SortIndex
                 WHERE [Id] = @Id
             ";
@@ -121,6 +157,14 @@ namespace BudgetApp.Data.Repositories
             using var conn = _context.CreateConnection();
             var sql = "DELETE FROM [dbo].[Position] WHERE [Id] = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id });
+        }
+
+        public async Task<int> DeleteByBudgetId(int budgetId)
+        {
+            ValidateId(budgetId);
+            using var conn = _context.CreateConnection();
+            var sql = "DELETE FROM [dbo].[Position] WHERE [BudgetId] = @BudgetId";
+            return await conn.ExecuteAsync(sql, new { BudgetId = budgetId });
         }
     }
 }

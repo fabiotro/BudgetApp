@@ -18,22 +18,20 @@ namespace BudgetApp.Models
         [Range(1, int.MaxValue)]
         public int CategoryId { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int SubCategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
 
         [Required]
         [StringLength(255)]
         public required string Name { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal FixedAmount { get; set; }
+        public decimal? FixedAmount { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal Quantity { get; set; }
+        public decimal? Quantity { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal UnitAmount { get; set; }
+        public decimal? UnitAmount { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

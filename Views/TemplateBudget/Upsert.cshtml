@@ -1,0 +1,40 @@
+@model TemplateBudgetModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Neue Vorlage" : "Vorlage bearbeiten";
+    var isNew = Model.Id == 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>@(isNew ? "Neue Vorlage erstellen" : "Vorlage bearbeiten")</h2>
+</div>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Upsert" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">@(isNew ? "Erstellen" : "Speichern")</button>
+            @if (!isNew)
+            {
+                <a asp-action="Detail" asp-route-id="@Model.Id" class="btn btn-outline-secondary ms-2">Abbrechen</a>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

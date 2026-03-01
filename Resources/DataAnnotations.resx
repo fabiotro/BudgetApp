@@ -144,4 +144,10 @@
   <data name="StringLength" xml:space="preserve">
     <value>Das Feld "{0}" darf maximal {1} Zeichen lang sein.</value>
   </data>
+  <data name="TemplateBudgetName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="TemplateBudgetDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
 </root>

@@ -1,0 +1,131 @@
+@model AddPositionPartialViewModel
+
+<div class="modal fade" id="@Model.ModalId" tabindex="-1" aria-labelledby="@(Model.ModalId)Label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="@(Model.ModalId)Label">Position hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <form asp-action="@Model.FormAction" asp-controller="@Model.FormController" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="@Model.ParentIdFieldName" value="@Model.ParentId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" name="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Typ <span class="text-danger">*</span></label>
+                        <select name="PositionTypeId" class="form-select" required>
+                            <option value="0">– Typ –</option>
+                            @foreach (var pt in Model.PositionTypes)
+                            {
+                                <option value="@pt.Id">@pt.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategorie <span class="text-danger">*</span></label>
+                        <select name="CategoryId" id="@Model.CategorySelectId" class="form-select" required>
+                            <option value="0">– Kategorie –</option>
+                            @foreach (var cat in Model.Categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unterkategorie</label>
+                        <select name="SubCategoryId" id="@Model.SubCategorySelectId" class="form-select">
+                            <option value="">– Unterkategorie –</option>
+                            @foreach (var sub in Model.SubCategories)
+                            {
+                                <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fixbetrag</label>
+                        <div class="input-group">
+                            <span class="input-group-text">CHF</span>
+                            <input type="text" inputmode="decimal" name="FixedAmount" class="form-control text-end" value="0" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Anzahl</label>
+                        @if (Model.ShowCampVariables)
+                        {
+                            <select name="QuantityVar" id="@(Model.CategorySelectId)_qvar" class="form-select mb-2">
+                                <option value="">– Zahl –</option>
+                                <option value="ParticipantsCount_fc">Teilnehmer (@Model.CampParticipantsCount_fc)</option>
+                                <option value="js_PersonsCount_fc">J+S Pers. (@Model.CampJs_PersonsCount_fc)</option>
+                                <option value="LeadersTeamCount_fc">Leitungsteam (@Model.CampLeadersTeamCount_fc)</option>
+                            </select>
+                            <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" value="0" />
+                        }
+                        else
+                        {
+                            <input type="number" name="Quantity" class="form-control text-end" value="0" />
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Einheitspreis</label>
+                        <div class="input-group">
+                            <span class="input-group-text">CHF</span>
+                            <input type="text" inputmode="decimal" name="UnitAmount" class="form-control text-end" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Hinzufügen <i class="bi bi-plus-square"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const categorySelect = document.getElementById('@Model.CategorySelectId');
+        const subCategorySelect = document.getElementById('@Model.SubCategorySelectId');
+        const allSubOptions = Array.from(subCategorySelect.querySelectorAll('option[data-category]'));
+
+        function filterSubCategories() {
+            const selectedCategoryId = categorySelect.value;
+            subCategorySelect.innerHTML = '<option value="">– Unterkategorie –</option>';
+            allSubOptions
+                .filter(opt => selectedCategoryId && selectedCategoryId !== '0' && opt.dataset.category === selectedCategoryId)
+                .forEach(opt => subCategorySelect.appendChild(opt.cloneNode(true)));
+        }
+
+        filterSubCategories();
+        categorySelect.addEventListener('change', filterSubCategories);
+
+        @if (Model.ShowCampVariables)
+        {
+            <text>
+        const qvarSelect = document.getElementById('@(Model.CategorySelectId)_qvar');
+        const qtyInput = document.getElementById('@(Model.CategorySelectId)_qty');
+
+        function syncQuantityVar() {
+            if (qvarSelect.value) {
+                qtyInput.value = '0';
+                qtyInput.disabled = true;
+            } else {
+                qtyInput.disabled = false;
+            }
+        }
+
+        function syncQtyInput() {
+            qvarSelect.disabled = qtyInput.value !== '' && parseFloat(qtyInput.value) !== 0;
+        }
+
+        syncQuantityVar();
+        qvarSelect.addEventListener('change', syncQuantityVar);
+        qtyInput.addEventListener('input', syncQtyInput);
+            </text>
+        }
+    })();
+</script>

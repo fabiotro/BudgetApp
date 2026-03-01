@@ -18,9 +18,7 @@ namespace BudgetApp.Models
         [Range(1, int.MaxValue)]
         public int CategoryId { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int SubCategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
 
         [Required]
         [StringLength(255)]
@@ -39,13 +37,19 @@ namespace BudgetApp.Models
         public decimal UnitAmount_fc { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal FixedAmount_rl { get; set; }
+        public decimal? FixedAmount_rl { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal Quantity_rl { get; set; }
+        public decimal? Quantity_rl { get; set; }
 
         [Range(0, int.MaxValue)]
-        public decimal UnitAmount_rl { get; set; }
+        public decimal? UnitAmount_rl { get; set; }
+
+        [StringLength(50)]
+        public string? QuantityVar_fc { get; set; }
+
+        [StringLength(50)]
+        public string? QuantityVar_rl { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

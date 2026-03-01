@@ -95,7 +95,7 @@ CREATE TABLE [dbo].[Position](
     [BudgetId] [int] NOT NULL,
     [PositionTypeId] [int] NOT NULL,
     [CategoryId] [int] NOT NULL,
-    [SubCategoryId] [int] NOT NULL,
+    [SubCategoryId] [int] NULL,
     [Name] [nvarchar](255) NOT NULL,
     [FixedAmount_fc] [decimal](18, 2) NOT NULL,
     [Quantity_fc] [decimal](18, 2) NOT NULL,
@@ -103,12 +103,21 @@ CREATE TABLE [dbo].[Position](
     [FixedAmount_rl] [decimal](18, 2) NULL,
     [Quantity_rl] [decimal](18, 2) NULL,
     [UnitAmount_rl] [decimal](18, 2) NULL,
+    [QuantityVar_fc] [nvarchar](50) NULL,
+    [QuantityVar_rl] [nvarchar](50) NULL,
     [SortIndex] [int] NULL,
     [CreateDate] [datetime] NULL,
     [ChangeDate] [datetime] NULL,
     CONSTRAINT [PK_Position] PRIMARY KEY CLUSTERED ([Id] ASC)
 )
 END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Position]') AND name = 'QuantityVar_fc')
+    ALTER TABLE [dbo].[Position] ADD [QuantityVar_fc] [nvarchar](50) NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Position]') AND name = 'QuantityVar_rl')
+    ALTER TABLE [dbo].[Position] ADD [QuantityVar_rl] [nvarchar](50) NULL;
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TemplateBudget]') AND type = N'U')
@@ -131,7 +140,7 @@ CREATE TABLE [dbo].[TemplatePosition](
     [TemplateBudgetId] [int] NOT NULL,
     [PositionTypeId] [int] NOT NULL,
     [CategoryId] [int] NOT NULL,
-    [SubCategoryId] [int] NOT NULL,
+    [SubCategoryId] [int] NULL,
     [Name] [nvarchar](255) NOT NULL,
     [FixedAmount] [decimal](18, 2) NULL,
     [Quantity] [decimal](18, 2) NULL,
@@ -202,6 +211,55 @@ IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo
 GO
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_TemplatePosition_SubCategory]'))
     ALTER TABLE [dbo].[TemplatePosition] WITH CHECK ADD CONSTRAINT [FK_TemplatePosition_SubCategory] FOREIGN KEY([SubCategoryId]) REFERENCES [dbo].[SubCategory] ([Id])
+GO
+
+-- Seed data
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[PositionType] WHERE [Name] = N'Ausgabe')
+    INSERT INTO [dbo].[PositionType] ([Name], [Description]) VALUES (N'Ausgabe', N'Ausgabe')
+GO
+IF NOT EXISTS (SELECT 1 FROM [dbo].[PositionType] WHERE [Name] = N'Einnahme')
+    INSERT INTO [dbo].[PositionType] ([Name], [Description]) VALUES (N'Einnahme', N'Einnahme')
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Rekognoszierung')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Rekognoszierung', 1)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Unterkunft')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Unterkunft', 2)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Verpflegungskosten')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Verpflegungskosten', 3)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Reise- und Transportkosten')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Reise- und Transportkosten', 4)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Programmkosten')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Programmkosten', 5)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Materialkosten')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Materialkosten', 6)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Organisationskosten')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Organisationskosten', 7)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Lagerauswertung')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Lagerauswertung', 8)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Unvorhergesehenes')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Unvorhergesehenes', 9)
+GO
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Category] WHERE [Name] = N'Einnahmen')
+    INSERT INTO [dbo].[Category] ([Name], [SortIndex]) VALUES (N'Einnahmen', 10)
 GO
 
 -- Triggers for ChangeDate
