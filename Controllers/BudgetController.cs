@@ -83,6 +83,17 @@ namespace BudgetApp.Controllers
             return View(vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> CreateBudgetModal(int campId)
+        {
+            var vm = new CreateBudgetModalViewModel
+            {
+                CampId = campId,
+                AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList()
+            };
+            return PartialView("_CreateBudgetModal", vm);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpsertCamp(NewBudgetViewModel newBudget)
