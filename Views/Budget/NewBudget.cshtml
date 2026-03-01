@@ -120,10 +120,19 @@ else
                     <tr>
                         <td>@budget.Name</td>
                         <td>@budget.Description</td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
                             <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-eye"></i>
                             </a>
+                            <form asp-action="DeleteBudget" method="post" class="d-inline"
+                                  onsubmit="return confirm('Budget «@budget.Name» wirklich löschen? Alle Positionen werden ebenfalls gelöscht.')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@budget.Id" />
+                                <input type="hidden" name="campId" value="@Model.Camp.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 }

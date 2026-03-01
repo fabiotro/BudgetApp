@@ -412,6 +412,35 @@ namespace BudgetApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteBudget(int id, int campId)
+        {
+            var toast = new ToastMessageViewModel();
+            try
+            {
+                await _budgetRepo.Delete(id);
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Erfolg",
+                    Message = "Budget gelöscht.",
+                    Type = ToastType.Success
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in DeleteBudget");
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                    Type = ToastType.Error
+                };
+            }
+            TempData.Put("ToastMsg", toast);
+            return RedirectToAction(nameof(NewBudget), new { campId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteBudgetPosition(int id, int budgetId)
         {
             var toast = new ToastMessageViewModel();
