@@ -48,6 +48,9 @@
         <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">
             Lagerdaten bearbeiten <i class="bi bi-pen"></i>
         </a>
+        <a asp-controller="Camp" asp-action="Detail" asp-route-id="@Model.Camp.Id" class="btn btn-outline-primary btn-sm">
+            Lagerübersicht <i class="bi bi-people"></i>
+        </a>
     </div>
 </div>
 <hr />

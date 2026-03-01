@@ -51,7 +51,10 @@ else
                         @if (item.Camp != null)
                         {
                             <a asp-action="NewBudget" asp-route-campId="@item.Camp.Id" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-pen"></i>    
+                                <i class="bi bi-pen"></i>
+                            </a>
+                            <a asp-controller="Camp" asp-action="Detail" asp-route-id="@item.Camp.Id" class="btn btn-sm btn-outline-primary" title="Lagerübersicht">
+                                <i class="bi bi-people"></i>
                             </a>
                         }
                     </td>

@@ -1,0 +1,159 @@
+@model UserTransactionsViewModel
+@using BudgetApp.Enums
+@{
+    ViewData["Title"] = $"Ausgaben – {Model.UserSummary.FullName}";
+
+    string PaymentSourceLabel(PaymentSource s) => s switch
+    {
+        PaymentSource.PersonalMoney => "Privatgeld",
+        PaymentSource.CampBudget    => "Lagerkasse",
+        PaymentSource.OtherAdvance  => "Andere Vorauszahlung",
+        _                           => s.ToString()
+    };
+
+    string PaymentSourceBadgeClass(PaymentSource s) => s switch
+    {
+        PaymentSource.PersonalMoney => "bg-warning text-dark",
+        PaymentSource.CampBudget    => "bg-success",
+        PaymentSource.OtherAdvance  => "bg-info text-dark",
+        _                           => "bg-secondary"
+    };
+
+    string PaymentMethodLabel(PaymentMethod m) => m switch
+    {
+        PaymentMethod.Cash  => "Bargeld",
+        PaymentMethod.Card  => "Karte",
+        PaymentMethod.Bill  => "Rechnung",
+        PaymentMethod.Other => "Andere",
+        _                   => m.ToString()
+    };
+
+    string FormatFileSize(int bytes)
+    {
+        if (bytes >= 1024 * 1024) return $"{bytes / 1024.0 / 1024.0:F1} MB";
+        if (bytes >= 1024) return $"{bytes / 1024.0:F0} KB";
+        return $"{bytes} B";
+    }
+}
+
+<div class="d-flex justify-content-between align-items-start mb-2">
+    <div>
+        <h2>@Model.UserSummary.FullName</h2>
+        <p class="text-muted mb-0">
+            Lager: @Model.Camp.StartDate.ToString("dd.MM.yyyy") – @Model.Camp.EndDate.ToString("dd.MM.yyyy")
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Transaction" asp-action="Create" asp-route-campId="@Model.Camp.Id"
+           class="btn btn-primary btn-sm">
+            Ausgabe erfassen <i class="bi bi-plus-square"></i>
+        </a>
+        <a asp-controller="Camp" asp-action="Detail" asp-route-id="@Model.Camp.Id"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Lagerübersicht
+        </a>
+    </div>
+</div>
+<hr />
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">@Model.UserSummary.TotalExpenses.ToString("N2") CHF</div>
+                <div class="text-muted small">Ausgaben total</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-@(Model.UserSummary.PersonalMoneyOwed > 0 ? "warning" : "secondary")">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold @(Model.UserSummary.PersonalMoneyOwed > 0 ? "text-danger" : "")">
+                    @Model.UserSummary.PersonalMoneyOwed.ToString("N2") CHF
+                </div>
+                <div class="text-muted small">Lager schuldet (Privatgeld)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                @if (!string.IsNullOrWhiteSpace(Model.UserSummary.IBAN))
+                {
+                    <div class="fw-semibold"><code>@Model.UserSummary.IBAN</code></div>
+                }
+                else
+                {
+                    <div class="text-muted">Kein IBAN hinterlegt</div>
+                }
+                <div class="text-muted small">IBAN für Rückerstattung</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Transactions.Any())
+{
+    <p class="text-muted">Noch keine Ausgaben erfasst.</p>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var item in Model.Transactions)
+        {
+            <div class="list-group-item list-group-item-action flex-column align-items-start">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <strong>@item.Transaction.Name</strong>
+                            <span class="badge @PaymentSourceBadgeClass(item.Transaction.PaymentSource)">
+                                @PaymentSourceLabel(item.Transaction.PaymentSource)
+                            </span>
+                            <span class="badge bg-secondary">@PaymentMethodLabel(item.Transaction.PaymentMethod)</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(item.Transaction.Description))
+                        {
+                            <p class="mb-1 text-muted small">@item.Transaction.Description</p>
+                        }
+                        @if (item.PositionName != null)
+                        {
+                            <small class="text-muted"><i class="bi bi-tag"></i> @item.PositionName</small>
+                        }
+                        @if (item.Documents.Any())
+                        {
+                            <div class="mt-1">
+                                @foreach (var doc in item.Documents)
+                                {
+                                    <a asp-controller="Transaction" asp-action="DownloadDocument" asp-route-id="@doc.Id"
+                                       class="btn btn-sm btn-outline-secondary me-1 mb-1" title="@doc.FileName">
+                                        <i class="bi @(doc.ContentType.StartsWith("image/") ? "bi-image" : "bi-file-earmark-pdf")"></i>
+                                        <span class="small">@doc.FileName</span>
+                                        <span class="text-muted small">(@FormatFileSize(doc.FileSize))</span>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <div class="text-end ms-3">
+                        <div class="fs-5 fw-bold">@item.Transaction.Amount.ToString("N2") CHF</div>
+                        <div class="d-flex gap-1 mt-1 justify-content-end">
+                            <a asp-action="Edit" asp-route-id="@item.Transaction.Id"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pen"></i>
+                            </a>
+                            <form asp-action="Delete" method="post" class="d-inline"
+                                  onsubmit="return confirm('Ausgabe löschen?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Transaction.Id" />
+                                <input type="hidden" name="campId" value="@Model.Camp.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

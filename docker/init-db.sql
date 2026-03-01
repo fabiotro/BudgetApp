@@ -397,3 +397,104 @@ BEGIN
     UPDATE [dbo].[TemplatePosition] SET ChangeDate = GETDATE() FROM TemplatePosition t INNER JOIN Inserted i ON t.Id = i.Id
 END'
 GO
+
+-- =============================================
+-- Expense Tracking Feature
+-- =============================================
+
+-- New columns on [User] table
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'FirstName')
+    ALTER TABLE [dbo].[User] ADD [FirstName] [nvarchar](100) NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'LastName')
+    ALTER TABLE [dbo].[User] ADD [LastName] [nvarchar](100) NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'IBAN')
+    ALTER TABLE [dbo].[User] ADD [IBAN] [nvarchar](34) NULL;
+GO
+
+-- [Transaction] table (Transaction is a reserved word, always use brackets)
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Transaction]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[Transaction](
+    [Id]                [int] IDENTITY(1,1) NOT NULL,
+    [CampId]            [int] NOT NULL,
+    [PerformedByUserId] [int] NOT NULL,
+    [PositionId]        [int] NULL,
+    [Name]              [nvarchar](255) NOT NULL,
+    [Description]       [nvarchar](500) NULL,
+    [Amount]            [decimal](18, 2) NOT NULL,
+    [PaymentSource]     [int] NOT NULL,
+    [PaymentMethod]     [int] NOT NULL,
+    [CreateDate]        [datetime] NULL,
+    [ChangeDate]        [datetime] NULL,
+    CONSTRAINT [PK_Transaction] PRIMARY KEY CLUSTERED ([Id] ASC)
+)
+END
+GO
+
+-- [TransactionDocument] table
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TransactionDocument]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[TransactionDocument](
+    [Id]            [int] IDENTITY(1,1) NOT NULL,
+    [TransactionId] [int] NOT NULL,
+    [FileName]      [nvarchar](255) NOT NULL,
+    [ContentType]   [nvarchar](100) NOT NULL,
+    [FileSize]      [int] NOT NULL,
+    [FileData]      [varbinary](max) NOT NULL,
+    [CreateDate]    [datetime] NULL,
+    [ChangeDate]    [datetime] NULL,
+    CONSTRAINT [PK_TransactionDocument] PRIMARY KEY CLUSTERED ([Id] ASC)
+)
+END
+GO
+
+-- CreateDate default constraints
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_Transaction_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[Transaction] ADD CONSTRAINT [DF_Transaction_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_TransactionDocument_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[TransactionDocument] ADD CONSTRAINT [DF_TransactionDocument_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
+
+-- Foreign keys
+-- CampId CASCADE: deleting a camp removes all its transactions
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Transaction_Camp]'))
+    ALTER TABLE [dbo].[Transaction] WITH CHECK ADD CONSTRAINT [FK_Transaction_Camp]
+        FOREIGN KEY([CampId]) REFERENCES [dbo].[Camp] ([Id]) ON DELETE CASCADE
+GO
+-- PerformedByUserId NO ACTION: prevent deleting a user who has transactions
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Transaction_User]'))
+    ALTER TABLE [dbo].[Transaction] WITH CHECK ADD CONSTRAINT [FK_Transaction_User]
+        FOREIGN KEY([PerformedByUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+-- PositionId SET NULL: position deletion nulls out FK, preserves transaction history
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Transaction_Position]'))
+    ALTER TABLE [dbo].[Transaction] WITH CHECK ADD CONSTRAINT [FK_Transaction_Position]
+        FOREIGN KEY([PositionId]) REFERENCES [dbo].[Position] ([Id]) ON DELETE SET NULL
+GO
+-- TransactionId CASCADE: deleting a transaction removes its documents
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_TransactionDocument_Transaction]'))
+    ALTER TABLE [dbo].[TransactionDocument] WITH CHECK ADD CONSTRAINT [FK_TransactionDocument_Transaction]
+        FOREIGN KEY([TransactionId]) REFERENCES [dbo].[Transaction] ([Id]) ON DELETE CASCADE
+GO
+
+-- ChangeDate triggers
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[Transaction_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[Transaction_UpdateChangeDate] ON [dbo].[Transaction] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[Transaction] SET ChangeDate = GETDATE() FROM [Transaction] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[TransactionDocument_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[TransactionDocument_UpdateChangeDate] ON [dbo].[TransactionDocument] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[TransactionDocument] SET ChangeDate = GETDATE() FROM [TransactionDocument] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO

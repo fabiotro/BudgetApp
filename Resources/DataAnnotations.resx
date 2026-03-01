@@ -180,4 +180,34 @@
   <data name="AddLeader" xml:space="preserve">
     <value>Leitung hinzufügen</value>
   </data>
+  <data name="TransactionName" xml:space="preserve">
+    <value>Bezeichnung</value>
+  </data>
+  <data name="TransactionDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="TransactionAmount" xml:space="preserve">
+    <value>Betrag (CHF)</value>
+  </data>
+  <data name="TransactionPerformedBy" xml:space="preserve">
+    <value>Ausgabe durch</value>
+  </data>
+  <data name="TransactionPaymentSource" xml:space="preserve">
+    <value>Zahlungsquelle</value>
+  </data>
+  <data name="TransactionPaymentMethod" xml:space="preserve">
+    <value>Zahlungsart</value>
+  </data>
+  <data name="ProfileDisplayName" xml:space="preserve">
+    <value>Anzeigename</value>
+  </data>
+  <data name="ProfileFirstName" xml:space="preserve">
+    <value>Vorname</value>
+  </data>
+  <data name="ProfileLastName" xml:space="preserve">
+    <value>Nachname</value>
+  </data>
+  <data name="ProfileIBAN" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
 </root>

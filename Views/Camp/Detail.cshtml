@@ -1,0 +1,91 @@
+@model CampDetailViewModel
+@{
+    ViewData["Title"] = $"Lagerübersicht {Model.Camp.StartDate:dd.MM.yyyy} – {Model.Camp.EndDate:dd.MM.yyyy}";
+}
+
+<div class="d-flex justify-content-between align-items-start mb-2">
+    <div>
+        <h2>Lagerübersicht</h2>
+        <p class="text-muted mb-0">@Model.Camp.StartDate.ToString("dd.MM.yyyy") – @Model.Camp.EndDate.ToString("dd.MM.yyyy")</p>
+    </div>
+    <a asp-controller="Transaction" asp-action="Create" asp-route-campId="@Model.Camp.Id" class="btn btn-primary">
+        Ausgabe erfassen <i class="bi bi-plus-square"></i>
+    </a>
+</div>
+<hr />
+
+@if (Model.Budgets.Any())
+{
+    <h4>Budgets</h4>
+    <div class="mb-4">
+        @foreach (var budget in Model.Budgets)
+        {
+            <a asp-controller="Budget" asp-action="Detail" asp-route-id="@budget.Id"
+               class="btn btn-outline-secondary btn-sm me-2 mb-2">
+                <i class="bi bi-file-earmark-text"></i> @budget.Name
+            </a>
+        }
+    </div>
+}
+
+<h4>Ausgaben nach Person</h4>
+@if (!Model.UserSummaries.Any())
+{
+    <p class="text-muted">Noch keine Leitungsmitglieder oder Ausgaben vorhanden.</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>IBAN</th>
+                <th class="text-end">Ausgaben total</th>
+                <th class="text-end">Lager schuldet</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var summary in Model.UserSummaries)
+            {
+                <tr>
+                    <td>
+                        <a asp-controller="Transaction" asp-action="UserTransactions"
+                           asp-route-campId="@Model.Camp.Id" asp-route-userId="@summary.UserId">
+                            @summary.FullName
+                        </a>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(summary.IBAN))
+                        {
+                            <code class="small">@summary.IBAN</code>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">–</span>
+                        }
+                    </td>
+                    <td class="text-end">@summary.TotalExpenses.ToString("N2") CHF</td>
+                    <td class="text-end @(summary.PersonalMoneyOwed > 0 ? "fw-semibold text-danger" : "")">
+                        @summary.PersonalMoneyOwed.ToString("N2") CHF
+                    </td>
+                    <td class="text-end">
+                        <a asp-controller="Transaction" asp-action="UserTransactions"
+                           asp-route-campId="@Model.Camp.Id" asp-route-userId="@summary.UserId"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-list-ul"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot class="table-light fw-semibold">
+            <tr>
+                <td colspan="2">Total</td>
+                <td class="text-end">@Model.UserSummaries.Sum(s => s.TotalExpenses).ToString("N2") CHF</td>
+                <td class="text-end">@Model.UserSummaries.Sum(s => s.PersonalMoneyOwed).ToString("N2") CHF</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+}

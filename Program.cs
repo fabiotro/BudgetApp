@@ -53,6 +53,8 @@ try
     builder.Services.AddScoped<ITemplatePositionRepository<TemplatePositionModel>, TemplatePositionRepository<TemplatePositionModel>>();
     builder.Services.AddScoped<IUserRepository<UserModel>, UserRepository<UserModel>>();
     builder.Services.AddScoped<ICampUserRepository<CampUserModel>, CampUserRepository<CampUserModel>>();
+    builder.Services.AddScoped<ITransactionRepository<TransactionModel>, TransactionRepository<TransactionModel>>();
+    builder.Services.AddScoped<ITransactionDocumentRepository<TransactionDocumentModel>, TransactionDocumentRepository<TransactionDocumentModel>>();
 
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();

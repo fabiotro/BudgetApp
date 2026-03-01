@@ -16,6 +16,9 @@ namespace BudgetApp.Data.Repositories
                   ,[Email]
                   ,[DisplayName]
                   ,[PasswordHash]
+                  ,[FirstName]
+                  ,[LastName]
+                  ,[IBAN]
               FROM [dbo].[User]
               ORDER BY [DisplayName]
             ";
@@ -32,6 +35,9 @@ namespace BudgetApp.Data.Repositories
                   ,[Email]
                   ,[DisplayName]
                   ,[PasswordHash]
+                  ,[FirstName]
+                  ,[LastName]
+                  ,[IBAN]
               FROM [dbo].[User]
               WHERE [Id] = @Id
             ";
@@ -47,6 +53,9 @@ namespace BudgetApp.Data.Repositories
                   ,[Email]
                   ,[DisplayName]
                   ,[PasswordHash]
+                  ,[FirstName]
+                  ,[LastName]
+                  ,[IBAN]
               FROM [dbo].[User]
               WHERE [Email] = @Email
             ";
@@ -61,11 +70,17 @@ namespace BudgetApp.Data.Repositories
             INSERT INTO [dbo].[User]
                        ([Email]
                        ,[DisplayName]
-                       ,[PasswordHash])
+                       ,[PasswordHash]
+                       ,[FirstName]
+                       ,[LastName]
+                       ,[IBAN])
                  VALUES
                        (@Email
                        ,@DisplayName
-                       ,@PasswordHash);
+                       ,@PasswordHash
+                       ,@FirstName
+                       ,@LastName
+                       ,@IBAN);
                     SELECT CAST(SCOPE_IDENTITY() as int);
             ";
             return await conn.ExecuteScalarAsync<int>(sql, user);
@@ -80,6 +95,9 @@ namespace BudgetApp.Data.Repositories
                SET [Email] = @Email
                   ,[DisplayName] = @DisplayName
                   ,[PasswordHash] = @PasswordHash
+                  ,[FirstName] = @FirstName
+                  ,[LastName] = @LastName
+                  ,[IBAN] = @IBAN
              WHERE [Id] = @Id
             ";
             return await conn.ExecuteAsync(sql, user);

@@ -86,6 +86,34 @@ namespace BudgetApp.Data.Repositories
             return await conn.QueryAsync<T>(sql, new { BudgetId = budgetId });
         }
 
+        public async Task<IEnumerable<T>> GetByCampId(int campId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+            @"
+            SELECT p.[Id]
+                  ,p.[BudgetId]
+                  ,p.[PositionTypeId]
+                  ,p.[CategoryId]
+                  ,p.[SubCategoryId]
+                  ,p.[Name]
+                  ,p.[FixedAmount_fc]
+                  ,p.[Quantity_fc]
+                  ,p.[UnitAmount_fc]
+                  ,p.[FixedAmount_rl]
+                  ,p.[Quantity_rl]
+                  ,p.[UnitAmount_rl]
+                  ,p.[QuantityVar_fc]
+                  ,p.[QuantityVar_rl]
+                  ,p.[SortIndex]
+              FROM [dbo].[Position] p
+              INNER JOIN [dbo].[Budget] b ON p.[BudgetId] = b.[Id]
+              WHERE b.[CampId] = @CampId
+              ORDER BY b.[Name], p.[SortIndex]
+            ";
+            return await conn.QueryAsync<T>(sql, new { CampId = campId });
+        }
+
         public async Task<int> Create(T position)
         {
             using var conn = _context.CreateConnection();

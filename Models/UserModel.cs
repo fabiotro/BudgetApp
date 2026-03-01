@@ -17,5 +17,14 @@ namespace BudgetApp.Models
         [Required]
         [StringLength(500)]
         public required string PasswordHash { get; set; }
+
+        [StringLength(100)]
+        public string? FirstName { get; set; }
+
+        [StringLength(100)]
+        public string? LastName { get; set; }
+
+        [StringLength(34)]
+        public string? IBAN { get; set; }
     }
 }

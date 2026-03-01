@@ -194,5 +194,45 @@ namespace BudgetApp.Resources {
         public static string AddLeader {
             get { return ResourceManager.GetString("AddLeader", resourceCulture); }
         }
+
+        public static string TransactionName {
+            get { return ResourceManager.GetString("TransactionName", resourceCulture); }
+        }
+
+        public static string TransactionDescription {
+            get { return ResourceManager.GetString("TransactionDescription", resourceCulture); }
+        }
+
+        public static string TransactionAmount {
+            get { return ResourceManager.GetString("TransactionAmount", resourceCulture); }
+        }
+
+        public static string TransactionPerformedBy {
+            get { return ResourceManager.GetString("TransactionPerformedBy", resourceCulture); }
+        }
+
+        public static string TransactionPaymentSource {
+            get { return ResourceManager.GetString("TransactionPaymentSource", resourceCulture); }
+        }
+
+        public static string TransactionPaymentMethod {
+            get { return ResourceManager.GetString("TransactionPaymentMethod", resourceCulture); }
+        }
+
+        public static string ProfileDisplayName {
+            get { return ResourceManager.GetString("ProfileDisplayName", resourceCulture); }
+        }
+
+        public static string ProfileFirstName {
+            get { return ResourceManager.GetString("ProfileFirstName", resourceCulture); }
+        }
+
+        public static string ProfileLastName {
+            get { return ResourceManager.GetString("ProfileLastName", resourceCulture); }
+        }
+
+        public static string ProfileIBAN {
+            get { return ResourceManager.GetString("ProfileIBAN", resourceCulture); }
+        }
     }
 }
