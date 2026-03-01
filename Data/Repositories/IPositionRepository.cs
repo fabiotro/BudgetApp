@@ -10,5 +10,6 @@ namespace BudgetApp.Data.Repositories
         Task<int> Create(T position);
         Task<int> Update(T position);
         Task<int> Delete(int id);
+        Task<int> DeleteByBudgetId(int budgetId);
     }
 }

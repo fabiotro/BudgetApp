@@ -158,5 +158,13 @@ namespace BudgetApp.Data.Repositories
             var sql = "DELETE FROM [dbo].[Position] WHERE [Id] = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id });
         }
+
+        public async Task<int> DeleteByBudgetId(int budgetId)
+        {
+            ValidateId(budgetId);
+            using var conn = _context.CreateConnection();
+            var sql = "DELETE FROM [dbo].[Position] WHERE [BudgetId] = @BudgetId";
+            return await conn.ExecuteAsync(sql, new { BudgetId = budgetId });
+        }
     }
 }

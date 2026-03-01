@@ -417,6 +417,7 @@ namespace BudgetApp.Controllers
             var toast = new ToastMessageViewModel();
             try
             {
+                await _positionRepo.DeleteByBudgetId(id);
                 await _budgetRepo.Delete(id);
                 toast = new ToastMessageViewModel
                 {
