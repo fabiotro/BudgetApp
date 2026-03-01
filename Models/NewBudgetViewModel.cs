@@ -7,5 +7,7 @@
         // Populated by the controller for display; not posted back
         public List<TemplateBudgetModel> AvailableTemplates { get; set; } = [];
         public List<BudgetModel> ExistingBudgets { get; set; } = [];
+        public List<CampUserModel> CampUsers { get; set; } = [];
+        public List<UserModel> AllUsers { get; set; } = [];
     }
 }

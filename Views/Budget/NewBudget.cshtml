@@ -27,11 +27,6 @@
             </div>
         </div>
     </div>
-    <div class="mb-3">
-        @Html.LabelFor(m => m.Camp.MainLeader, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Camp.MainLeader, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Camp.MainLeader, "", new { @class = "text-danger" })
-    </div>
     <div class="row">
         <div class="col">
             <h5>Provisorisch</h5>
@@ -159,6 +154,85 @@ else
                 });
         });
     </script>
+}
+
+@if (Model.Camp.Id > 0)
+{
+    <hr />
+    <h3>Lagerleitung</h3>
+
+    @if (Model.CampUsers.Any())
+    {
+        <table class="table table-sm mb-3">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>E-Mail</th>
+                    <th>Rolle</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cu in Model.CampUsers)
+                {
+                    <tr>
+                        <td>@cu.DisplayName</td>
+                        <td>@cu.Email</td>
+                        <td>
+                            @if (cu.IsMainLeader)
+                            {
+                                <span class="badge bg-primary">Hauptleitung</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Leitung</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (!cu.IsMainLeader)
+                            {
+                                <form asp-action="RemoveCampUser" method="post" class="d-inline"
+                                      onsubmit="return confirm('Person wirklich entfernen?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="campUserId" value="@cu.Id" />
+                                    <input type="hidden" name="campId" value="@Model.Camp.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (Model.AllUsers.Any())
+    {
+        var addedUserIds = Model.CampUsers.Select(cu => cu.UserId).ToHashSet();
+        var availableUsers = Model.AllUsers.Where(u => !addedUserIds.Contains(u.Id)).ToList();
+
+        @if (availableUsers.Any())
+        {
+            <form asp-action="AddCampUser" method="post" class="d-flex gap-2 align-items-end">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="campId" value="@Model.Camp.Id" />
+                <div>
+                    <label class="form-label mb-1">Person hinzufügen</label>
+                    <select name="userId" class="form-select form-select-sm">
+                        @foreach (var u in availableUsers)
+                        {
+                            <option value="@u.Id">@u.DisplayName (@u.Email)</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-person-plus"></i> Hinzufügen
+                </button>
+            </form>
+        }
+    }
 }
 
 @section Scripts {

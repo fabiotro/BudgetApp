@@ -150,4 +150,34 @@
   <data name="TemplateBudgetDescription" xml:space="preserve">
     <value>Beschreibung</value>
   </data>
+  <data name="LoginEmail" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="LoginPassword" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="RegisterEmail" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="RegisterDisplayName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RegisterPassword" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="RegisterConfirmPassword" xml:space="preserve">
+    <value>Passwort bestätigen</value>
+  </data>
+  <data name="PasswordMismatch" xml:space="preserve">
+    <value>Die Passwörter stimmen nicht überein.</value>
+  </data>
+  <data name="StringLengthMin" xml:space="preserve">
+    <value>Das Feld "{0}" muss mindestens {2} und maximal {1} Zeichen lang sein.</value>
+  </data>
+  <data name="EmailAlreadyExists" xml:space="preserve">
+    <value>Diese E-Mail-Adresse ist bereits registriert.</value>
+  </data>
+  <data name="AddLeader" xml:space="preserve">
+    <value>Leitung hinzufügen</value>
+  </data>
 </root>

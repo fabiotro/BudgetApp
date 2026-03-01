@@ -19,8 +19,7 @@ else
         <thead>
             <tr>
                 <th>Budget</th>
-                <th>Lager</th>
-                <th>Lagerleiter</th>
+                <th>Zeitraum</th>
                 <th></th>
             </tr>
         </thead>
@@ -42,7 +41,6 @@ else
                         }
                         else { <span class="text-muted">–</span> }
                     </td>
-                    <td>@(item.Camp?.MainLeader ?? "–")</td>
                     <td class="text-end">
                         <a asp-action="Detail" asp-route-id="@item.Budget.Id" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-eye"></i>

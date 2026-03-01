@@ -154,5 +154,45 @@ namespace BudgetApp.Resources {
                 return ResourceManager.GetString("TemplateBudgetDescription", resourceCulture);
             }
         }
+
+        public static string LoginEmail {
+            get { return ResourceManager.GetString("LoginEmail", resourceCulture); }
+        }
+
+        public static string LoginPassword {
+            get { return ResourceManager.GetString("LoginPassword", resourceCulture); }
+        }
+
+        public static string RegisterEmail {
+            get { return ResourceManager.GetString("RegisterEmail", resourceCulture); }
+        }
+
+        public static string RegisterDisplayName {
+            get { return ResourceManager.GetString("RegisterDisplayName", resourceCulture); }
+        }
+
+        public static string RegisterPassword {
+            get { return ResourceManager.GetString("RegisterPassword", resourceCulture); }
+        }
+
+        public static string RegisterConfirmPassword {
+            get { return ResourceManager.GetString("RegisterConfirmPassword", resourceCulture); }
+        }
+
+        public static string PasswordMismatch {
+            get { return ResourceManager.GetString("PasswordMismatch", resourceCulture); }
+        }
+
+        public static string StringLengthMin {
+            get { return ResourceManager.GetString("StringLengthMin", resourceCulture); }
+        }
+
+        public static string EmailAlreadyExists {
+            get { return ResourceManager.GetString("EmailAlreadyExists", resourceCulture); }
+        }
+
+        public static string AddLeader {
+            get { return ResourceManager.GetString("AddLeader", resourceCulture); }
+        }
     }
 }

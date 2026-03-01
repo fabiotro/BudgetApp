@@ -14,8 +14,9 @@ namespace BudgetApp.Models
         [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }
 
-        [StringLength(255)]
-        public string? MainLeader { get; set; }
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int CreatedByUserId { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]

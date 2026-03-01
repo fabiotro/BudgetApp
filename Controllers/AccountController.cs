@@ -1,0 +1,144 @@
+using BudgetApp.Data.Repositories;
+using BudgetApp.Enums;
+using BudgetApp.Extensions;
+using BudgetApp.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace BudgetApp.Controllers
+{
+    [AllowAnonymous]
+    public class AccountController : Controller
+    {
+        private readonly ILogger<AccountController> _logger;
+        private readonly IUserRepository<UserModel> _userRepo;
+        private readonly IPasswordHasher<UserModel> _passwordHasher;
+
+        public AccountController(
+            ILogger<AccountController> logger,
+            IUserRepository<UserModel> userRepo,
+            IPasswordHasher<UserModel> passwordHasher)
+        {
+            _logger = logger;
+            _userRepo = userRepo;
+            _passwordHasher = passwordHasher;
+        }
+
+        [HttpGet]
+        public IActionResult Login(string? returnUrl = null)
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToAction("Index", "Home");
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var user = await _userRepo.GetByEmail(vm.Email);
+
+            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, vm.Password) == PasswordVerificationResult.Failed)
+            {
+                ModelState.AddModelError(string.Empty, "E-Mail oder Passwort ungültig.");
+                return View(vm);
+            }
+
+            await SignInUser(user);
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index", "Budget");
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToAction("Index", "Home");
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel vm)
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var existing = await _userRepo.GetByEmail(vm.Email);
+            if (existing != null)
+            {
+                ModelState.AddModelError(nameof(vm.Email), "Diese E-Mail-Adresse ist bereits registriert.");
+                return View(vm);
+            }
+
+            try
+            {
+                var user = new UserModel
+                {
+                    Email = vm.Email.Trim().ToLowerInvariant(),
+                    DisplayName = vm.DisplayName.Trim(),
+                    PasswordHash = string.Empty
+                };
+                user.PasswordHash = _passwordHasher.HashPassword(user, vm.Password);
+
+                int newId = await _userRepo.Create(user);
+                user.Id = newId;
+
+                await SignInUser(user);
+
+                var toast = new ToastMessageViewModel
+                {
+                    Title = "Willkommen",
+                    Message = $"Konto für {user.DisplayName} erstellt.",
+                    Type = ToastType.Success
+                };
+                TempData.Put("ToastMsg", toast);
+
+                return RedirectToAction("Index", "Budget");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Register");
+                ModelState.AddModelError(string.Empty, "Ein unerwarteter Fehler ist aufgetreten.");
+                return View(vm);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction(nameof(Login));
+        }
+
+        private async Task SignInUser(UserModel user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.DisplayName)
+            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        }
+    }
+}

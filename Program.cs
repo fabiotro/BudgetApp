@@ -2,6 +2,8 @@ using BudgetApp.Data;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Models;
 using BudgetApp.Resources;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using NLog;
 using NLog.Web;
 
@@ -14,12 +16,30 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Add services to the container.
-    builder.Services.AddControllersWithViews()
+    builder.Services.AddControllersWithViews(options =>
+        {
+            options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
+        })
         .AddDataAnnotationsLocalization(options => {
             options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(DataAnnotations));
         });
 
     builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+    // Authentication
+    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(options =>
+        {
+            options.LoginPath = "/Account/Login";
+            options.AccessDeniedPath = "/Account/Login";
+            options.ExpireTimeSpan = TimeSpan.FromDays(14);
+            options.SlidingExpiration = true;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+        });
+
+    builder.Services.AddScoped<IPasswordHasher<UserModel>, PasswordHasher<UserModel>>();
 
     // Dependency Injection for Repositories
     builder.Services.AddScoped<DapperContext>();
@@ -31,6 +51,8 @@ try
     builder.Services.AddScoped<ISubCategoryRepository<SubCategoryModel>, SubCategoryRepository<SubCategoryModel>>();
     builder.Services.AddScoped<ITemplateBudgetRepository<TemplateBudgetModel>, TemplateBudgetRepository<TemplateBudgetModel>>();
     builder.Services.AddScoped<ITemplatePositionRepository<TemplatePositionModel>, TemplatePositionRepository<TemplatePositionModel>>();
+    builder.Services.AddScoped<IUserRepository<UserModel>, UserRepository<UserModel>>();
+    builder.Services.AddScoped<ICampUserRepository<CampUserModel>, CampUserRepository<CampUserModel>>();
 
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
@@ -56,6 +78,7 @@ try
 
     app.UseRouting();
 
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllerRoute(

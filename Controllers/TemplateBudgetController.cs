@@ -2,10 +2,13 @@ using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BudgetApp.Controllers
 {
+    [Authorize]
     public class TemplateBudgetController : Controller
     {
         private readonly ILogger<TemplateBudgetController> _logger;
@@ -31,23 +34,29 @@ namespace BudgetApp.Controllers
             _subCategoryRepo = subCategoryRepo;
         }
 
+        private int GetCurrentUserId() =>
+            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var templates = (await _templateBudgetRepo.GetAll()).ToList();
+            int userId = GetCurrentUserId();
+            var templates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList();
             return View(templates);
         }
 
         [HttpGet]
         public async Task<IActionResult> Upsert(int? id)
         {
+            int userId = GetCurrentUserId();
             if (id.HasValue)
             {
                 var template = await _templateBudgetRepo.GetById(id.Value);
                 if (template == null) return NotFound();
+                if (template.CreatedByUserId != userId) return Forbid();
                 return View(template);
             }
-            return View(new TemplateBudgetModel { Name = string.Empty });
+            return View(new TemplateBudgetModel { Name = string.Empty, CreatedByUserId = userId });
         }
 
         [HttpPost]
@@ -57,11 +66,13 @@ namespace BudgetApp.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            int userId = GetCurrentUserId();
             var toast = new ToastMessageViewModel();
             try
             {
                 if (model.Id == 0)
                 {
+                    model.CreatedByUserId = userId;
                     int newId = await _templateBudgetRepo.Create(model);
                     toast = new ToastMessageViewModel
                     {

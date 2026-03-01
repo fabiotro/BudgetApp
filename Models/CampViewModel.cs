@@ -17,10 +17,6 @@ namespace BudgetApp.Models
         [Display(Name = "CampEndDate", ResourceType = typeof(DataAnnotations))]
         public DateTime EndDate { get; set; }
 
-        [StringLength(255, ErrorMessageResourceName = "StringLength", ErrorMessageResourceType = typeof(DataAnnotations))]
-        [Display(Name = "CampMainLeader", ResourceType = typeof(DataAnnotations))]
-        public string? MainLeader { get; set; }
-
         [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
         [Range(0, int.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
         [Display(Name = "CampParticipantsCount", ResourceType = typeof(DataAnnotations))]
