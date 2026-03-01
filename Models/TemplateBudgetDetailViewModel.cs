@@ -39,6 +39,7 @@ namespace BudgetApp.Models
         public int? SubCategoryId { get; set; }
         public decimal? FixedAmount { get; set; }
         public decimal? Quantity { get; set; }
+        public string? QuantityVar { get; set; }
         public decimal? UnitAmount { get; set; }
         public int SortIndex { get; set; }
 
@@ -70,6 +71,9 @@ namespace BudgetApp.Models
 
         [Range(0, double.MaxValue)]
         public decimal? Quantity { get; set; }
+
+        [StringLength(50)]
+        public string? QuantityVar { get; set; }
 
         [Range(0, double.MaxValue)]
         public decimal? UnitAmount { get; set; }

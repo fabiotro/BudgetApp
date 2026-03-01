@@ -50,7 +50,14 @@
                     </div>
                     <div class="mb-3">
                         <label asp-for="Quantity" class="form-label"></label>
-                        <input asp-for="Quantity" type="number" class="form-control text-end" />
+                        <input type="hidden" id="editTpQvar" name="QuantityVar" value="@Model.QuantityVar" />
+                        <select id="editTpQvarSelect" class="form-select mb-2" data-initial="@Model.QuantityVar">
+                            <option value="">– Zahl –</option>
+                            <option value="ParticipantsCount">Teilnehmer</option>
+                            <option value="js_PersonsCount">J+S Pers.</option>
+                            <option value="LeadersTeamCount">Leitungsteam</option>
+                        </select>
+                        <input asp-for="Quantity" type="number" id="editTpQty" class="form-control text-end" />
                     </div>
                     <div class="mb-3">
                         <label asp-for="UnitAmount" class="form-label"></label>
@@ -91,5 +98,22 @@
 
         filterSubCategories(true);
         categorySelect.addEventListener('change', () => filterSubCategories(false));
+
+        // Quantity variable
+        const qvarHidden = document.getElementById('editTpQvar');
+        const qvarSelect = document.getElementById('editTpQvarSelect');
+        const qtyInput   = document.getElementById('editTpQty');
+
+        function syncQvar(v) {
+            qvarHidden.value = v;
+            if (v) { qtyInput.value = '0'; qtyInput.disabled = true; }
+            else   { qtyInput.disabled = false; }
+        }
+        const initialQvar = qvarSelect.dataset.initial;
+        if (initialQvar) { qvarSelect.value = initialQvar; syncQvar(initialQvar); }
+        qvarSelect.addEventListener('change', function () { syncQvar(this.value); });
+        qtyInput.addEventListener('input', function () {
+            qvarSelect.disabled = this.value !== '' && parseFloat(this.value) !== 0;
+        });
     })();
 </script>

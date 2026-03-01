@@ -226,7 +226,8 @@ namespace BudgetApp.Controllers
                             SubCategoryId = tp.SubCategoryId == 0 ? null : tp.SubCategoryId,
                             Name = tp.Name,
                             FixedAmount_fc = tp.FixedAmount ?? 0,
-                            Quantity_fc = tp.Quantity ?? 0,
+                            QuantityVar_fc = string.IsNullOrEmpty(tp.QuantityVar) ? null : tp.QuantityVar + "_fc",
+                            Quantity_fc = string.IsNullOrEmpty(tp.QuantityVar) ? (tp.Quantity ?? 0) : 0m,
                             UnitAmount_fc = tp.UnitAmount ?? 0,
                             SortIndex = tp.SortIndex
                         };

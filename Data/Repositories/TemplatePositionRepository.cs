@@ -21,6 +21,7 @@ namespace BudgetApp.Data.Repositories
                   ,[Name]
                   ,[FixedAmount]
                   ,[Quantity]
+                  ,[QuantityVar]
                   ,[UnitAmount]
                   ,[SortIndex]
               FROM [dbo].[TemplatePosition]
@@ -42,6 +43,7 @@ namespace BudgetApp.Data.Repositories
                   ,[Name]
                   ,[FixedAmount]
                   ,[Quantity]
+                  ,[QuantityVar]
                   ,[UnitAmount]
                   ,[SortIndex]
                 FROM [dbo].[TemplatePosition]
@@ -63,6 +65,7 @@ namespace BudgetApp.Data.Repositories
                   ,[Name]
                   ,[FixedAmount]
                   ,[Quantity]
+                  ,[QuantityVar]
                   ,[UnitAmount]
                   ,[SortIndex]
               FROM [dbo].[TemplatePosition]
@@ -84,6 +87,7 @@ namespace BudgetApp.Data.Repositories
                        ,[Name]
                        ,[FixedAmount]
                        ,[Quantity]
+                       ,[QuantityVar]
                        ,[UnitAmount]
                        ,[SortIndex])
                  VALUES
@@ -94,6 +98,7 @@ namespace BudgetApp.Data.Repositories
                        ,@Name
                        ,@FixedAmount
                        ,@Quantity
+                       ,@QuantityVar
                        ,@UnitAmount
                        ,@SortIndex);
                     SELECT CAST(SCOPE_IDENTITY() as int);
@@ -114,6 +119,7 @@ namespace BudgetApp.Data.Repositories
                     ,[Name] = @Name
                     ,[FixedAmount] = @FixedAmount
                     ,[Quantity] = @Quantity
+                    ,[QuantityVar] = @QuantityVar
                     ,[UnitAmount] = @UnitAmount
                     ,[SortIndex] = @SortIndex
                 WHERE [Id] = @Id

@@ -174,6 +174,7 @@ CREATE TABLE [dbo].[TemplatePosition](
     [Name] [nvarchar](255) NOT NULL,
     [FixedAmount] [decimal](18, 2) NULL,
     [Quantity] [decimal](18, 2) NULL,
+    [QuantityVar] [nvarchar](50) NULL,
     [UnitAmount] [decimal](18, 2) NULL,
     [SortIndex] [int] NOT NULL,
     [CreateDate] [datetime] NULL,
@@ -181,6 +182,10 @@ CREATE TABLE [dbo].[TemplatePosition](
     CONSTRAINT [PK_TemplatePosition] PRIMARY KEY CLUSTERED ([Id] ASC)
 )
 END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[TemplatePosition]') AND name = 'QuantityVar')
+    ALTER TABLE [dbo].[TemplatePosition] ADD [QuantityVar] [nvarchar](50) NULL
 GO
 
 -- Default constraints for CreateDate

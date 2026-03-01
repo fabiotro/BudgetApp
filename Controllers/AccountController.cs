@@ -60,7 +60,7 @@ namespace BudgetApp.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
-            return RedirectToAction("Index", "Budget");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -109,7 +109,7 @@ namespace BudgetApp.Controllers
                 };
                 TempData.Put("ToastMsg", toast);
 
-                return RedirectToAction("Index", "Budget");
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
