@@ -96,7 +96,7 @@
 }
 
 <hr />
-<h3>Budget</h3>
+<h3>Budgets</h3>
 
 @if (Model.Camp.Id == 0)
 {
@@ -140,9 +140,11 @@ else
         </table>
     }
 
-    <button type="button" class="btn btn-primary" id="openCreateBudgetModal">
-        Neues Budget erstellen <i class="bi bi-plus-square"></i>
-    </button>
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-primary" id="openCreateBudgetModal">
+            Neues Budget erstellen <i class="bi bi-plus-square"></i>
+        </button>
+    </div>
 
     <div id="createBudgetModalContainer"></div>
 

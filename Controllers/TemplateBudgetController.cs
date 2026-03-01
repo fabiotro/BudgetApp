@@ -115,17 +115,13 @@ namespace BudgetApp.Controllers
                 .Select(p =>
                 {
                     positionTypes.TryGetValue(p.PositionTypeId, out var pt);
-                    categories.TryGetValue(p.CategoryId, out var cat);
-                    SubCategoryModel? sub = null;
-                    if (p.SubCategoryId.HasValue)
-                        subCategories.TryGetValue(p.SubCategoryId.Value, out sub);
                     return new TemplatePositionRowViewModel
                     {
                         Id = p.Id,
                         Name = p.Name,
                         PositionTypeName = pt?.Name ?? "–",
-                        CategoryName = cat?.Name ?? "–",
-                        SubCategoryName = sub?.Name ?? "–",
+                        CategoryId = p.CategoryId,
+                        SubCategoryId = p.SubCategoryId,
                         FixedAmount = p.FixedAmount,
                         Quantity = p.Quantity,
                         UnitAmount = p.UnitAmount,
@@ -134,10 +130,41 @@ namespace BudgetApp.Controllers
                 })
                 .ToList();
 
+            var groups = rows
+                .GroupBy(p => p.CategoryId)
+                .Select(catGrp =>
+                {
+                    if (!categories.TryGetValue(catGrp.Key, out var cat)) return null;
+                    var subGroups = catGrp
+                        .GroupBy(p => p.SubCategoryId)
+                        .Select(subGrp =>
+                        {
+                            SubCategoryModel? sub = null;
+                            if (subGrp.Key.HasValue)
+                                subCategories.TryGetValue(subGrp.Key.Value, out sub);
+                            return new TemplateSubCategoryGroupViewModel
+                            {
+                                SubCategory = sub,
+                                Positions = subGrp.OrderBy(p => p.SortIndex).ToList()
+                            };
+                        })
+                        .OrderBy(sg => sg.SubCategory?.SortIndex ?? -1)
+                        .ToList();
+                    return new TemplateCategoryGroupViewModel
+                    {
+                        Category = cat,
+                        SubGroups = subGroups
+                    };
+                })
+                .Where(g => g != null)
+                .Cast<TemplateCategoryGroupViewModel>()
+                .OrderBy(g => g.Category.SortIndex)
+                .ToList();
+
             var vm = new TemplateBudgetDetailViewModel
             {
                 TemplateBudget = template,
-                Positions = rows,
+                Groups = groups,
                 NewPosition = new UpsertTemplatePositionViewModel
                 {
                     TemplateBudgetId = id,
@@ -238,6 +265,35 @@ namespace BudgetApp.Controllers
                 TempData.Put("ToastMsg", toast);
             }
             return RedirectToAction(nameof(Detail), new { id = vm.TemplateBudgetId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditPositionModal(int id)
+        {
+            var pos = await _templatePositionRepo.GetById(id);
+            if (pos == null) return NotFound();
+
+            var positionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList();
+            var categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
+            var subCategories = (await _subCategoryRepo.GetAll()).OrderBy(sc => sc.SortIndex).ToList();
+
+            var vm = new UpsertTemplatePositionViewModel
+            {
+                Id = pos.Id,
+                TemplateBudgetId = pos.TemplateBudgetId,
+                PositionTypeId = pos.PositionTypeId,
+                CategoryId = pos.CategoryId,
+                SubCategoryId = pos.SubCategoryId,
+                Name = pos.Name,
+                FixedAmount = pos.FixedAmount,
+                Quantity = pos.Quantity,
+                UnitAmount = pos.UnitAmount,
+                SortIndex = pos.SortIndex,
+                PositionTypes = positionTypes,
+                Categories = categories,
+                SubCategories = subCategories
+            };
+            return PartialView("_EditPositionModal", vm);
         }
 
         [HttpGet]
