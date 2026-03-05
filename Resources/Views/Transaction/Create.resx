@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>Ausgabe erfassen</value></data>
+  <data name="PageHeading" xml:space="preserve"><value>Ausgabe erfassen</value></data>
+  <data name="BackButton" xml:space="preserve"><value>Zurück</value></data>
+  <data name="PaymentSourcePersonalMoney" xml:space="preserve"><value>Privatgeld</value></data>
+  <data name="PaymentSourceCampBudget" xml:space="preserve"><value>Lagerkasse</value></data>
+  <data name="PaymentSourceOtherAdvance" xml:space="preserve"><value>Andere Vorauszahlung</value></data>
+  <data name="PaymentMethodCash" xml:space="preserve"><value>Bargeld</value></data>
+  <data name="PaymentMethodCard" xml:space="preserve"><value>Karte</value></data>
+  <data name="PaymentMethodBill" xml:space="preserve"><value>Rechnung</value></data>
+  <data name="PaymentMethodOther" xml:space="preserve"><value>Andere</value></data>
+  <data name="PositionOptionalLabel" xml:space="preserve"><value>Budgetposition (optional)</value></data>
+  <data name="NoPositionOption" xml:space="preserve"><value>— keine —</value></data>
+  <data name="AttachmentsLabel" xml:space="preserve"><value>Belege (Fotos, PDF)</value></data>
+  <data name="AttachmentsHint" xml:space="preserve"><value>Erlaubte Formate: JPG, PNG, WEBP, GIF, PDF. Max. 10 MB pro Datei.</value></data>
+  <data name="SaveButton" xml:space="preserve"><value>Ausgabe speichern</value></data>
+  <data name="CancelButton" xml:space="preserve"><value>Abbrechen</value></data>
+</root>

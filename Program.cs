@@ -20,6 +20,7 @@ try
         {
             options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
         })
+        .AddViewLocalization()
         .AddDataAnnotationsLocalization(options => {
             options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(DataAnnotations));
         });

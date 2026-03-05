@@ -1,12 +1,12 @@
 @model NewBudgetViewModel
 @{
-    ViewBag.Title = "Lagebudget erstellen";
+    ViewData["Title"] = Localizer["PageHeading"].Value;
 }
 
-<h2>Neues Lagerbudget erstellen</h2>
+<h2>@Localizer["PageHeading"]</h2>
 <hr />
 
-<h3>Lagerdaten</h3>
+<h3>@Localizer["CampDataSection"]</h3>
 @using (Html.BeginForm("UpsertCamp", "Budget", FormMethod.Post))
 {
     @Html.AntiForgeryToken()
@@ -29,7 +29,7 @@
     </div>
     <div class="row">
         <div class="col">
-            <h5>Provisorisch</h5>
+            <h5>@Localizer["ProvisionalHeading"]</h5>
             <hr />
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.ParticipantsCount_fc, new { @class = "form-label" })
@@ -57,7 +57,7 @@
             </div>
         </div>
         <div class="col">
-            <h5>Definitiv</h5>
+            <h5>@Localizer["FinalHeading"]</h5>
             <hr />
             <div class="mb-3">
                 @Html.LabelFor(m => m.Camp.ParticipantsCount_rl, new { @class = "form-label" })
@@ -87,18 +87,18 @@
     </div>
     <div class="d-flex justify-content-end">
         <button type="submit" class="btn btn-primary">
-            <span class="me-2">Lagerdaten speichern</span>
+            <span class="me-2">@Localizer["SaveCampDataButton"]</span>
             <i class="bi bi-floppy ml-3"></i>
         </button>
     </div>
 }
 
 <hr />
-<h3>Budgets</h3>
+<h3>@Localizer["BudgetsSection"]</h3>
 
 @if (Model.Camp.Id == 0)
 {
-    <p class="text-muted">Zuerst die Lagerdaten speichern.</p>
+    <p class="text-muted">@Localizer["SaveFirstMessage"]</p>
 }
 else
 {
@@ -107,8 +107,8 @@ else
         <table class="table table-sm mb-3">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Beschreibung</th>
+                    <th>@Localizer["ColName"]</th>
+                    <th>@Localizer["ColDescription"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -123,7 +123,7 @@ else
                                 <i class="bi bi-eye"></i>
                             </a>
                             <form asp-action="DeleteBudget" method="post" class="d-inline"
-                                  onsubmit="return confirm('Budget «@budget.Name» wirklich löschen? Alle Positionen werden ebenfalls gelöscht.')">
+                                  onsubmit="return confirm('@string.Format(Localizer["ConfirmDeleteBudget"].Value, budget.Name)')">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@budget.Id" />
                                 <input type="hidden" name="campId" value="@Model.Camp.Id" />
@@ -140,7 +140,7 @@ else
 
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-primary" id="openCreateBudgetModal">
-            Neues Budget erstellen <i class="bi bi-plus-square"></i>
+            @Localizer["NewBudgetButton"] <i class="bi bi-plus-square"></i>
         </button>
     </div>
 
@@ -162,16 +162,16 @@ else
 @if (Model.Camp.Id > 0)
 {
     <hr />
-    <h3>Lagerleitung</h3>
+    <h3>@Localizer["LeadershipSection"]</h3>
 
     @if (Model.CampUsers.Any())
     {
         <table class="table table-sm mb-3">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>E-Mail</th>
-                    <th>Rolle</th>
+                    <th>@Localizer["ColName"]</th>
+                    <th>@Localizer["ColEmail"]</th>
+                    <th>@Localizer["ColRole"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -184,18 +184,18 @@ else
                         <td>
                             @if (cu.IsMainLeader)
                             {
-                                <span class="badge bg-primary">Hauptleitung</span>
+                                <span class="badge bg-primary">@Localizer["MainLeaderBadge"]</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">Leitung</span>
+                                <span class="badge bg-secondary">@Localizer["LeaderBadge"]</span>
                             }
                         </td>
                         <td class="text-end">
                             @if (!cu.IsMainLeader)
                             {
                                 <form asp-action="RemoveCampUser" method="post" class="d-inline"
-                                      onsubmit="return confirm('Person wirklich entfernen?')">
+                                      onsubmit="return confirm('@Localizer["ConfirmRemovePerson"].Value')">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="campUserId" value="@cu.Id" />
                                     <input type="hidden" name="campId" value="@Model.Camp.Id" />
@@ -222,7 +222,7 @@ else
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="campId" value="@Model.Camp.Id" />
                 <div>
-                    <label class="form-label mb-1">Person hinzufügen</label>
+                    <label class="form-label mb-1">@Localizer["AddPersonLabel"]</label>
                     <select name="userId" class="form-select form-select-sm">
                         @foreach (var u in availableUsers)
                         {
@@ -231,7 +231,7 @@ else
                     </select>
                 </div>
                 <button type="submit" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-person-plus"></i> Hinzufügen
+                    <i class="bi bi-person-plus"></i> @Localizer["AddPersonButton"]
                 </button>
             </form>
         }

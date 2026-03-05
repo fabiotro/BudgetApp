@@ -1,12 +1,12 @@
 @model UpsertSubCategoryViewModel
 @{
     var isNew = Model.Id == 0;
-    ViewData["Title"] = isNew ? "Neue Unterkategorie" : "Unterkategorie bearbeiten";
+    ViewData["Title"] = isNew ? Localizer["CreatePageTitle"].Value : Localizer["EditPageTitle"].Value;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>@(isNew ? "Neue Unterkategorie erstellen" : "Unterkategorie bearbeiten")</h2>
-    <a asp-action="Index" class="btn btn-outline-secondary">Zur Übersicht</a>
+    <h2>@(isNew ? Localizer["CreateHeading"] : Localizer["EditHeading"])</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">@Localizer["ToOverviewButton"]</a>
 </div>
 <hr />
 
@@ -17,9 +17,9 @@
             <input type="hidden" asp-for="Id" />
 
             <div class="mb-3">
-                <label asp-for="CategoryId" class="form-label">Kategorie</label>
+                <label asp-for="CategoryId" class="form-label">@Localizer["CategoryLabel"]</label>
                 <select asp-for="CategoryId" class="form-select">
-                    <option value="0">– Bitte wählen –</option>
+                    <option value="0">@Localizer["CategoryPlaceholder"]</option>
                     @foreach (var cat in Model.Categories)
                     {
                         <option value="@cat.Id" selected="@(Model.CategoryId == cat.Id)">@cat.Name</option>
@@ -43,8 +43,8 @@
                 <span asp-validation-for="SortIndex" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary">@(isNew ? "Erstellen" : "Speichern")</button>
-            <a asp-action="Index" class="btn btn-outline-secondary ms-2">Abbrechen</a>
+            <button type="submit" class="btn btn-primary">@(isNew ? Localizer["CreateButton"] : Localizer["SaveButton"])</button>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-2">@Localizer["CancelButton"]</a>
         </form>
     </div>
 </div>

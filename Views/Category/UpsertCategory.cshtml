@@ -1,12 +1,12 @@
 @model CategoryModel
 @{
     var isNew = Model.Id == 0;
-    ViewData["Title"] = isNew ? "Neue Kategorie" : "Kategorie bearbeiten";
+    ViewData["Title"] = isNew ? Localizer["CreatePageTitle"].Value : Localizer["EditPageTitle"].Value;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>@(isNew ? "Neue Kategorie erstellen" : "Kategorie bearbeiten")</h2>
-    <a asp-action="Index" class="btn btn-outline-secondary">Zur Übersicht</a>
+    <h2>@(isNew ? Localizer["CreateHeading"] : Localizer["EditHeading"])</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">@Localizer["ToOverviewButton"]</a>
 </div>
 <hr />
 
@@ -32,10 +32,10 @@
                 <span asp-validation-for="SortIndex" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary">@(isNew ? "Erstellen" : "Speichern")</button>
+            <button type="submit" class="btn btn-primary">@(isNew ? Localizer["CreateButton"] : Localizer["SaveButton"])</button>
             @if (!isNew)
             {
-                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Abbrechen</a>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-2">@Localizer["CancelButton"]</a>
             }
         </form>
     </div>

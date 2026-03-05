@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="ModalTitle" xml:space="preserve"><value>Position bearbeiten</value></data>
+  <data name="CloseAriaLabel" xml:space="preserve"><value>Schliessen</value></data>
+  <data name="NameLabel" xml:space="preserve"><value>Name</value></data>
+  <data name="TypeLabel" xml:space="preserve"><value>Typ</value></data>
+  <data name="CategoryLabel" xml:space="preserve"><value>Kategorie</value></data>
+  <data name="SubCategoryLabel" xml:space="preserve"><value>Unterkategorie</value></data>
+  <data name="TypePlaceholder" xml:space="preserve"><value>– Typ –</value></data>
+  <data name="CategoryPlaceholder" xml:space="preserve"><value>– Kategorie –</value></data>
+  <data name="SubCategoryPlaceholder" xml:space="preserve"><value>– Unterkategorie –</value></data>
+  <data name="ProvisionalHeading" xml:space="preserve"><value>Provisorisch</value></data>
+  <data name="FinalHeading" xml:space="preserve"><value>Definitiv</value></data>
+  <data name="FixedAmountLabel" xml:space="preserve"><value>Fixbetrag</value></data>
+  <data name="QuantityLabel" xml:space="preserve"><value>Anzahl</value></data>
+  <data name="UnitPriceLabel" xml:space="preserve"><value>Einheitspreis</value></data>
+  <data name="NumberPlaceholder" xml:space="preserve"><value>– Zahl –</value></data>
+  <data name="ParticipantsLabel" xml:space="preserve"><value>Teilnehmer</value></data>
+  <data name="JsPersonsLabel" xml:space="preserve"><value>J+S Pers.</value></data>
+  <data name="LeadersTeamLabel" xml:space="preserve"><value>Leitungsteam</value></data>
+  <data name="CancelButton" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="SaveButton" xml:space="preserve"><value>Speichern</value></data>
+</root>

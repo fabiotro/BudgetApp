@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageHeading" xml:space="preserve"><value>Neues Lagerbudget erstellen</value></data>
+  <data name="CampDataSection" xml:space="preserve"><value>Lagerdaten</value></data>
+  <data name="ProvisionalHeading" xml:space="preserve"><value>Provisorisch</value></data>
+  <data name="FinalHeading" xml:space="preserve"><value>Definitiv</value></data>
+  <data name="SaveCampDataButton" xml:space="preserve"><value>Lagerdaten speichern</value></data>
+  <data name="BudgetsSection" xml:space="preserve"><value>Budgets</value></data>
+  <data name="SaveFirstMessage" xml:space="preserve"><value>Zuerst die Lagerdaten speichern.</value></data>
+  <data name="ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="ColDescription" xml:space="preserve"><value>Beschreibung</value></data>
+  <data name="ConfirmDeleteBudget" xml:space="preserve"><value>Budget «{0}» wirklich löschen? Alle Positionen werden ebenfalls gelöscht.</value></data>
+  <data name="NewBudgetButton" xml:space="preserve"><value>Neues Budget erstellen</value></data>
+  <data name="LeadershipSection" xml:space="preserve"><value>Lagerleitung</value></data>
+  <data name="ColEmail" xml:space="preserve"><value>E-Mail</value></data>
+  <data name="ColRole" xml:space="preserve"><value>Rolle</value></data>
+  <data name="MainLeaderBadge" xml:space="preserve"><value>Hauptleitung</value></data>
+  <data name="LeaderBadge" xml:space="preserve"><value>Leitung</value></data>
+  <data name="AddPersonLabel" xml:space="preserve"><value>Person hinzufügen</value></data>
+  <data name="AddPersonButton" xml:space="preserve"><value>Hinzufügen</value></data>
+  <data name="ConfirmRemovePerson" xml:space="preserve"><value>Person wirklich entfernen?</value></data>
+</root>

@@ -1,12 +1,12 @@
 @model List<TemplateBudgetModel>
 @{
-    ViewData["Title"] = "Vorlagen";
+    ViewData["Title"] = Localizer["PageTitle"].Value;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Budgetvorlagen</h2>
+    <h2>@Localizer["PageHeading"]</h2>
     <button type="button" class="btn btn-primary" id="openCreateTemplateModal">
-        <span class="me-2">Budgetvorlage erstellen</span>
+        <span class="me-2">@Localizer["CreateTemplateButton"]</span>
         <i class="bi bi-plus-square"></i>
     </button>
 </div>
@@ -14,15 +14,15 @@
 
 @if (!Model.Any())
 {
-    <p class="text-muted">Noch keine Vorlagen vorhanden.</p>
+    <p class="text-muted">@Localizer["NoDataMessage"]</p>
 }
 else
 {
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Beschreibung</th>
+                <th>@Localizer["ColName"]</th>
+                <th>@Localizer["ColDescription"]</th>
                 <th></th>
             </tr>
         </thead>
@@ -50,7 +50,7 @@ else
                             <i class="bi bi-pen"></i>
                         </button>
                         <form asp-action="DeleteTemplate" method="post" class="d-inline"
-                              onsubmit="return confirm('Vorlage «@template.Name» wirklich löschen?')">
+                              onsubmit="return confirm('@string.Format(Localizer["ConfirmDeleteTemplate"].Value, template.Name)')">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@template.Id" />
                             <button type="submit" class="btn btn-sm btn-outline-danger">
