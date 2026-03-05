@@ -12,7 +12,8 @@
         "ms-dotnettools.csharp",
         "ms-dotnettools.csdevkit",
         "ms-mssql.mssql",
-        "anthropic.claude-code"
+        "anthropic.claude-code",
+        "pkief.material-icon-theme"
       ]
     }
   },
