@@ -4,26 +4,26 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="upsertTemplateModalLabel">@(Model.Id == 0 ? "Neue Vorlage erstellen" : "Vorlage bearbeiten")</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+                <h5 class="modal-title" id="upsertTemplateModalLabel">@(Model.Id == 0 ? Localizer["CreateModalTitle"] : Localizer["EditModalTitle"])</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Localizer["CloseAriaLabel"]"></button>
             </div>
             <form asp-action="Upsert" asp-controller="TemplateBudget" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="Id" value="@Model.Id" />
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <label class="form-label">@Localizer["NameLabel"] <span class="text-danger">*</span></label>
                         <input type="text" name="Name" class="form-control" maxlength="100" required value="@Model.Name" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Beschreibung</label>
+                        <label class="form-label">@Localizer["DescriptionLabel"]</label>
                         <input type="text" name="Description" class="form-control" maxlength="255" value="@Model.Description" />
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Localizer["CancelButton"]</button>
                     <button type="submit" class="btn btn-primary">
-                        @(Model.Id == 0 ? "Erstellen" : "Speichern")</i>
+                        @(Model.Id == 0 ? Localizer["CreateButton"] : Localizer["SaveButton"])
                     </button>
                 </div>
             </form>

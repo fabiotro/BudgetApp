@@ -20,6 +20,7 @@ try
         {
             options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
         })
+        .AddViewLocalization()
         .AddDataAnnotationsLocalization(options => {
             options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(DataAnnotations));
         });
@@ -53,6 +54,7 @@ try
     builder.Services.AddScoped<ITemplatePositionRepository<TemplatePositionModel>, TemplatePositionRepository<TemplatePositionModel>>();
     builder.Services.AddScoped<IUserRepository<UserModel>, UserRepository<UserModel>>();
     builder.Services.AddScoped<ICampUserRepository<CampUserModel>, CampUserRepository<CampUserModel>>();
+    builder.Services.AddScoped<ICampUserRoleRepository<CampUserRoleModel>, CampUserRoleRepository<CampUserRoleModel>>();
     builder.Services.AddScoped<ITransactionRepository<TransactionModel>, TransactionRepository<TransactionModel>>();
     builder.Services.AddScoped<ITransactionDocumentRepository<TransactionDocumentModel>, TransactionDocumentRepository<TransactionDocumentModel>>();
 

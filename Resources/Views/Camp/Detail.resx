@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageHeading" xml:space="preserve"><value>Lagerübersicht</value></data>
+  <data name="CreateTransactionButton" xml:space="preserve"><value>Ausgabe erfassen</value></data>
+  <data name="BudgetsHeading" xml:space="preserve"><value>Budgets</value></data>
+  <data name="ExpensesByPersonHeading" xml:space="preserve"><value>Ausgaben nach Person</value></data>
+  <data name="NoDataMessage" xml:space="preserve"><value>Noch keine Leitungsmitglieder oder Ausgaben vorhanden.</value></data>
+  <data name="ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="ColIban" xml:space="preserve"><value>IBAN</value></data>
+  <data name="ColTotalExpenses" xml:space="preserve"><value>Ausgaben total</value></data>
+  <data name="ColCampOwes" xml:space="preserve"><value>Lager schuldet</value></data>
+  <data name="TotalLabel" xml:space="preserve"><value>Total</value></data>
+</root>

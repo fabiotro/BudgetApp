@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="AddPositionButton" xml:space="preserve"><value>Position hinzufügen</value></data>
+  <data name="EditCampDataButton" xml:space="preserve"><value>Lagerdaten bearbeiten</value></data>
+  <data name="CampOverviewButton" xml:space="preserve"><value>Lagerübersicht</value></data>
+  <data name="CampPrefix" xml:space="preserve"><value>Lager</value></data>
+  <data name="CampLeaderLabel" xml:space="preserve"><value>Lagerleiter</value></data>
+  <data name="ProvisionalHeading" xml:space="preserve"><value>Provisorisch</value></data>
+  <data name="FinalHeading" xml:space="preserve"><value>Definitiv</value></data>
+  <data name="ColPosition" xml:space="preserve"><value>Position</value></data>
+  <data name="ColFixedAmount" xml:space="preserve"><value>Fixbetrag</value></data>
+  <data name="ColQuantity" xml:space="preserve"><value>Anzahl</value></data>
+  <data name="ColUnitPrice" xml:space="preserve"><value>Einheitspreis</value></data>
+  <data name="ColTotal" xml:space="preserve"><value>Total</value></data>
+  <data name="SubtotalPrefix" xml:space="preserve"><value>Total</value></data>
+  <data name="RemainingPositionsLabel" xml:space="preserve"><value>übrige Positionen</value></data>
+  <data name="GrandTotalTitle" xml:space="preserve"><value>Gesamttotal</value></data>
+  <data name="IncomeLabel" xml:space="preserve"><value>Einnahmen</value></data>
+  <data name="ExpensesLabel" xml:space="preserve"><value>Ausgaben</value></data>
+  <data name="BalanceLabel" xml:space="preserve"><value>Saldo</value></data>
+  <data name="NoPositionsMessage" xml:space="preserve"><value>Keine Positionen vorhanden.</value></data>
+  <data name="ToOverviewButton" xml:space="preserve"><value>Zur Übersicht</value></data>
+  <data name="ConfirmDeletePosition" xml:space="preserve"><value>Position «{0}» wirklich löschen?</value></data>
+  <data name="VarParticipants" xml:space="preserve"><value>Teilnehmer</value></data>
+  <data name="VarJsPersons" xml:space="preserve"><value>J+S Pers.</value></data>
+  <data name="VarLeadersTeam" xml:space="preserve"><value>Leitungsteam</value></data>
+</root>

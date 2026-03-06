@@ -141,12 +141,12 @@ namespace BudgetApp.Controllers
                     int newId = await _campRepo.Create(campModel);
                     newBudget.Camp.Id = newId;
 
-                    // Auto-add creator as main leader
+                    // Auto-add creator as Administrator
                     await _campUserRepo.Create(new CampUserModel
                     {
                         CampId = newId,
                         UserId = userId,
-                        IsMainLeader = true
+                        CampUserRoleId = 1
                     });
 
                     toast = new ToastMessageViewModel
@@ -573,7 +573,7 @@ namespace BudgetApp.Controllers
                 {
                     CampId = campId,
                     UserId = userId,
-                    IsMainLeader = false
+                    CampUserRoleId = 2
                 });
                 toast = new ToastMessageViewModel
                 {

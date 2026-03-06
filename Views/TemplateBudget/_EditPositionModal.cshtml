@@ -4,8 +4,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editPositionModalLabel">Position bearbeiten</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+                <h5 class="modal-title" id="editPositionModalLabel">@Localizer["ModalTitle"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Localizer["CloseAriaLabel"]"></button>
             </div>
             <form asp-action="SavePosition" asp-controller="TemplateBudget" method="post">
                 @Html.AntiForgeryToken()
@@ -21,20 +21,20 @@
                         <label asp-for="PositionTypeId" class="form-label"></label> <span class="text-danger">*</span>
                         <select asp-for="PositionTypeId" class="form-select" required
                                 asp-items="@(new SelectList(Model.PositionTypes, "Id", "Name"))">
-                            <option value="0">– Typ –</option>
+                            <option value="0">@Localizer["TypePlaceholder"]</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label asp-for="CategoryId" class="form-label"></label> <span class="text-danger">*</span>
                         <select asp-for="CategoryId" id="editModalCategoryId" class="form-select" required
                                 asp-items="@(new SelectList(Model.Categories, "Id", "Name"))">
-                            <option value="0">– Kategorie –</option>
+                            <option value="0">@Localizer["CategoryPlaceholder"]</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label asp-for="SubCategoryId" class="form-label"></label>
                         <select asp-for="SubCategoryId" id="editModalSubCategoryId" class="form-select">
-                            <option value="">– Unterkategorie –</option>
+                            <option value="">@Localizer["SubCategoryPlaceholder"]</option>
                             @foreach (var sub in Model.SubCategories)
                             {
                                 <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
@@ -52,10 +52,10 @@
                         <label asp-for="Quantity" class="form-label"></label>
                         <input type="hidden" id="editTpQvar" name="QuantityVar" value="@Model.QuantityVar" />
                         <select id="editTpQvarSelect" class="form-select mb-2" data-initial="@Model.QuantityVar">
-                            <option value="">– Zahl –</option>
-                            <option value="ParticipantsCount">Teilnehmer</option>
-                            <option value="js_PersonsCount">J+S Pers.</option>
-                            <option value="LeadersTeamCount">Leitungsteam</option>
+                            <option value="">@Localizer["NumberPlaceholder"]</option>
+                            <option value="ParticipantsCount">@Localizer["ParticipantsLabel"]</option>
+                            <option value="js_PersonsCount">@Localizer["JsPersonsLabel"]</option>
+                            <option value="LeadersTeamCount">@Localizer["LeadersTeamLabel"]</option>
                         </select>
                         <input asp-for="Quantity" type="number" id="editTpQty" class="form-control text-end" />
                     </div>
@@ -68,8 +68,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Speichern <i class="bi bi-floppy"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Localizer["CancelButton"]</button>
+                    <button type="submit" class="btn btn-primary">@Localizer["SaveButton"] <i class="bi bi-floppy"></i></button>
                 </div>
             </form>
         </div>
@@ -85,7 +85,7 @@
 
         function filterSubCategories(keepSelection) {
             const selectedCategoryId = categorySelect.value;
-            subCategorySelect.innerHTML = '<option value="">– Unterkategorie –</option>';
+            subCategorySelect.innerHTML = '<option value="">@Localizer["SubCategoryPlaceholder"]</option>';
             allSubOptions
                 .filter(opt => selectedCategoryId && selectedCategoryId !== '0' && opt.dataset.category === selectedCategoryId)
                 .forEach(opt => {

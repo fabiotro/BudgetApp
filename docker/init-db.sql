@@ -27,6 +27,18 @@ CREATE TABLE [dbo].[User](
 END
 GO
 
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CampUserRole]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[CampUserRole](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Name] [nvarchar](100) NOT NULL,
+    [CreateDate] [datetime] NULL,
+    [ChangeDate] [datetime] NULL,
+    CONSTRAINT [PK_CampUserRole] PRIMARY KEY CLUSTERED ([Id] ASC)
+)
+END
+GO
+
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Camp]') AND type = N'U')
 BEGIN
 CREATE TABLE [dbo].[Camp](
@@ -53,7 +65,7 @@ CREATE TABLE [dbo].[CampUser](
     [Id] [int] IDENTITY(1,1) NOT NULL,
     [CampId] [int] NOT NULL,
     [UserId] [int] NOT NULL,
-    [IsMainLeader] [bit] NOT NULL DEFAULT 0,
+    [CampUserRoleId] [int] NOT NULL DEFAULT 2,
     [CreateDate] [datetime] NULL,
     CONSTRAINT [PK_CampUser] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [UQ_CampUser_CampId_UserId] UNIQUE ([CampId], [UserId])
@@ -193,6 +205,9 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_User_CreateDate]') AND type = 'D')
     ALTER TABLE [dbo].[User] ADD CONSTRAINT [DF_User_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
 GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_CampUserRole_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[CampUserRole] ADD CONSTRAINT [DF_CampUserRole_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_CampUser_CreateDate]') AND type = 'D')
     ALTER TABLE [dbo].[CampUser] ADD CONSTRAINT [DF_CampUser_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
 GO
@@ -225,6 +240,9 @@ GO
 
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Camp_User]'))
     ALTER TABLE [dbo].[Camp] WITH CHECK ADD CONSTRAINT [FK_Camp_User] FOREIGN KEY([CreatedByUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampUser_CampUserRole]'))
+    ALTER TABLE [dbo].[CampUser] WITH CHECK ADD CONSTRAINT [FK_CampUser_CampUserRole] FOREIGN KEY([CampUserRoleId]) REFERENCES [dbo].[CampUserRole] ([Id])
 GO
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampUser_Camp]'))
     ALTER TABLE [dbo].[CampUser] WITH CHECK ADD CONSTRAINT [FK_CampUser_Camp] FOREIGN KEY([CampId]) REFERENCES [dbo].[Camp] ([Id]) ON DELETE CASCADE
@@ -267,6 +285,16 @@ IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo
 GO
 
 -- Seed data
+
+SET IDENTITY_INSERT [dbo].[CampUserRole] ON
+IF NOT EXISTS (SELECT 1 FROM [dbo].[CampUserRole] WHERE [Id] = 1)
+    INSERT INTO [dbo].[CampUserRole] ([Id], [Name]) VALUES (1, N'Administrator')
+IF NOT EXISTS (SELECT 1 FROM [dbo].[CampUserRole] WHERE [Id] = 2)
+    INSERT INTO [dbo].[CampUserRole] ([Id], [Name]) VALUES (2, N'Mitglied')
+IF NOT EXISTS (SELECT 1 FROM [dbo].[CampUserRole] WHERE [Id] = 3)
+    INSERT INTO [dbo].[CampUserRole] ([Id], [Name]) VALUES (3, N'Beobachter')
+SET IDENTITY_INSERT [dbo].[CampUserRole] OFF
+GO
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[PositionType] WHERE [Name] = N'Ausgabe')
     INSERT INTO [dbo].[PositionType] ([Name], [Description]) VALUES (N'Ausgabe', N'Ausgabe')
@@ -323,6 +351,15 @@ CREATE TRIGGER [dbo].[User_UpdateChangeDate] ON [dbo].[User] AFTER INSERT, UPDAT
 BEGIN
     SET NOCOUNT ON;
     UPDATE [dbo].[User] SET ChangeDate = GETDATE() FROM [User] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[CampUserRole_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[CampUserRole_UpdateChangeDate] ON [dbo].[CampUserRole] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[CampUserRole] SET ChangeDate = GETDATE() FROM CampUserRole t INNER JOIN Inserted i ON t.Id = i.Id
 END'
 GO
 

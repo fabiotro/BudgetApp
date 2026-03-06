@@ -4,21 +4,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="@(Model.ModalId)Label">Position hinzufügen</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+                <h5 class="modal-title" id="@(Model.ModalId)Label">@Localizer["ModalTitle"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Localizer["CloseAriaLabel"]"></button>
             </div>
             <form asp-action="@Model.FormAction" asp-controller="@Model.FormController" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="@Model.ParentIdFieldName" value="@Model.ParentId" />
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <label class="form-label">@Localizer["NameLabel"] <span class="text-danger">*</span></label>
                         <input type="text" name="Name" class="form-control" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Typ <span class="text-danger">*</span></label>
+                        <label class="form-label">@Localizer["TypeLabel"] <span class="text-danger">*</span></label>
                         <select name="PositionTypeId" class="form-select" required>
-                            <option value="0">– Typ –</option>
+                            <option value="0">@Localizer["TypePlaceholder"]</option>
                             @foreach (var pt in Model.PositionTypes)
                             {
                                 <option value="@pt.Id">@pt.Name</option>
@@ -26,9 +26,9 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Kategorie <span class="text-danger">*</span></label>
+                        <label class="form-label">@Localizer["CategoryLabel"] <span class="text-danger">*</span></label>
                         <select name="CategoryId" id="@Model.CategorySelectId" class="form-select" required>
-                            <option value="0">– Kategorie –</option>
+                            <option value="0">@Localizer["CategoryPlaceholder"]</option>
                             @foreach (var cat in Model.Categories)
                             {
                                 <option value="@cat.Id">@cat.Name</option>
@@ -36,9 +36,9 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Unterkategorie</label>
+                        <label class="form-label">@Localizer["SubCategoryLabel"]</label>
                         <select name="SubCategoryId" id="@Model.SubCategorySelectId" class="form-select">
-                            <option value="">– Unterkategorie –</option>
+                            <option value="">@Localizer["SubCategoryPlaceholder"]</option>
                             @foreach (var sub in Model.SubCategories)
                             {
                                 <option value="@sub.Id" data-category="@sub.CategoryId">@sub.Name</option>
@@ -46,31 +46,31 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Fixbetrag</label>
+                        <label class="form-label">@Localizer["FixedAmountLabel"]</label>
                         <div class="input-group">
                             <span class="input-group-text">CHF</span>
                             <input type="text" inputmode="decimal" name="FixedAmount" class="form-control text-end" value="0" />
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Anzahl</label>
+                        <label class="form-label">@Localizer["QuantityLabel"]</label>
                         @if (Model.ShowCampVariables)
                         {
                             <select name="QuantityVar" id="@(Model.CategorySelectId)_qvar" class="form-select mb-2">
-                                <option value="">– Zahl –</option>
-                                <option value="ParticipantsCount_fc">Teilnehmer (@Model.CampParticipantsCount_fc)</option>
-                                <option value="js_PersonsCount_fc">J+S Pers. (@Model.CampJs_PersonsCount_fc)</option>
-                                <option value="LeadersTeamCount_fc">Leitungsteam (@Model.CampLeadersTeamCount_fc)</option>
+                                <option value="">@Localizer["NumberPlaceholder"]</option>
+                                <option value="ParticipantsCount_fc">@Localizer["ParticipantsLabel"] (@Model.CampParticipantsCount_fc)</option>
+                                <option value="js_PersonsCount_fc">@Localizer["JsPersonsLabel"] (@Model.CampJs_PersonsCount_fc)</option>
+                                <option value="LeadersTeamCount_fc">@Localizer["LeadersTeamLabel"] (@Model.CampLeadersTeamCount_fc)</option>
                             </select>
                             <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" value="0" />
                         }
                         else if (Model.ShowTemplateVariables)
                         {
                             <select name="QuantityVar" id="@(Model.CategorySelectId)_qvar" class="form-select mb-2">
-                                <option value="">– Zahl –</option>
-                                <option value="ParticipantsCount">Teilnehmer</option>
-                                <option value="js_PersonsCount">J+S Pers.</option>
-                                <option value="LeadersTeamCount">Leitungsteam</option>
+                                <option value="">@Localizer["NumberPlaceholder"]</option>
+                                <option value="ParticipantsCount">@Localizer["ParticipantsLabel"]</option>
+                                <option value="js_PersonsCount">@Localizer["JsPersonsLabel"]</option>
+                                <option value="LeadersTeamCount">@Localizer["LeadersTeamLabel"]</option>
                             </select>
                             <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" value="0" />
                         }
@@ -80,7 +80,7 @@
                         }
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Einheitspreis</label>
+                        <label class="form-label">@Localizer["UnitAmountLabel"]</label>
                         <div class="input-group">
                             <span class="input-group-text">CHF</span>
                             <input type="text" inputmode="decimal" name="UnitAmount" class="form-control text-end" value="0" />
@@ -88,8 +88,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Hinzufügen <i class="bi bi-plus-square"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Localizer["CancelButton"]</button>
+                    <button type="submit" class="btn btn-primary">@Localizer["AddButton"] <i class="bi bi-plus-square"></i></button>
                 </div>
             </form>
         </div>
@@ -104,7 +104,7 @@
 
         function filterSubCategories() {
             const selectedCategoryId = categorySelect.value;
-            subCategorySelect.innerHTML = '<option value="">– Unterkategorie –</option>';
+            subCategorySelect.innerHTML = '<option value="">@Localizer["SubCategoryPlaceholder"]</option>';
             allSubOptions
                 .filter(opt => selectedCategoryId && selectedCategoryId !== '0' && opt.dataset.category === selectedCategoryId)
                 .forEach(opt => subCategorySelect.appendChild(opt.cloneNode(true)));
