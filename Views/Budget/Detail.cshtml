@@ -24,11 +24,11 @@
         <small class="text-muted">
             Lager: @Model.Camp.StartDate.ToString("dd.MM.yyyy") – @Model.Camp.EndDate.ToString("dd.MM.yyyy")
             @{
-                var mainLeader = Model.CampUsers.FirstOrDefault(cu => cu.IsMainLeader);
+                var administrator = Model.CampUsers.FirstOrDefault(cu => cu.CampUserRoleId == 1);
             }
-            @if (mainLeader != null)
+            @if (administrator != null)
             {
-                <span> | Lagerleiter: @mainLeader.DisplayName</span>
+                <span> | Administrator: @administrator.DisplayName</span>
             }
         </small>
         @if (Model.CampUsers.Count > 1)
@@ -36,7 +36,8 @@
             <div class="mt-1">
                 @foreach (var cu in Model.CampUsers)
                 {
-                    <span class="badge @(cu.IsMainLeader ? "bg-primary" : "bg-secondary") me-1">@cu.DisplayName</span>
+                    var badgeClass = cu.CampUserRoleId switch { 1 => "bg-primary", 3 => "bg-info", _ => "bg-secondary" };
+                    <span class="badge @badgeClass me-1">@cu.DisplayName</span>
                 }
             </div>
         }

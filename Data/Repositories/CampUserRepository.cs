@@ -15,13 +15,15 @@ namespace BudgetApp.Data.Repositories
             SELECT cu.[Id]
                   ,cu.[CampId]
                   ,cu.[UserId]
-                  ,cu.[IsMainLeader]
+                  ,cu.[CampUserRoleId]
                   ,u.[DisplayName]
                   ,u.[Email]
+                  ,r.[Name] AS RoleName
               FROM [dbo].[CampUser] cu
               INNER JOIN [dbo].[User] u ON cu.[UserId] = u.[Id]
+              INNER JOIN [dbo].[CampUserRole] r ON cu.[CampUserRoleId] = r.[Id]
               WHERE cu.[CampId] = @CampId
-              ORDER BY cu.[IsMainLeader] DESC, u.[DisplayName]
+              ORDER BY cu.[CampUserRoleId] ASC, u.[DisplayName]
             ";
             return await conn.QueryAsync<T>(sql, new { CampId = campId });
         }
@@ -34,11 +36,13 @@ namespace BudgetApp.Data.Repositories
             SELECT cu.[Id]
                   ,cu.[CampId]
                   ,cu.[UserId]
-                  ,cu.[IsMainLeader]
+                  ,cu.[CampUserRoleId]
                   ,u.[DisplayName]
                   ,u.[Email]
+                  ,r.[Name] AS RoleName
               FROM [dbo].[CampUser] cu
               INNER JOIN [dbo].[User] u ON cu.[UserId] = u.[Id]
+              INNER JOIN [dbo].[CampUserRole] r ON cu.[CampUserRoleId] = r.[Id]
               WHERE cu.[UserId] = @UserId
             ";
             return await conn.QueryAsync<T>(sql, new { UserId = userId });
@@ -52,11 +56,11 @@ namespace BudgetApp.Data.Repositories
             INSERT INTO [dbo].[CampUser]
                        ([CampId]
                        ,[UserId]
-                       ,[IsMainLeader])
+                       ,[CampUserRoleId])
                  VALUES
                        (@CampId
                        ,@UserId
-                       ,@IsMainLeader);
+                       ,@CampUserRoleId);
                     SELECT CAST(SCOPE_IDENTITY() as int);
             ";
             return await conn.ExecuteScalarAsync<int>(sql, campUser);

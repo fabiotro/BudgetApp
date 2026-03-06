@@ -182,17 +182,18 @@ else
                         <td>@cu.DisplayName</td>
                         <td>@cu.Email</td>
                         <td>
-                            @if (cu.IsMainLeader)
-                            {
-                                <span class="badge bg-primary">@Localizer["MainLeaderBadge"]</span>
+                            @{
+                                var badgeClass = cu.CampUserRoleId switch
+                                {
+                                    1 => "bg-primary",
+                                    3 => "bg-info",
+                                    _ => "bg-secondary"
+                                };
                             }
-                            else
-                            {
-                                <span class="badge bg-secondary">@Localizer["LeaderBadge"]</span>
-                            }
+                            <span class="badge @badgeClass">@cu.RoleName</span>
                         </td>
                         <td class="text-end">
-                            @if (!cu.IsMainLeader)
+                            @if (cu.CampUserRoleId != 1)
                             {
                                 <form asp-action="RemoveCampUser" method="post" class="d-inline"
                                       onsubmit="return confirm('@Localizer["ConfirmRemovePerson"].Value')">
