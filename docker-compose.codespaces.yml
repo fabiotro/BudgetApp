@@ -1,0 +1,9 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/dotnet:10.0
+    volumes:
+      - .:/workspaces/BudgetApp:cached
+    command: sleep infinity
+    depends_on:
+      sqlserver:
+        condition: service_healthy
