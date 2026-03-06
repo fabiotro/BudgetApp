@@ -1,0 +1,30 @@
+{
+  "name": "BudgetApp Dev",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "../docker-compose.codespaces.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
+  },
+  "remoteEnv": {
+    "DOCKER_API_VERSION": "1.43",
+    "ASPNETCORE_ENVIRONMENT": "Codespaces"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-mssql.mssql",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "forwardPorts": [1433],
+  "postCreateCommand": "dotnet restore"
+}
