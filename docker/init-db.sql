@@ -296,13 +296,6 @@ IF NOT EXISTS (SELECT 1 FROM [dbo].[CampUserRole] WHERE [Id] = 3)
 SET IDENTITY_INSERT [dbo].[CampUserRole] OFF
 GO
 
-IF NOT EXISTS (SELECT 1 FROM [dbo].[User] WHERE [Email] = N'strolch@pfadipropatria.ch')
-    INSERT INTO [dbo].[User] ([Email], [DisplayName], [PasswordHash]) VALUES (N'strolch@pfadipropatria.ch', N'Strolch', N'AQAAAAIAAYagAAAAEItf48+V29kUQKyd5WEoMs+6/bz0//XEATMJxt7V/wyoLve9089kn+G75Ubu3d28IA==')
-GO
-IF NOT EXISTS (SELECT 1 FROM [dbo].[User] WHERE [Email] = N'fiji@pfadipropatria.ch')
-    INSERT INTO [dbo].[User] ([Email], [DisplayName], [PasswordHash]) VALUES (N'fiji@pfadipropatria.ch', N'Fiji', N'AQAAAAIAAYagAAAAEItf48+V29kUQKyd5WEoMs+6/bz0//XEATMJxt7V/wyoLve9089kn+G75Ubu3d28IA==')
-GO
-
 IF NOT EXISTS (SELECT 1 FROM [dbo].[PositionType] WHERE [Name] = N'Ausgabe')
     INSERT INTO [dbo].[PositionType] ([Name], [Description]) VALUES (N'Ausgabe', N'Ausgabe')
 GO
