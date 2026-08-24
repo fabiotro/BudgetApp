@@ -25,4 +25,26 @@
       <LastGenOutput>DataAnnotations.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <!--
+    Local development relies on the SQL Server container from docker-compose.yml.
+    Start it automatically before every Debug build (dotnet build/run/watch, and IDE F5,
+    all invoke the Build target) so the app doesn't throw a DB connection exception just
+    because the container wasn't started manually first. `docker compose up -d` is a no-op
+    if the container is already running. Skipped for design-time builds (IntelliSense),
+    non-Debug configurations (e.g. CI/publish), and inside Codespaces, where the devcontainer
+    already starts the DB itself. Failures are only a warning so builds still work without
+    Docker installed/running.
+  -->
+  <Target
+    Name="StartDockerCompose"
+    BeforeTargets="Build"
+    Condition="'$(Configuration)' == 'Debug' AND '$(DesignTimeBuild)' != 'true' AND '$(BuildingProject)' == 'true' AND '$(CODESPACES)' == ''"
+  >
+    <Exec
+      Command="docker compose up -d"
+      ContinueOnError="WarnAndContinue"
+      StandardOutputImportance="low"
+    />
+  </Target>
 </Project>
