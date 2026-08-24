@@ -2,7 +2,8 @@
 
 namespace BudgetApp.Data.Repositories
 {
-    public interface ICategoryRepository<T> where T : CategoryModel
+    public interface ICategoryRepository<T>
+        where T : CategoryModel
     {
         Task<IEnumerable<T>> GetAll();
         Task<T?> GetById(int id);

@@ -13,7 +13,10 @@
         {
             if (id <= 0)
             {
-                throw new ArgumentOutOfRangeException("Die Id muss grösser als Null sein.", nameof(id));
+                throw new ArgumentOutOfRangeException(
+                    "Die Id muss grösser als Null sein.",
+                    nameof(id)
+                );
             }
         }
     }

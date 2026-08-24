@@ -2,7 +2,8 @@
 
 namespace BudgetApp.Data.Repositories
 {
-    public interface IPositionRepository<T> where T : PositionModel
+    public interface IPositionRepository<T>
+        where T : PositionModel
     {
         Task<IEnumerable<T>> GetAll();
         Task<T?> GetById(int id);
