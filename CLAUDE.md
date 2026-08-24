@@ -68,6 +68,18 @@ Full conventions are in `CodingConventions.md`. Key points:
 ### Localization
 - Culture is fixed to `de-CH`. All validation messages must be localized via `DataAnnotations.resx`.
 
+## Formatting
+
+C# code is formatted with CSharpier.
+
+Before committing changes, run:
+
+dotnet csharpier format .
+
+Never commit C# code that fails:
+
+dotnet csharpier check .
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 

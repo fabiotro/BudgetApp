@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "Running CSharpier..."
+
+dotnet tool restore
+dotnet csharpier format .
+
+if ! git diff --quiet; then
+    echo "CSharpier changed files."
+    echo "Please stage the formatting changes and commit again."
+    exit 1
+fi
