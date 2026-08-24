@@ -28,16 +28,22 @@ The data model can be viewed here:
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (must be running)
 
 ### Run locally
 
 ```bash
-# 1. Start SQL Server and initialise the schema
-docker compose up -d
-
-# 2. Run the app
 dotnet run
+```
+
+Building the project (`dotnet build`/`dotnet run`/`dotnet watch run`, or F5 in your IDE) automatically
+starts the SQL Server container via `docker compose up -d` if it isn't already running, so there's no
+manual step. This only runs for Debug builds; if Docker Desktop isn't running, the build still succeeds
+with a warning, and you'll need to start Docker Desktop before the app can reach the database. To start
+the container yourself instead, e.g. to view init output before running the app:
+
+```bash
+docker compose up -d
 ```
 
 The app is available at `http://localhost:5272`.

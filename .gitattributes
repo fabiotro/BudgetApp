@@ -1,0 +1,3 @@
+# Normalize line endings so shell scripts checked out on Windows still run
+# correctly when bind-mounted into Linux containers (e.g. docker/init-db.sh).
+* text=auto eol=lf
