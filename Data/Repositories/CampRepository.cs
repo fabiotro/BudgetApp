@@ -3,16 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class CampRepository<T> : BaseRepository, ICampRepository<T> where T : CampModel
+    public class CampRepository<T> : BaseRepository, ICampRepository<T>
+        where T : CampModel
     {
-
-        public CampRepository(DapperContext context) : base(context) { }
+        public CampRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[StartDate]
                   ,[EndDate]
@@ -33,7 +34,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[StartDate]
                   ,[EndDate]
@@ -56,7 +57,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[Camp]
                         ([StartDate]
                         ,[EndDate]
@@ -86,7 +87,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[Camp]
                SET [StartDate] = @StartDate
                   ,[EndDate] = @EndDate

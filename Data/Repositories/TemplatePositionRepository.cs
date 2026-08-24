@@ -3,16 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class TemplatePositionRepository<T> : BaseRepository, ITemplatePositionRepository<T> where T : TemplatePositionModel
+    public class TemplatePositionRepository<T> : BaseRepository, ITemplatePositionRepository<T>
+        where T : TemplatePositionModel
     {
-
-        public TemplatePositionRepository(DapperContext context) : base(context) { }
+        public TemplatePositionRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[TemplateBudgetId]
                   ,[PositionTypeId]
@@ -33,7 +34,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[TemplateBudgetId]
                   ,[PositionTypeId]
@@ -54,7 +55,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[TemplateBudgetId]
                   ,[PositionTypeId]
@@ -75,7 +76,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[TemplatePosition]
                        ([TemplateBudgetId]
                        ,[PositionTypeId]
@@ -105,7 +106,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[TemplatePosition]
                 SET [TemplateBudgetId] = @TemplateBudgetId
                     ,[PositionTypeId] = @PositionTypeId

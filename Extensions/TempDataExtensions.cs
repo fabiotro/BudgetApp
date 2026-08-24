@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using System.Text.Json;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace BudgetApp.Extensions
 {
@@ -20,10 +20,11 @@ namespace BudgetApp.Extensions
 
             var result = JsonSerializer.Deserialize<T>((string)value);
             if (result == null && !typeof(T).IsValueType)
-                throw new InvalidOperationException($"Deserialization of key '{key}' failed or returned null.");
+                throw new InvalidOperationException(
+                    $"Deserialization of key '{key}' failed or returned null."
+                );
 
             return result;
-
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BudgetApp.Enums;
+
 namespace BudgetApp.Models
 {
     public class ToastMessageViewModel

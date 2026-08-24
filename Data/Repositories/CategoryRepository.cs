@@ -3,16 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class CategoryRepository<T> : BaseRepository, ICategoryRepository<T> where T : CategoryModel
+    public class CategoryRepository<T> : BaseRepository, ICategoryRepository<T>
+        where T : CategoryModel
     {
-
-        public CategoryRepository(DapperContext context) : base(context) { }
+        public CategoryRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Name]
                   ,[Description]
@@ -27,7 +28,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Name]
                   ,[Description]
@@ -42,7 +43,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[Category]
                        ([Name]
                        ,[Description]
@@ -60,7 +61,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[Category]
                SET [Name] = @Name
                   ,[Description] = @Description
