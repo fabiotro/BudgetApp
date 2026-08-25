@@ -50,7 +50,7 @@
                     }
                     @foreach (var pos in subGroup.Positions)
                     {
-                        <tr class="@(pos.IsIncome ? "table-success" : "table-danger")">
+                        <tr>
                             <td class="@(subGroup.SubCategory != null ? "ps-3" : "")">@pos.Name</td>
                             <td class="text-end">@(pos.FixedAmount == null ? "–" : "CHF " + pos.FixedAmount?.ToString("N2"))</td>
                             <td class="text-end">@(pos.Quantity?.ToString("N2") ?? "–")</td>
@@ -75,7 +75,7 @@
                     }
                     <tr class="table-light border-top border-secondary border-opacity-25">
                         <td colspan="4" class="fw-bold">Total @(subGroup.SubCategory?.Name ?? "übrige Positionen")</td>
-                        <td class="text-end @(subGroup.TotalAmount >= 0 ? "text-success" : "text-danger")">CHF @subGroup.TotalAmount.ToString("N2")</td>
+                        <td class="text-end">CHF @subGroup.TotalAmount.ToString("N2")</td>
                         <td></td>
                     </tr>
                 }
@@ -83,7 +83,7 @@
             <tfoot>
                 <tr class="table-secondary">
                     <td colspan="4" class="fw-bold">Total @catGroup.Category.Name</td>
-                    <td class="fw-bold text-end @(catGroup.TotalAmount >= 0 ? "text-success" : "text-danger")">CHF @catGroup.TotalAmount.ToString("N2")</td>
+                    <td class="fw-bold text-end">CHF @catGroup.TotalAmount.ToString("N2")</td>
                     <td></td>
                 </tr>
             </tfoot>

@@ -18,17 +18,36 @@ namespace BudgetApp.Models
     {
         public int Id { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [Range(
+            1,
+            int.MaxValue,
+            ErrorMessageResourceName = "Range",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "SubCategoryCategoryId", ResourceType = typeof(DataAnnotations))]
         public int CategoryId { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [StringLength(
+            100,
+            ErrorMessageResourceName = "StringLength",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "SubCategoryName", ResourceType = typeof(DataAnnotations))]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(255)]
+        [StringLength(
+            255,
+            ErrorMessageResourceName = "StringLength",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "SubCategoryDescription", ResourceType = typeof(DataAnnotations))]
         public string? Description { get; set; }
 
