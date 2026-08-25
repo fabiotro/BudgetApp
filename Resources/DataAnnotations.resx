@@ -150,4 +150,19 @@
   <data name="TemplateBudgetDescription" xml:space="preserve">
     <value>Beschreibung</value>
   </data>
+  <data name="CategoryName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="CategoryDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="SubCategoryName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SubCategoryDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="SubCategoryCategoryId" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
 </root>

@@ -76,6 +76,10 @@ namespace BudgetApp.Controllers
             {
                 if (model.Id == 0)
                 {
+                    var existingCategories = await _categoryRepo.GetAll();
+                    model.SortIndex = existingCategories.Any()
+                        ? existingCategories.Max(c => c.SortIndex) + 1
+                        : 1;
                     await _categoryRepo.Create(model);
                     toast = new ToastMessageViewModel
                     {
@@ -158,26 +162,15 @@ namespace BudgetApp.Controllers
                     CategoryId = sub.CategoryId,
                     Name = sub.Name,
                     Description = sub.Description,
-                    SortIndex = sub.SortIndex,
                     Categories = categories,
                 };
                 return View(vm);
             }
             else
             {
-                int preselectedCategoryId = categoryId ?? 0;
-                int sortIndex = 0;
-                if (preselectedCategoryId > 0)
-                {
-                    var existingSubs = await _subCategoryRepo.GetAll();
-                    sortIndex =
-                        existingSubs.Count(sc => sc.CategoryId == preselectedCategoryId) + 1;
-                }
-
                 var vm = new UpsertSubCategoryViewModel
                 {
-                    CategoryId = preselectedCategoryId,
-                    SortIndex = sortIndex,
+                    CategoryId = categoryId ?? 0,
                     Categories = categories,
                 };
                 return View(vm);
@@ -203,11 +196,15 @@ namespace BudgetApp.Controllers
                     CategoryId = vm.CategoryId,
                     Name = vm.Name,
                     Description = vm.Description,
-                    SortIndex = vm.SortIndex,
                 };
 
                 if (vm.Id == 0)
                 {
+                    var existingSubs = await _subCategoryRepo.GetAll();
+                    var siblings = existingSubs
+                        .Where(sc => sc.CategoryId == vm.CategoryId)
+                        .ToList();
+                    model.SortIndex = siblings.Any() ? siblings.Max(sc => sc.SortIndex) + 1 : 1;
                     await _subCategoryRepo.Create(model);
                     toast = new ToastMessageViewModel
                     {
@@ -272,6 +269,46 @@ namespace BudgetApp.Controllers
             }
             TempData.Put("ToastMsg", toast);
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReorderCategories(List<ReorderItemViewModel> items)
+        {
+            if (items == null || items.Count == 0)
+                return BadRequest();
+
+            try
+            {
+                await _categoryRepo.UpdateSortOrder(items.Select(i => (i.Id, i.SortIndex)));
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReorderCategories");
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReorderSubCategories(ReorderSubCategoriesViewModel model)
+        {
+            if (model?.Items == null || model.Items.Count == 0 || model.CategoryId <= 0)
+                return BadRequest();
+
+            try
+            {
+                await _subCategoryRepo.UpdateSortOrder(
+                    model.Items.Select(i => (i.Id, i.SortIndex))
+                );
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReorderSubCategories");
+                return StatusCode(500);
+            }
         }
     }
 }

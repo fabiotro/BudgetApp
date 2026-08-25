@@ -10,5 +10,6 @@ namespace BudgetApp.Data.Repositories
         Task<int> Create(T category);
         Task<int> Update(T category);
         Task<int> Delete(int id);
+        Task UpdateSortOrder(IEnumerable<(int Id, int SortIndex)> items);
     }
 }

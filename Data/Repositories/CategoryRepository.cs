@@ -65,7 +65,6 @@ namespace BudgetApp.Data.Repositories
             UPDATE [dbo].[Category]
                SET [Name] = @Name
                   ,[Description] = @Description
-                  ,[SortIndex] = @SortIndex
                 WHERE Id = @Id
             ";
             return await conn.ExecuteAsync(sql, category);
@@ -77,6 +76,19 @@ namespace BudgetApp.Data.Repositories
             using var conn = _context.CreateConnection();
             var sql = "DELETE FROM [dbo].[Category] WHERE Id = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id });
+        }
+
+        public async Task UpdateSortOrder(IEnumerable<(int Id, int SortIndex)> items)
+        {
+            using var conn = _context.CreateConnection();
+            conn.Open();
+            using var transaction = conn.BeginTransaction();
+            var sql = "UPDATE [dbo].[Category] SET [SortIndex] = @SortIndex WHERE [Id] = @Id";
+            foreach (var item in items)
+            {
+                await conn.ExecuteAsync(sql, new { item.Id, item.SortIndex }, transaction);
+            }
+            transaction.Commit();
         }
     }
 }

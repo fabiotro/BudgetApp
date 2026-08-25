@@ -154,5 +154,40 @@ namespace BudgetApp.Resources {
                 return ResourceManager.GetString("TemplateBudgetDescription", resourceCulture);
             }
         }
+
+        public static string CategoryName {
+            get
+            {
+                return ResourceManager.GetString("CategoryName", resourceCulture);
+            }
+        }
+
+        public static string CategoryDescription {
+            get
+            {
+                return ResourceManager.GetString("CategoryDescription", resourceCulture);
+            }
+        }
+
+        public static string SubCategoryName {
+            get
+            {
+                return ResourceManager.GetString("SubCategoryName", resourceCulture);
+            }
+        }
+
+        public static string SubCategoryDescription {
+            get
+            {
+                return ResourceManager.GetString("SubCategoryDescription", resourceCulture);
+            }
+        }
+
+        public static string SubCategoryCategoryId {
+            get
+            {
+                return ResourceManager.GetString("SubCategoryCategoryId", resourceCulture);
+            }
+        }
     }
 }
