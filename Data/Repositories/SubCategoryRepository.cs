@@ -3,16 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class SubCategoryRepository<T> : BaseRepository, ISubCategoryRepository<T> where T : SubCategoryModel
+    public class SubCategoryRepository<T> : BaseRepository, ISubCategoryRepository<T>
+        where T : SubCategoryModel
     {
-
-        public SubCategoryRepository(DapperContext context) : base(context) { }
+        public SubCategoryRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                     ,[CategoryId]
                     ,[Name]
@@ -28,7 +29,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[CategoryId]
                   ,[Name]
@@ -44,7 +45,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[SubCategory]
                        ([CategoryId]
                        ,[Name]
@@ -64,12 +65,11 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[SubCategory]
                 SET [CategoryId] = @CategoryId
                     ,[Name] = @Name
                     ,[Description] = @Description
-                    ,[SortIndex] = @SortIndex
                 WHERE [Id] = @Id
             ";
             return await conn.ExecuteAsync(sql, subCategory);
@@ -81,6 +81,19 @@ namespace BudgetApp.Data.Repositories
             using var conn = _context.CreateConnection();
             var sql = "DELETE FROM [dbo].[SubCategory] WHERE [Id] = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id });
+        }
+
+        public async Task UpdateSortOrder(IEnumerable<(int Id, int SortIndex)> items)
+        {
+            using var conn = _context.CreateConnection();
+            conn.Open();
+            using var transaction = conn.BeginTransaction();
+            var sql = "UPDATE [dbo].[SubCategory] SET [SortIndex] = @SortIndex WHERE [Id] = @Id";
+            foreach (var item in items)
+            {
+                await conn.ExecuteAsync(sql, new { item.Id, item.SortIndex }, transaction);
+            }
+            transaction.Commit();
         }
     }
 }

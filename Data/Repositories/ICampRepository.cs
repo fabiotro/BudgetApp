@@ -2,7 +2,8 @@
 
 namespace BudgetApp.Data.Repositories
 {
-    public interface ICampRepository<T> where T : CampModel
+    public interface ICampRepository<T>
+        where T : CampModel
     {
         Task<IEnumerable<T>> GetAll();
         Task<IEnumerable<T>> GetAllForUser(int userId);

@@ -1,5 +1,5 @@
-using BudgetApp.Enums;
 using System.ComponentModel.DataAnnotations;
+using BudgetApp.Enums;
 
 namespace BudgetApp.Models
 {

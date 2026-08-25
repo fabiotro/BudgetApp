@@ -2,7 +2,8 @@
 
 namespace BudgetApp.Data.Repositories
 {
-    public interface ITemplateBudgetRepository<T> where T : TemplateBudgetModel
+    public interface ITemplateBudgetRepository<T>
+        where T : TemplateBudgetModel
     {
         Task<IEnumerable<T>> GetAll();
         Task<IEnumerable<T>> GetAllForUser(int userId);

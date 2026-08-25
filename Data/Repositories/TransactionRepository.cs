@@ -3,15 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class TransactionRepository<T> : BaseRepository, ITransactionRepository<T> where T : TransactionModel
+    public class TransactionRepository<T> : BaseRepository, ITransactionRepository<T>
+        where T : TransactionModel
     {
-        public TransactionRepository(DapperContext context) : base(context) { }
+        public TransactionRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetByCampId(int campId)
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[CampId]
                   ,[PerformedByUserId]
@@ -32,7 +34,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[CampId]
                   ,[PerformedByUserId]
@@ -49,11 +51,13 @@ namespace BudgetApp.Data.Repositories
             return await conn.QueryAsync<T>(sql, new { UserId = userId, CampId = campId });
         }
 
-        public async Task<IEnumerable<UserExpenseSummaryViewModel>> GetUserSummariesByCampId(int campId)
+        public async Task<IEnumerable<UserExpenseSummaryViewModel>> GetUserSummariesByCampId(
+            int campId
+        )
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT u.[Id]              AS UserId,
                    u.[DisplayName],
                    u.[FirstName],
@@ -76,7 +80,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[CampId]
                   ,[PerformedByUserId]
@@ -96,7 +100,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[Transaction]
                        ([CampId]
                        ,[PerformedByUserId]
@@ -124,7 +128,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[Transaction]
                SET [PerformedByUserId] = @PerformedByUserId
                   ,[PositionId]        = @PositionId

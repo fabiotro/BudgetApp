@@ -8,9 +8,19 @@ namespace BudgetApp.Models
         public List<TemplateCategoryGroupViewModel> Groups { get; set; } = [];
         public UpsertTemplatePositionViewModel NewPosition { get; set; } = new();
 
-        public decimal TotalAmount   => Groups.Sum(g => g.TotalAmount);
-        public decimal TotalIncome   => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => p.IsIncome).Sum(p => p.TotalAmount);
-        public decimal TotalExpenses => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => !p.IsIncome).Sum(p => p.TotalAmount);
+        public decimal TotalAmount => Groups.Sum(g => g.TotalAmount);
+        public decimal TotalIncome =>
+            Groups
+                .SelectMany(g => g.SubGroups)
+                .SelectMany(sg => sg.Positions)
+                .Where(p => p.IsIncome)
+                .Sum(p => p.TotalAmount);
+        public decimal TotalExpenses =>
+            Groups
+                .SelectMany(g => g.SubGroups)
+                .SelectMany(sg => sg.Positions)
+                .Where(p => !p.IsIncome)
+                .Sum(p => p.TotalAmount);
     }
 
     public class TemplateCategoryGroupViewModel
@@ -43,8 +53,8 @@ namespace BudgetApp.Models
         public decimal? UnitAmount { get; set; }
         public int SortIndex { get; set; }
 
-        public decimal TotalAmount       => (FixedAmount ?? 0) + ((Quantity ?? 0) * (UnitAmount ?? 0));
-        public decimal SignedTotalAmount  => IsIncome ? TotalAmount : -TotalAmount;
+        public decimal TotalAmount => (FixedAmount ?? 0) + ((Quantity ?? 0) * (UnitAmount ?? 0));
+        public decimal SignedTotalAmount => IsIncome ? TotalAmount : -TotalAmount;
     }
 
     public class UpsertTemplatePositionViewModel

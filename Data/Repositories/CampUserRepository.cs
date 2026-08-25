@@ -3,15 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class CampUserRepository<T> : BaseRepository, ICampUserRepository<T> where T : CampUserModel
+    public class CampUserRepository<T> : BaseRepository, ICampUserRepository<T>
+        where T : CampUserModel
     {
-        public CampUserRepository(DapperContext context) : base(context) { }
+        public CampUserRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetByCampId(int campId)
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT cu.[Id]
                   ,cu.[CampId]
                   ,cu.[UserId]
@@ -30,7 +32,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT cu.[Id]
                   ,cu.[CampId]
                   ,cu.[UserId]
@@ -48,7 +50,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[CampUser]
                        ([CampId]
                        ,[UserId]

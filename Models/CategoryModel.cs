@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using BudgetApp.Resources;
 
 namespace BudgetApp.Models
 {
@@ -6,15 +7,26 @@ namespace BudgetApp.Models
     {
         public int Id { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [StringLength(
+            100,
+            ErrorMessageResourceName = "StringLength",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [Display(Name = "CategoryName", ResourceType = typeof(DataAnnotations))]
         public required string Name { get; set; }
 
-        [StringLength(255)]
+        [StringLength(
+            255,
+            ErrorMessageResourceName = "StringLength",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [Display(Name = "CategoryDescription", ResourceType = typeof(DataAnnotations))]
         public string? Description { get; set; }
 
-        [Required]
-        [Range(0, int.MaxValue)]
         public int SortIndex { get; set; }
     }
 }

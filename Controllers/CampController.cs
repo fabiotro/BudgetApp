@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using BudgetApp.Data.Repositories;
-using BudgetApp.Extensions;
 using BudgetApp.Enums;
+using BudgetApp.Extensions;
 using BudgetApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace BudgetApp.Controllers
 {
@@ -22,7 +22,8 @@ namespace BudgetApp.Controllers
             ICampRepository<CampModel> campRepo,
             IBudgetRepository<BudgetModel> budgetRepo,
             ITransactionRepository<TransactionModel> transactionRepo,
-            ICampUserRepository<CampUserModel> campUserRepo)
+            ICampUserRepository<CampUserModel> campUserRepo
+        )
         {
             _logger = logger;
             _campRepo = campRepo;
@@ -40,11 +41,14 @@ namespace BudgetApp.Controllers
             int userId = GetCurrentUserId();
 
             var camp = await _campRepo.GetById(id);
-            if (camp == null) return NotFound();
+            if (camp == null)
+                return NotFound();
 
             var campUsers = (await _campUserRepo.GetByCampId(id)).ToList();
-            bool hasAccess = camp.CreatedByUserId == userId || campUsers.Any(cu => cu.UserId == userId);
-            if (!hasAccess) return Forbid();
+            bool hasAccess =
+                camp.CreatedByUserId == userId || campUsers.Any(cu => cu.UserId == userId);
+            if (!hasAccess)
+                return Forbid();
 
             var budgets = (await _budgetRepo.GetByCampId(id)).ToList();
             var userSummaries = (await _transactionRepo.GetUserSummariesByCampId(id)).ToList();
@@ -53,7 +57,7 @@ namespace BudgetApp.Controllers
             {
                 Camp = camp,
                 Budgets = budgets,
-                UserSummaries = userSummaries
+                UserSummaries = userSummaries,
             };
             return View(vm);
         }

@@ -3,15 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class UserRepository<T> : BaseRepository, IUserRepository<T> where T : UserModel
+    public class UserRepository<T> : BaseRepository, IUserRepository<T>
+        where T : UserModel
     {
-        public UserRepository(DapperContext context) : base(context) { }
+        public UserRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Email]
                   ,[DisplayName]
@@ -30,7 +32,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Email]
                   ,[DisplayName]
@@ -48,7 +50,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Email]
                   ,[DisplayName]
@@ -66,7 +68,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[User]
                        ([Email]
                        ,[DisplayName]
@@ -90,7 +92,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[User]
                SET [Email] = @Email
                   ,[DisplayName] = @DisplayName

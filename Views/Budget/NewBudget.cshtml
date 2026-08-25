@@ -27,6 +27,11 @@
             </div>
         </div>
     </div>
+    <div class="mb-3">
+        @Html.LabelFor(m => m.Camp.MainLeader, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Camp.MainLeader, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Camp.MainLeader, "", new { @class = "text-danger" })
+    </div>
     <div class="row">
         <div class="col">
             <h5>Provisorisch</h5>

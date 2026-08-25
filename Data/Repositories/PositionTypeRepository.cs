@@ -3,16 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class PositionTypeRepository<T> : BaseRepository, IPositionTypeRepository<T> where T : PositionTypeModel
+    public class PositionTypeRepository<T> : BaseRepository, IPositionTypeRepository<T>
+        where T : PositionTypeModel
     {
-
-        public PositionTypeRepository(DapperContext context) : base(context) { }
+        public PositionTypeRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Name]
                   ,[Description]
@@ -26,7 +27,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Name]
                   ,[Description]
@@ -40,7 +41,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[PositionType]
                        ([Name]
                        ,[Description])
@@ -56,7 +57,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[PositionType]
                SET [Name] = @Name
                   ,[Description] = @Description

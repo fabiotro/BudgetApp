@@ -34,6 +34,7 @@ CREATE TABLE [dbo].[Camp](
     [StartDate] [datetime] NOT NULL,
     [EndDate] [datetime] NOT NULL,
     [CreatedByUserId] [int] NOT NULL,
+    [MainLeader] [nvarchar](255) NULL,
     [ParticipantsCount_fc] [int] NOT NULL,
     [js_PersonsCount_fc] [int] NOT NULL,
     [LeadersTeamCount_fc] [int] NOT NULL,
@@ -411,6 +412,11 @@ IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Us
 GO
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'IBAN')
     ALTER TABLE [dbo].[User] ADD [IBAN] [nvarchar](34) NULL;
+GO
+
+-- New column on [Camp] table
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Camp]') AND name = 'MainLeader')
+    ALTER TABLE [dbo].[Camp] ADD [MainLeader] [nvarchar](255) NULL;
 GO
 
 -- [Transaction] table (Transaction is a reserved word, always use brackets)

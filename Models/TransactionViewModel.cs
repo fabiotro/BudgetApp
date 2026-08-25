@@ -1,41 +1,77 @@
+using System.ComponentModel.DataAnnotations;
 using BudgetApp.Enums;
 using BudgetApp.Resources;
-using System.ComponentModel.DataAnnotations;
 
 namespace BudgetApp.Models
 {
     public class CreateTransactionViewModel
     {
-        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Range(1, int.MaxValue)]
         public int CampId { get; set; }
 
-        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
-        [Range(1, int.MaxValue, ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [Range(
+            1,
+            int.MaxValue,
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "TransactionPerformedBy", ResourceType = typeof(DataAnnotations))]
         public int PerformedByUserId { get; set; }
 
         public int? PositionId { get; set; }
 
-        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
-        [StringLength(255, ErrorMessageResourceName = "StringLength", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [StringLength(
+            255,
+            ErrorMessageResourceName = "StringLength",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "TransactionName", ResourceType = typeof(DataAnnotations))]
         public required string Name { get; set; }
 
-        [StringLength(500, ErrorMessageResourceName = "StringLength", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [StringLength(
+            500,
+            ErrorMessageResourceName = "StringLength",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "TransactionDescription", ResourceType = typeof(DataAnnotations))]
         public string? Description { get; set; }
 
-        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
-        [Range(0.01, double.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
+        [Range(
+            0.01,
+            double.MaxValue,
+            ErrorMessageResourceName = "Range",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "TransactionAmount", ResourceType = typeof(DataAnnotations))]
         public decimal Amount { get; set; }
 
-        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "TransactionPaymentSource", ResourceType = typeof(DataAnnotations))]
         public PaymentSource PaymentSource { get; set; }
 
-        [Required(ErrorMessageResourceName = "Required", ErrorMessageResourceType = typeof(DataAnnotations))]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(DataAnnotations)
+        )]
         [Display(Name = "TransactionPaymentMethod", ResourceType = typeof(DataAnnotations))]
         public PaymentMethod PaymentMethod { get; set; }
 

@@ -5,6 +5,6 @@ namespace BudgetApp.Enums
         Cash = 1,
         Card = 2,
         Bill = 3,
-        Other = 4
+        Other = 4,
     }
 }

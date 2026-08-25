@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace BudgetApp.Controllers
 {
@@ -16,7 +16,8 @@ namespace BudgetApp.Controllers
 
         public ProfileController(
             ILogger<ProfileController> logger,
-            IUserRepository<UserModel> userRepo)
+            IUserRepository<UserModel> userRepo
+        )
         {
             _logger = logger;
             _userRepo = userRepo;
@@ -30,14 +31,15 @@ namespace BudgetApp.Controllers
         {
             int userId = GetCurrentUserId();
             var user = await _userRepo.GetById(userId);
-            if (user == null) return NotFound();
+            if (user == null)
+                return NotFound();
 
             var vm = new EditProfileViewModel
             {
                 DisplayName = user.DisplayName,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                IBAN = user.IBAN
+                IBAN = user.IBAN,
             };
             return View(vm);
         }
@@ -46,18 +48,24 @@ namespace BudgetApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditProfileViewModel vm)
         {
-            if (!ModelState.IsValid) return View(vm);
+            if (!ModelState.IsValid)
+                return View(vm);
 
             int userId = GetCurrentUserId();
             var user = await _userRepo.GetById(userId);
-            if (user == null) return NotFound();
+            if (user == null)
+                return NotFound();
 
             try
             {
                 user.DisplayName = vm.DisplayName.Trim();
-                user.FirstName = string.IsNullOrWhiteSpace(vm.FirstName) ? null : vm.FirstName.Trim();
+                user.FirstName = string.IsNullOrWhiteSpace(vm.FirstName)
+                    ? null
+                    : vm.FirstName.Trim();
                 user.LastName = string.IsNullOrWhiteSpace(vm.LastName) ? null : vm.LastName.Trim();
-                user.IBAN = string.IsNullOrWhiteSpace(vm.IBAN) ? null : vm.IBAN.Trim().Replace(" ", "").ToUpperInvariant();
+                user.IBAN = string.IsNullOrWhiteSpace(vm.IBAN)
+                    ? null
+                    : vm.IBAN.Trim().Replace(" ", "").ToUpperInvariant();
 
                 await _userRepo.Update(user);
 
@@ -65,7 +73,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Gespeichert",
                     Message = "Profil erfolgreich gespeichert.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
                 return RedirectToAction(nameof(Edit));
@@ -77,7 +85,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
                 return View(vm);

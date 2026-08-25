@@ -17,7 +17,8 @@ namespace BudgetApp.Controllers
         public CategoryController(
             ILogger<CategoryController> logger,
             ICategoryRepository<CategoryModel> categoryRepo,
-            ISubCategoryRepository<SubCategoryModel> subCategoryRepo)
+            ISubCategoryRepository<SubCategoryModel> subCategoryRepo
+        )
         {
             _logger = logger;
             _categoryRepo = categoryRepo;
@@ -28,7 +29,9 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> Index()
         {
             var categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
-            var subCategories = (await _subCategoryRepo.GetAll()).OrderBy(sc => sc.SortIndex).ToList();
+            var subCategories = (await _subCategoryRepo.GetAll())
+                .OrderBy(sc => sc.SortIndex)
+                .ToList();
 
             var subsByCategoryId = subCategories
                 .GroupBy(sc => sc.CategoryId)
@@ -36,11 +39,15 @@ namespace BudgetApp.Controllers
 
             var vm = new CategoryIndexViewModel
             {
-                Categories = categories.Select(c => new CategoryWithSubsViewModel
-                {
-                    Category = c,
-                    SubCategories = subsByCategoryId.TryGetValue(c.Id, out var subs) ? subs : []
-                }).ToList()
+                Categories = categories
+                    .Select(c => new CategoryWithSubsViewModel
+                    {
+                        Category = c,
+                        SubCategories = subsByCategoryId.TryGetValue(c.Id, out var subs)
+                            ? subs
+                            : [],
+                    })
+                    .ToList(),
             };
 
             return View(vm);
@@ -52,7 +59,8 @@ namespace BudgetApp.Controllers
             if (id.HasValue)
             {
                 var category = await _categoryRepo.GetById(id.Value);
-                if (category == null) return NotFound();
+                if (category == null)
+                    return NotFound();
                 return View(category);
             }
             return View(new CategoryModel { Name = string.Empty });
@@ -70,12 +78,16 @@ namespace BudgetApp.Controllers
             {
                 if (model.Id == 0)
                 {
+                    var existingCategories = await _categoryRepo.GetAll();
+                    model.SortIndex = existingCategories.Any()
+                        ? existingCategories.Max(c => c.SortIndex) + 1
+                        : 1;
                     await _categoryRepo.Create(model);
                     toast = new ToastMessageViewModel
                     {
                         Title = "Erfolg",
                         Message = "Kategorie erstellt.",
-                        Type = ToastType.Success
+                        Type = ToastType.Success,
                     };
                 }
                 else
@@ -85,7 +97,7 @@ namespace BudgetApp.Controllers
                     {
                         Title = "Erfolg",
                         Message = "Kategorie aktualisiert.",
-                        Type = ToastType.Success
+                        Type = ToastType.Success,
                     };
                 }
                 TempData.Put("ToastMsg", toast);
@@ -98,7 +110,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
                 return View(model);
@@ -117,7 +129,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Erfolg",
                     Message = "Kategorie gelöscht.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
             }
             catch (Exception ex)
@@ -126,8 +138,9 @@ namespace BudgetApp.Controllers
                 toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
-                    Message = "Kategorie konnte nicht gelöscht werden. Möglicherweise sind noch Unterkategorien oder Positionen vorhanden.",
-                    Type = ToastType.Error
+                    Message =
+                        "Kategorie konnte nicht gelöscht werden. Möglicherweise sind noch Unterkategorien oder Positionen vorhanden.",
+                    Type = ToastType.Error,
                 };
             }
             TempData.Put("ToastMsg", toast);
@@ -142,7 +155,8 @@ namespace BudgetApp.Controllers
             if (id.HasValue)
             {
                 var sub = await _subCategoryRepo.GetById(id.Value);
-                if (sub == null) return NotFound();
+                if (sub == null)
+                    return NotFound();
 
                 var vm = new UpsertSubCategoryViewModel
                 {
@@ -150,26 +164,16 @@ namespace BudgetApp.Controllers
                     CategoryId = sub.CategoryId,
                     Name = sub.Name,
                     Description = sub.Description,
-                    SortIndex = sub.SortIndex,
-                    Categories = categories
+                    Categories = categories,
                 };
                 return View(vm);
             }
             else
             {
-                int preselectedCategoryId = categoryId ?? 0;
-                int sortIndex = 0;
-                if (preselectedCategoryId > 0)
-                {
-                    var existingSubs = await _subCategoryRepo.GetAll();
-                    sortIndex = existingSubs.Count(sc => sc.CategoryId == preselectedCategoryId) + 1;
-                }
-
                 var vm = new UpsertSubCategoryViewModel
                 {
-                    CategoryId = preselectedCategoryId,
-                    SortIndex = sortIndex,
-                    Categories = categories
+                    CategoryId = categoryId ?? 0,
+                    Categories = categories,
                 };
                 return View(vm);
             }
@@ -194,17 +198,21 @@ namespace BudgetApp.Controllers
                     CategoryId = vm.CategoryId,
                     Name = vm.Name,
                     Description = vm.Description,
-                    SortIndex = vm.SortIndex
                 };
 
                 if (vm.Id == 0)
                 {
+                    var existingSubs = await _subCategoryRepo.GetAll();
+                    var siblings = existingSubs
+                        .Where(sc => sc.CategoryId == vm.CategoryId)
+                        .ToList();
+                    model.SortIndex = siblings.Any() ? siblings.Max(sc => sc.SortIndex) + 1 : 1;
                     await _subCategoryRepo.Create(model);
                     toast = new ToastMessageViewModel
                     {
                         Title = "Erfolg",
                         Message = "Unterkategorie erstellt.",
-                        Type = ToastType.Success
+                        Type = ToastType.Success,
                     };
                 }
                 else
@@ -214,7 +222,7 @@ namespace BudgetApp.Controllers
                     {
                         Title = "Erfolg",
                         Message = "Unterkategorie aktualisiert.",
-                        Type = ToastType.Success
+                        Type = ToastType.Success,
                     };
                 }
                 TempData.Put("ToastMsg", toast);
@@ -228,7 +236,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
                 return View(vm);
@@ -247,7 +255,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Erfolg",
                     Message = "Unterkategorie gelöscht.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
             }
             catch (Exception ex)
@@ -256,12 +264,53 @@ namespace BudgetApp.Controllers
                 toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
-                    Message = "Unterkategorie konnte nicht gelöscht werden. Möglicherweise sind noch Positionen vorhanden.",
-                    Type = ToastType.Error
+                    Message =
+                        "Unterkategorie konnte nicht gelöscht werden. Möglicherweise sind noch Positionen vorhanden.",
+                    Type = ToastType.Error,
                 };
             }
             TempData.Put("ToastMsg", toast);
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReorderCategories(List<ReorderItemViewModel> items)
+        {
+            if (items == null || items.Count == 0)
+                return BadRequest();
+
+            try
+            {
+                await _categoryRepo.UpdateSortOrder(items.Select(i => (i.Id, i.SortIndex)));
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReorderCategories");
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReorderSubCategories(ReorderSubCategoriesViewModel model)
+        {
+            if (model?.Items == null || model.Items.Count == 0 || model.CategoryId <= 0)
+                return BadRequest();
+
+            try
+            {
+                await _subCategoryRepo.UpdateSortOrder(
+                    model.Items.Select(i => (i.Id, i.SortIndex))
+                );
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReorderSubCategories");
+                return StatusCode(500);
+            }
         }
     }
 }

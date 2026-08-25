@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace BudgetApp.Controllers
 {
@@ -21,7 +21,8 @@ namespace BudgetApp.Controllers
         public AccountController(
             ILogger<AccountController> logger,
             IUserRepository<UserModel> userRepo,
-            IPasswordHasher<UserModel> passwordHasher)
+            IPasswordHasher<UserModel> passwordHasher
+        )
         {
             _logger = logger;
             _userRepo = userRepo;
@@ -49,7 +50,11 @@ namespace BudgetApp.Controllers
 
             var user = await _userRepo.GetByEmail(vm.Email);
 
-            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, vm.Password) == PasswordVerificationResult.Failed)
+            if (
+                user == null
+                || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, vm.Password)
+                    == PasswordVerificationResult.Failed
+            )
             {
                 ModelState.AddModelError(string.Empty, "E-Mail oder Passwort ungültig.");
                 return View(vm);
@@ -82,7 +87,10 @@ namespace BudgetApp.Controllers
             var existing = await _userRepo.GetByEmail(vm.Email);
             if (existing != null)
             {
-                ModelState.AddModelError(nameof(vm.Email), "Diese E-Mail-Adresse ist bereits registriert.");
+                ModelState.AddModelError(
+                    nameof(vm.Email),
+                    "Diese E-Mail-Adresse ist bereits registriert."
+                );
                 return View(vm);
             }
 
@@ -92,7 +100,7 @@ namespace BudgetApp.Controllers
                 {
                     Email = vm.Email.Trim().ToLowerInvariant(),
                     DisplayName = vm.DisplayName.Trim(),
-                    PasswordHash = string.Empty
+                    PasswordHash = string.Empty,
                 };
                 user.PasswordHash = _passwordHasher.HashPassword(user, vm.Password);
 
@@ -105,7 +113,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Willkommen",
                     Message = $"Konto für {user.DisplayName} erstellt.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
 
@@ -133,12 +141,18 @@ namespace BudgetApp.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.DisplayName)
+                new Claim(ClaimTypes.Name, user.DisplayName),
             };
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
             var principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal
+            );
         }
     }
 }

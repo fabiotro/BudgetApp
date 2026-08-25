@@ -16,6 +16,9 @@ namespace BudgetApp.Models
 
         public int CreatedByUserId { get; set; }
 
+        [StringLength(255)]
+        public string? MainLeader { get; set; }
+
         [Required]
         [Range(0, int.MaxValue)]
         public int ParticipantsCount_fc { get; set; }

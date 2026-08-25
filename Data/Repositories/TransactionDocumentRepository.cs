@@ -3,16 +3,19 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class TransactionDocumentRepository<T> : BaseRepository, ITransactionDocumentRepository<T>
+    public class TransactionDocumentRepository<T>
+        : BaseRepository,
+            ITransactionDocumentRepository<T>
         where T : TransactionDocumentModel
     {
-        public TransactionDocumentRepository(DapperContext context) : base(context) { }
+        public TransactionDocumentRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetByTransactionId(int transactionId)
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[TransactionId]
                   ,[FileName]
@@ -31,7 +34,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[TransactionId]
                   ,[FileName]
@@ -48,7 +51,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[TransactionDocument]
                        ([TransactionId]
                        ,[FileName]

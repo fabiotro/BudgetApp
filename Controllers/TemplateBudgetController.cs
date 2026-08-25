@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace BudgetApp.Controllers
 {
@@ -24,7 +24,8 @@ namespace BudgetApp.Controllers
             ITemplatePositionRepository<TemplatePositionModel> templatePositionRepo,
             IPositionTypeRepository<PositionTypeModel> positionTypeRepo,
             ICategoryRepository<CategoryModel> categoryRepo,
-            ISubCategoryRepository<SubCategoryModel> subCategoryRepo)
+            ISubCategoryRepository<SubCategoryModel> subCategoryRepo
+        )
         {
             _logger = logger;
             _templateBudgetRepo = templateBudgetRepo;
@@ -52,11 +53,16 @@ namespace BudgetApp.Controllers
             if (id.HasValue)
             {
                 var template = await _templateBudgetRepo.GetById(id.Value);
-                if (template == null) return NotFound();
-                if (template.CreatedByUserId != userId) return Forbid();
+                if (template == null)
+                    return NotFound();
+                if (template.CreatedByUserId != userId)
+                    return Forbid();
                 return PartialView("_UpsertModal", template);
             }
-            return PartialView("_UpsertModal", new TemplateBudgetModel { Name = string.Empty, CreatedByUserId = userId });
+            return PartialView(
+                "_UpsertModal",
+                new TemplateBudgetModel { Name = string.Empty, CreatedByUserId = userId }
+            );
         }
 
         [HttpPost]
@@ -65,12 +71,15 @@ namespace BudgetApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData.Put("ToastMsg", new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Bitte alle Pflichtfelder ausfüllen.",
-                    Type = ToastType.Error
-                });
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Bitte alle Pflichtfelder ausfüllen.",
+                        Type = ToastType.Error,
+                    }
+                );
                 return RedirectToAction(nameof(Index));
             }
 
@@ -86,7 +95,7 @@ namespace BudgetApp.Controllers
                     {
                         Title = "Erfolg",
                         Message = "Vorlage erstellt.",
-                        Type = ToastType.Success
+                        Type = ToastType.Success,
                     };
                     TempData.Put("ToastMsg", toast);
                     return RedirectToAction(nameof(Detail), new { id = newId });
@@ -98,7 +107,7 @@ namespace BudgetApp.Controllers
                     {
                         Title = "Erfolg",
                         Message = "Vorlage aktualisiert.",
-                        Type = ToastType.Success
+                        Type = ToastType.Success,
                     };
                     TempData.Put("ToastMsg", toast);
                     return RedirectToAction(nameof(Detail), new { id = model.Id });
@@ -111,7 +120,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
                 return RedirectToAction(nameof(Index));
@@ -122,7 +131,8 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> Detail(int id)
         {
             var template = await _templateBudgetRepo.GetById(id);
-            if (template == null) return NotFound();
+            if (template == null)
+                return NotFound();
 
             var positions = (await _templatePositionRepo.GetByTemplateBudgetId(id)).ToList();
             var positionTypes = (await _positionTypeRepo.GetAll()).ToDictionary(pt => pt.Id);
@@ -145,16 +155,16 @@ namespace BudgetApp.Controllers
                         Quantity = p.Quantity,
                         QuantityVar = p.QuantityVar,
                         UnitAmount = p.UnitAmount,
-                        SortIndex = p.SortIndex
+                        SortIndex = p.SortIndex,
                     };
                 })
                 .ToList();
 
-            var groups = rows
-                .GroupBy(p => p.CategoryId)
+            var groups = rows.GroupBy(p => p.CategoryId)
                 .Select(catGrp =>
                 {
-                    if (!categories.TryGetValue(catGrp.Key, out var cat)) return null;
+                    if (!categories.TryGetValue(catGrp.Key, out var cat))
+                        return null;
                     var subGroups = catGrp
                         .GroupBy(p => p.SubCategoryId)
                         .Select(subGrp =>
@@ -165,7 +175,7 @@ namespace BudgetApp.Controllers
                             return new TemplateSubCategoryGroupViewModel
                             {
                                 SubCategory = sub,
-                                Positions = subGrp.OrderBy(p => p.SortIndex).ToList()
+                                Positions = subGrp.OrderBy(p => p.SortIndex).ToList(),
                             };
                         })
                         .OrderBy(sg => sg.SubCategory?.SortIndex ?? -1)
@@ -173,7 +183,7 @@ namespace BudgetApp.Controllers
                     return new TemplateCategoryGroupViewModel
                     {
                         Category = cat,
-                        SubGroups = subGroups
+                        SubGroups = subGroups,
                     };
                 })
                 .Where(g => g != null)
@@ -191,8 +201,8 @@ namespace BudgetApp.Controllers
                     Name = string.Empty,
                     PositionTypes = positionTypes.Values.OrderBy(pt => pt.Name).ToList(),
                     Categories = categories.Values.OrderBy(c => c.SortIndex).ToList(),
-                    SubCategories = subCategories.Values.OrderBy(sc => sc.SortIndex).ToList()
-                }
+                    SubCategories = subCategories.Values.OrderBy(sc => sc.SortIndex).ToList(),
+                },
             };
 
             return View(vm);
@@ -214,7 +224,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Erfolg",
                     Message = "Vorlage gelöscht.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
             }
             catch (Exception ex)
@@ -224,7 +234,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
             }
             TempData.Put("ToastMsg", toast);
@@ -241,7 +251,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Bitte alle Pflichtfelder ausfüllen.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
                 return RedirectToAction(nameof(Detail), new { id = vm.TemplateBudgetId });
@@ -249,7 +259,9 @@ namespace BudgetApp.Controllers
 
             try
             {
-                var existing = await _templatePositionRepo.GetByTemplateBudgetId(vm.TemplateBudgetId);
+                var existing = await _templatePositionRepo.GetByTemplateBudgetId(
+                    vm.TemplateBudgetId
+                );
                 int nextSortIndex = (existing.Any() ? existing.Max(p => p.SortIndex) : 0) + 1;
 
                 var model = new TemplatePositionModel
@@ -263,14 +275,14 @@ namespace BudgetApp.Controllers
                     QuantityVar = string.IsNullOrEmpty(vm.QuantityVar) ? null : vm.QuantityVar,
                     Quantity = string.IsNullOrEmpty(vm.QuantityVar) ? vm.Quantity : null,
                     UnitAmount = vm.UnitAmount,
-                    SortIndex = nextSortIndex
+                    SortIndex = nextSortIndex,
                 };
                 await _templatePositionRepo.Create(model);
                 var toast = new ToastMessageViewModel
                 {
                     Title = "Erfolg",
                     Message = "Position hinzugefügt.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
             }
@@ -281,7 +293,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
             }
@@ -292,11 +304,14 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> EditPositionModal(int id)
         {
             var pos = await _templatePositionRepo.GetById(id);
-            if (pos == null) return NotFound();
+            if (pos == null)
+                return NotFound();
 
             var positionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList();
             var categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
-            var subCategories = (await _subCategoryRepo.GetAll()).OrderBy(sc => sc.SortIndex).ToList();
+            var subCategories = (await _subCategoryRepo.GetAll())
+                .OrderBy(sc => sc.SortIndex)
+                .ToList();
 
             var vm = new UpsertTemplatePositionViewModel
             {
@@ -313,7 +328,7 @@ namespace BudgetApp.Controllers
                 SortIndex = pos.SortIndex,
                 PositionTypes = positionTypes,
                 Categories = categories,
-                SubCategories = subCategories
+                SubCategories = subCategories,
             };
             return PartialView("_EditPositionModal", vm);
         }
@@ -322,11 +337,14 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> EditPosition(int id)
         {
             var pos = await _templatePositionRepo.GetById(id);
-            if (pos == null) return NotFound();
+            if (pos == null)
+                return NotFound();
 
             var positionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList();
             var categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
-            var subCategories = (await _subCategoryRepo.GetAll()).OrderBy(sc => sc.SortIndex).ToList();
+            var subCategories = (await _subCategoryRepo.GetAll())
+                .OrderBy(sc => sc.SortIndex)
+                .ToList();
 
             var vm = new UpsertTemplatePositionViewModel
             {
@@ -342,7 +360,7 @@ namespace BudgetApp.Controllers
                 SortIndex = pos.SortIndex,
                 PositionTypes = positionTypes,
                 Categories = categories,
-                SubCategories = subCategories
+                SubCategories = subCategories,
             };
             return View(vm);
         }
@@ -353,9 +371,13 @@ namespace BudgetApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                vm.PositionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList();
+                vm.PositionTypes = (await _positionTypeRepo.GetAll())
+                    .OrderBy(pt => pt.Name)
+                    .ToList();
                 vm.Categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
-                vm.SubCategories = (await _subCategoryRepo.GetAll()).OrderBy(sc => sc.SortIndex).ToList();
+                vm.SubCategories = (await _subCategoryRepo.GetAll())
+                    .OrderBy(sc => sc.SortIndex)
+                    .ToList();
                 return View(nameof(EditPosition), vm);
             }
 
@@ -374,14 +396,14 @@ namespace BudgetApp.Controllers
                     QuantityVar = string.IsNullOrEmpty(vm.QuantityVar) ? null : vm.QuantityVar,
                     Quantity = string.IsNullOrEmpty(vm.QuantityVar) ? vm.Quantity : null,
                     UnitAmount = vm.UnitAmount,
-                    SortIndex = vm.SortIndex
+                    SortIndex = vm.SortIndex,
                 };
                 await _templatePositionRepo.Update(model);
                 toast = new ToastMessageViewModel
                 {
                     Title = "Erfolg",
                     Message = "Position gespeichert.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
             }
             catch (Exception ex)
@@ -391,7 +413,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
             }
             TempData.Put("ToastMsg", toast);
@@ -410,7 +432,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Erfolg",
                     Message = "Position gelöscht.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
             }
             catch (Exception ex)
@@ -420,7 +442,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
             }
             TempData.Put("ToastMsg", toast);

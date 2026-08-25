@@ -3,16 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class BudgetRepository<T> : BaseRepository, IBudgetRepository<T> where T : BudgetModel
+    public class BudgetRepository<T> : BaseRepository, IBudgetRepository<T>
+        where T : BudgetModel
     {
-
-        public BudgetRepository(DapperContext context) : base(context) { }
+        public BudgetRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Name]
                   ,[Description]
@@ -26,7 +27,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT b.[Id]
                   ,b.[Name]
                   ,b.[Description]
@@ -47,7 +48,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Name]
                   ,[Description]
@@ -62,7 +63,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[Name]
                   ,[Description]
@@ -77,7 +78,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[Budget]
                        ([Name]
                        ,[Description]
@@ -95,7 +96,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[Budget]
                SET [Name] = @Name
                   ,[Description] = @Description

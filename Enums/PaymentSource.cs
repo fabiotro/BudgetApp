@@ -4,6 +4,6 @@ namespace BudgetApp.Enums
     {
         PersonalMoney = 1,
         CampBudget = 2,
-        OtherAdvance = 3
+        OtherAdvance = 3,
     }
 }

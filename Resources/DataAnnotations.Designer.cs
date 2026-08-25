@@ -234,5 +234,40 @@ namespace BudgetApp.Resources {
         public static string ProfileIBAN {
             get { return ResourceManager.GetString("ProfileIBAN", resourceCulture); }
         }
+
+        public static string CategoryName {
+            get
+            {
+                return ResourceManager.GetString("CategoryName", resourceCulture);
+            }
+        }
+
+        public static string CategoryDescription {
+            get
+            {
+                return ResourceManager.GetString("CategoryDescription", resourceCulture);
+            }
+        }
+
+        public static string SubCategoryName {
+            get
+            {
+                return ResourceManager.GetString("SubCategoryName", resourceCulture);
+            }
+        }
+
+        public static string SubCategoryDescription {
+            get
+            {
+                return ResourceManager.GetString("SubCategoryDescription", resourceCulture);
+            }
+        }
+
+        public static string SubCategoryCategoryId {
+            get
+            {
+                return ResourceManager.GetString("SubCategoryCategoryId", resourceCulture);
+            }
+        }
     }
 }

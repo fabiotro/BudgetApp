@@ -16,18 +16,22 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Add services to the container.
-    builder.Services.AddControllersWithViews(options =>
+    builder
+        .Services.AddControllersWithViews(options =>
         {
             options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
         })
-        .AddDataAnnotationsLocalization(options => {
-            options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(DataAnnotations));
+        .AddDataAnnotationsLocalization(options =>
+        {
+            options.DataAnnotationLocalizerProvider = (type, factory) =>
+                factory.Create(typeof(DataAnnotations));
         });
 
     builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
     // Authentication
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    builder
+        .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie(options =>
         {
             options.LoginPath = "/Account/Login";
@@ -45,16 +49,43 @@ try
     builder.Services.AddScoped<DapperContext>();
     builder.Services.AddScoped<IBudgetRepository<BudgetModel>, BudgetRepository<BudgetModel>>();
     builder.Services.AddScoped<ICampRepository<CampModel>, CampRepository<CampModel>>();
-    builder.Services.AddScoped<ICategoryRepository<CategoryModel>, CategoryRepository<CategoryModel>>();
-    builder.Services.AddScoped<IPositionRepository<PositionModel>, PositionRepository<PositionModel>>();
-    builder.Services.AddScoped<IPositionTypeRepository<PositionTypeModel>, PositionTypeRepository<PositionTypeModel>>();
-    builder.Services.AddScoped<ISubCategoryRepository<SubCategoryModel>, SubCategoryRepository<SubCategoryModel>>();
-    builder.Services.AddScoped<ITemplateBudgetRepository<TemplateBudgetModel>, TemplateBudgetRepository<TemplateBudgetModel>>();
-    builder.Services.AddScoped<ITemplatePositionRepository<TemplatePositionModel>, TemplatePositionRepository<TemplatePositionModel>>();
+    builder.Services.AddScoped<
+        ICategoryRepository<CategoryModel>,
+        CategoryRepository<CategoryModel>
+    >();
+    builder.Services.AddScoped<
+        IPositionRepository<PositionModel>,
+        PositionRepository<PositionModel>
+    >();
+    builder.Services.AddScoped<
+        IPositionTypeRepository<PositionTypeModel>,
+        PositionTypeRepository<PositionTypeModel>
+    >();
+    builder.Services.AddScoped<
+        ISubCategoryRepository<SubCategoryModel>,
+        SubCategoryRepository<SubCategoryModel>
+    >();
+    builder.Services.AddScoped<
+        ITemplateBudgetRepository<TemplateBudgetModel>,
+        TemplateBudgetRepository<TemplateBudgetModel>
+    >();
+    builder.Services.AddScoped<
+        ITemplatePositionRepository<TemplatePositionModel>,
+        TemplatePositionRepository<TemplatePositionModel>
+    >();
     builder.Services.AddScoped<IUserRepository<UserModel>, UserRepository<UserModel>>();
-    builder.Services.AddScoped<ICampUserRepository<CampUserModel>, CampUserRepository<CampUserModel>>();
-    builder.Services.AddScoped<ITransactionRepository<TransactionModel>, TransactionRepository<TransactionModel>>();
-    builder.Services.AddScoped<ITransactionDocumentRepository<TransactionDocumentModel>, TransactionDocumentRepository<TransactionDocumentModel>>();
+    builder.Services.AddScoped<
+        ICampUserRepository<CampUserModel>,
+        CampUserRepository<CampUserModel>
+    >();
+    builder.Services.AddScoped<
+        ITransactionRepository<TransactionModel>,
+        TransactionRepository<TransactionModel>
+    >();
+    builder.Services.AddScoped<
+        ITransactionDocumentRepository<TransactionDocumentModel>,
+        TransactionDocumentRepository<TransactionDocumentModel>
+    >();
 
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
@@ -83,9 +114,7 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
-    app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}");
+    app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
     app.Run();
 }
@@ -99,4 +128,3 @@ finally
     // Ensure to flush and stop internal timers/threads before application-exit
     LogManager.Shutdown();
 }
-

@@ -3,16 +3,17 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class PositionRepository<T> : BaseRepository, IPositionRepository<T> where T : PositionModel
+    public class PositionRepository<T> : BaseRepository, IPositionRepository<T>
+        where T : PositionModel
     {
-
-        public PositionRepository(DapperContext context) : base(context) { }
+        public PositionRepository(DapperContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[BudgetId]
                   ,[PositionTypeId]
@@ -38,7 +39,7 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[BudgetId]
                   ,[PositionTypeId]
@@ -64,7 +65,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT [Id]
                   ,[BudgetId]
                   ,[PositionTypeId]
@@ -90,7 +91,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             SELECT p.[Id]
                   ,p.[BudgetId]
                   ,p.[PositionTypeId]
@@ -118,7 +119,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             INSERT INTO [dbo].[Position]
                     ([BudgetId]
                     ,[PositionTypeId]
@@ -158,7 +159,7 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-            @"
+                @"
             UPDATE [dbo].[Position]
                 SET [BudgetId] = @BudgetId
                     ,[PositionTypeId] = @PositionTypeId

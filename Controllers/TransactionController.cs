@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace BudgetApp.Controllers
 {
@@ -18,9 +18,15 @@ namespace BudgetApp.Controllers
         private readonly ITransactionDocumentRepository<TransactionDocumentModel> _docRepo;
         private readonly IPositionRepository<PositionModel> _positionRepo;
 
-        private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> AllowedContentTypes = new(
+            StringComparer.OrdinalIgnoreCase
+        )
         {
-            "image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "application/pdf",
         };
         private const long MaxFileSizeBytes = 10 * 1024 * 1024; // 10 MB
 
@@ -30,7 +36,8 @@ namespace BudgetApp.Controllers
             ICampUserRepository<CampUserModel> campUserRepo,
             ITransactionRepository<TransactionModel> transactionRepo,
             ITransactionDocumentRepository<TransactionDocumentModel> docRepo,
-            IPositionRepository<PositionModel> positionRepo)
+            IPositionRepository<PositionModel> positionRepo
+        )
         {
             _logger = logger;
             _campRepo = campRepo;
@@ -46,8 +53,10 @@ namespace BudgetApp.Controllers
         private async Task<bool> HasCampAccessAsync(int campId, int userId)
         {
             var camp = await _campRepo.GetById(campId);
-            if (camp == null) return false;
-            if (camp.CreatedByUserId == userId) return true;
+            if (camp == null)
+                return false;
+            if (camp.CreatedByUserId == userId)
+                return true;
             var campUsers = await _campUserRepo.GetByCampId(campId);
             return campUsers.Any(cu => cu.UserId == userId);
         }
@@ -62,17 +71,26 @@ namespace BudgetApp.Controllers
         {
             foreach (var file in attachments)
             {
-                if (file.Length == 0) continue;
+                if (file.Length == 0)
+                    continue;
 
                 if (!AllowedContentTypes.Contains(file.ContentType))
                 {
-                    _logger.LogWarning("Skipping file {FileName}: unsupported content type {ContentType}", file.FileName, file.ContentType);
+                    _logger.LogWarning(
+                        "Skipping file {FileName}: unsupported content type {ContentType}",
+                        file.FileName,
+                        file.ContentType
+                    );
                     continue;
                 }
 
                 if (file.Length > MaxFileSizeBytes)
                 {
-                    _logger.LogWarning("Skipping file {FileName}: exceeds max size ({Size} bytes)", file.FileName, file.Length);
+                    _logger.LogWarning(
+                        "Skipping file {FileName}: exceeds max size ({Size} bytes)",
+                        file.FileName,
+                        file.Length
+                    );
                     continue;
                 }
 
@@ -87,13 +105,18 @@ namespace BudgetApp.Controllers
                         FileName = file.FileName,
                         ContentType = file.ContentType,
                         FileSize = (int)file.Length,
-                        FileData = ms.ToArray()
+                        FileData = ms.ToArray(),
                     };
                     await _docRepo.Create(doc);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error saving attachment {FileName} for transaction {TransactionId}", file.FileName, transactionId);
+                    _logger.LogError(
+                        ex,
+                        "Error saving attachment {FileName} for transaction {TransactionId}",
+                        file.FileName,
+                        transactionId
+                    );
                 }
             }
         }
@@ -102,13 +125,14 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> Create(int campId)
         {
             int userId = GetCurrentUserId();
-            if (!await HasCampAccessAsync(campId, userId)) return Forbid();
+            if (!await HasCampAccessAsync(campId, userId))
+                return Forbid();
 
             var vm = new CreateTransactionViewModel
             {
                 CampId = campId,
                 PerformedByUserId = userId,
-                Name = string.Empty
+                Name = string.Empty,
             };
             await PopulateFormListsAsync(vm);
             return View(vm);
@@ -116,7 +140,10 @@ namespace BudgetApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateTransactionViewModel vm, List<IFormFile>? attachments)
+        public async Task<IActionResult> Create(
+            CreateTransactionViewModel vm,
+            List<IFormFile>? attachments
+        )
         {
             if (!ModelState.IsValid)
             {
@@ -125,7 +152,8 @@ namespace BudgetApp.Controllers
             }
 
             int userId = GetCurrentUserId();
-            if (!await HasCampAccessAsync(vm.CampId, userId)) return Forbid();
+            if (!await HasCampAccessAsync(vm.CampId, userId))
+                return Forbid();
 
             try
             {
@@ -135,10 +163,12 @@ namespace BudgetApp.Controllers
                     PerformedByUserId = vm.PerformedByUserId,
                     PositionId = vm.PositionId,
                     Name = vm.Name.Trim(),
-                    Description = string.IsNullOrWhiteSpace(vm.Description) ? null : vm.Description.Trim(),
+                    Description = string.IsNullOrWhiteSpace(vm.Description)
+                        ? null
+                        : vm.Description.Trim(),
                     Amount = vm.Amount,
                     PaymentSource = vm.PaymentSource,
-                    PaymentMethod = vm.PaymentMethod
+                    PaymentMethod = vm.PaymentMethod,
                 };
 
                 int newId = await _transactionRepo.Create(transaction);
@@ -150,7 +180,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Gespeichert",
                     Message = "Ausgabe erfolgreich erfasst.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
                 return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
@@ -162,7 +192,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
                 await PopulateFormListsAsync(vm);
@@ -175,9 +205,11 @@ namespace BudgetApp.Controllers
         {
             int userId = GetCurrentUserId();
             var transaction = await _transactionRepo.GetById(id);
-            if (transaction == null) return NotFound();
+            if (transaction == null)
+                return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId)) return Forbid();
+            if (!await HasCampAccessAsync(transaction.CampId, userId))
+                return Forbid();
 
             var existingDocs = (await _docRepo.GetByTransactionId(id)).ToList();
 
@@ -192,7 +224,7 @@ namespace BudgetApp.Controllers
                 Amount = transaction.Amount,
                 PaymentSource = transaction.PaymentSource,
                 PaymentMethod = transaction.PaymentMethod,
-                ExistingDocuments = existingDocs
+                ExistingDocuments = existingDocs,
             };
             await PopulateFormListsAsync(vm);
             return View(vm);
@@ -200,7 +232,10 @@ namespace BudgetApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(EditTransactionViewModel vm, List<IFormFile>? newAttachments)
+        public async Task<IActionResult> Edit(
+            EditTransactionViewModel vm,
+            List<IFormFile>? newAttachments
+        )
         {
             if (!ModelState.IsValid)
             {
@@ -211,16 +246,20 @@ namespace BudgetApp.Controllers
 
             int userId = GetCurrentUserId();
             var existing = await _transactionRepo.GetById(vm.Id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+                return NotFound();
 
-            if (!await HasCampAccessAsync(existing.CampId, userId)) return Forbid();
+            if (!await HasCampAccessAsync(existing.CampId, userId))
+                return Forbid();
 
             try
             {
                 existing.PerformedByUserId = vm.PerformedByUserId;
                 existing.PositionId = vm.PositionId;
                 existing.Name = vm.Name.Trim();
-                existing.Description = string.IsNullOrWhiteSpace(vm.Description) ? null : vm.Description.Trim();
+                existing.Description = string.IsNullOrWhiteSpace(vm.Description)
+                    ? null
+                    : vm.Description.Trim();
                 existing.Amount = vm.Amount;
                 existing.PaymentSource = vm.PaymentSource;
                 existing.PaymentMethod = vm.PaymentMethod;
@@ -234,10 +273,13 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Gespeichert",
                     Message = "Ausgabe erfolgreich aktualisiert.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
-                return RedirectToAction(nameof(UserTransactions), new { campId = existing.CampId, userId = existing.PerformedByUserId });
+                return RedirectToAction(
+                    nameof(UserTransactions),
+                    new { campId = existing.CampId, userId = existing.PerformedByUserId }
+                );
             }
             catch (Exception ex)
             {
@@ -246,7 +288,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
                 vm.ExistingDocuments = (await _docRepo.GetByTransactionId(vm.Id)).ToList();
@@ -261,9 +303,11 @@ namespace BudgetApp.Controllers
         {
             int userId = GetCurrentUserId();
             var transaction = await _transactionRepo.GetById(id);
-            if (transaction == null) return NotFound();
+            if (transaction == null)
+                return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId)) return Forbid();
+            if (!await HasCampAccessAsync(transaction.CampId, userId))
+                return Forbid();
 
             try
             {
@@ -273,7 +317,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Gelöscht",
                     Message = "Ausgabe erfolgreich gelöscht.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
             }
@@ -284,7 +328,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
             }
@@ -296,10 +340,12 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> UserTransactions(int campId, int userId)
         {
             int currentUserId = GetCurrentUserId();
-            if (!await HasCampAccessAsync(campId, currentUserId)) return Forbid();
+            if (!await HasCampAccessAsync(campId, currentUserId))
+                return Forbid();
 
             var camp = await _campRepo.GetById(campId);
-            if (camp == null) return NotFound();
+            if (camp == null)
+                return NotFound();
 
             var allSummaries = await _transactionRepo.GetUserSummariesByCampId(campId);
             var userSummary = allSummaries.FirstOrDefault(s => s.UserId == userId);
@@ -311,29 +357,32 @@ namespace BudgetApp.Controllers
             var transactions = (await _transactionRepo.GetByUserId(userId, campId)).ToList();
 
             // Load positions for name lookup
-            var positions = (await _positionRepo.GetByCampId(campId))
-                .ToDictionary(p => p.Id);
+            var positions = (await _positionRepo.GetByCampId(campId)).ToDictionary(p => p.Id);
 
             var transactionsWithDocs = new List<TransactionWithDocumentsViewModel>();
             foreach (var t in transactions)
             {
                 var docs = (await _docRepo.GetByTransactionId(t.Id)).ToList();
-                transactionsWithDocs.Add(new TransactionWithDocumentsViewModel
-                {
-                    Transaction = t,
-                    Documents = docs,
-                    PerformedByDisplayName = userSummary.FullName,
-                    PositionName = t.PositionId.HasValue && positions.TryGetValue(t.PositionId.Value, out var pos)
-                        ? pos.Name
-                        : null
-                });
+                transactionsWithDocs.Add(
+                    new TransactionWithDocumentsViewModel
+                    {
+                        Transaction = t,
+                        Documents = docs,
+                        PerformedByDisplayName = userSummary.FullName,
+                        PositionName =
+                            t.PositionId.HasValue
+                            && positions.TryGetValue(t.PositionId.Value, out var pos)
+                                ? pos.Name
+                                : null,
+                    }
+                );
             }
 
             var vm = new UserTransactionsViewModel
             {
                 Camp = camp,
                 UserSummary = userSummary,
-                Transactions = transactionsWithDocs
+                Transactions = transactionsWithDocs,
             };
             return View(vm);
         }
@@ -343,12 +392,15 @@ namespace BudgetApp.Controllers
         {
             int userId = GetCurrentUserId();
             var doc = await _docRepo.GetById(id);
-            if (doc == null) return NotFound();
+            if (doc == null)
+                return NotFound();
 
             var transaction = await _transactionRepo.GetById(doc.TransactionId);
-            if (transaction == null) return NotFound();
+            if (transaction == null)
+                return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId)) return Forbid();
+            if (!await HasCampAccessAsync(transaction.CampId, userId))
+                return Forbid();
 
             return File(doc.FileData!, doc.ContentType, doc.FileName);
         }
@@ -362,12 +414,15 @@ namespace BudgetApp.Controllers
             // Load metadata (no FileData needed)
             var docs = await _docRepo.GetByTransactionId(transactionId);
             var doc = docs.FirstOrDefault(d => d.Id == id);
-            if (doc == null) return NotFound();
+            if (doc == null)
+                return NotFound();
 
             var transaction = await _transactionRepo.GetById(transactionId);
-            if (transaction == null) return NotFound();
+            if (transaction == null)
+                return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId)) return Forbid();
+            if (!await HasCampAccessAsync(transaction.CampId, userId))
+                return Forbid();
 
             try
             {
@@ -377,7 +432,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Gelöscht",
                     Message = "Dokument erfolgreich gelöscht.",
-                    Type = ToastType.Success
+                    Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
             }
@@ -388,7 +443,7 @@ namespace BudgetApp.Controllers
                 {
                     Title = "Fehler",
                     Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error
+                    Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
             }

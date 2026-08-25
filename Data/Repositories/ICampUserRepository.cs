@@ -2,7 +2,8 @@ using BudgetApp.Models;
 
 namespace BudgetApp.Data.Repositories
 {
-    public interface ICampUserRepository<T> where T : CampUserModel
+    public interface ICampUserRepository<T>
+        where T : CampUserModel
     {
         Task<IEnumerable<T>> GetByCampId(int campId);
         Task<IEnumerable<T>> GetByUserId(int userId);

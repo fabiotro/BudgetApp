@@ -12,10 +12,30 @@ namespace BudgetApp.Models
         public decimal TotalAmount_fc => Groups.Sum(g => g.TotalAmount_fc);
         public decimal TotalAmount_rl => Groups.Sum(g => g.TotalAmount_rl);
 
-        public decimal TotalIncome_fc   => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => p.IsIncome).Sum(p => p.TotalAmount_fc);
-        public decimal TotalExpenses_fc => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => !p.IsIncome).Sum(p => p.TotalAmount_fc);
-        public decimal TotalIncome_rl   => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => p.IsIncome).Sum(p => p.TotalAmount_rl);
-        public decimal TotalExpenses_rl => Groups.SelectMany(g => g.SubGroups).SelectMany(sg => sg.Positions).Where(p => !p.IsIncome).Sum(p => p.TotalAmount_rl);
+        public decimal TotalIncome_fc =>
+            Groups
+                .SelectMany(g => g.SubGroups)
+                .SelectMany(sg => sg.Positions)
+                .Where(p => p.IsIncome)
+                .Sum(p => p.TotalAmount_fc);
+        public decimal TotalExpenses_fc =>
+            Groups
+                .SelectMany(g => g.SubGroups)
+                .SelectMany(sg => sg.Positions)
+                .Where(p => !p.IsIncome)
+                .Sum(p => p.TotalAmount_fc);
+        public decimal TotalIncome_rl =>
+            Groups
+                .SelectMany(g => g.SubGroups)
+                .SelectMany(sg => sg.Positions)
+                .Where(p => p.IsIncome)
+                .Sum(p => p.TotalAmount_rl);
+        public decimal TotalExpenses_rl =>
+            Groups
+                .SelectMany(g => g.SubGroups)
+                .SelectMany(sg => sg.Positions)
+                .Where(p => !p.IsIncome)
+                .Sum(p => p.TotalAmount_rl);
 
         public List<PositionTypeModel> PositionTypes { get; set; } = [];
         public List<CategoryModel> AllCategories { get; set; } = [];
@@ -56,7 +76,8 @@ namespace BudgetApp.Models
         public string? QuantityVar_rl { get; set; }
 
         public decimal TotalAmount_fc => FixedAmount_fc + (Quantity_fc * UnitAmount_fc);
-        public decimal TotalAmount_rl => (FixedAmount_rl ?? 0) + ((Quantity_rl ?? 0) * (UnitAmount_rl ?? 0));
+        public decimal TotalAmount_rl =>
+            (FixedAmount_rl ?? 0) + ((Quantity_rl ?? 0) * (UnitAmount_rl ?? 0));
 
         public decimal SignedTotalAmount_fc => IsIncome ? TotalAmount_fc : -TotalAmount_fc;
         public decimal SignedTotalAmount_rl => IsIncome ? TotalAmount_rl : -TotalAmount_rl;
@@ -68,6 +89,7 @@ namespace BudgetApp.Models
         public decimal? FixedAmount_rl { get; set; }
         public decimal? Quantity_rl { get; set; }
         public decimal? UnitAmount_rl { get; set; }
+
         [StringLength(50)]
         public string? QuantityVar_rl { get; set; }
     }
@@ -93,6 +115,7 @@ namespace BudgetApp.Models
 
         // Provisorisch
         public decimal? FixedAmount_fc { get; set; }
+
         [StringLength(50)]
         public string? QuantityVar_fc { get; set; }
         public decimal? Quantity_fc { get; set; }
@@ -100,6 +123,7 @@ namespace BudgetApp.Models
 
         // Definitiv
         public decimal? FixedAmount_rl { get; set; }
+
         [StringLength(50)]
         public string? QuantityVar_rl { get; set; }
         public decimal? Quantity_rl { get; set; }

@@ -18,80 +18,82 @@
 }
 else
 {
-    @foreach (var item in Model.Categories)
-    {
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>@item.Category.Name</strong>
-                    @if (!string.IsNullOrEmpty(item.Category.Description))
-                    {
-                        <small class="text-muted ms-2">@item.Category.Description</small>
-                    }
-                    <small class="text-muted ms-2">(Reihenfolge: @item.Category.SortIndex)</small>
+    <form id="antiforgeryTokenForm" style="display:none">@Html.AntiForgeryToken()</form>
+
+    <div id="categories-container">
+        @foreach (var item in Model.Categories)
+        {
+            <div class="card mb-3" data-category-id="@item.Category.Id">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-grip-vertical drag-handle text-muted me-2" style="cursor: grab;"></i>
+                        <strong>@item.Category.Name</strong>
+                        @if (!string.IsNullOrEmpty(item.Category.Description))
+                        {
+                            <small class="text-muted ms-2">@item.Category.Description</small>
+                        }
+                    </div>
+                    <div>
+                        <a asp-action="UpsertCategory" asp-route-id="@item.Category.Id"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pen"></i>
+                        </a>
+                        <button type="submit" form="deleteCat-@item.Category.Id"
+                                class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Kategorie «@item.Category.Name» wirklich löschen?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
                 </div>
-                <div>
-                    <a asp-action="UpsertCategory" asp-route-id="@item.Category.Id"
-                       class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-pen"></i>
+
+                @if (item.SubCategories.Any())
+                {
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            <tbody class="subcategory-sortable" data-category-id="@item.Category.Id">
+                                @foreach (var sub in item.SubCategories)
+                                {
+                                    <tr data-subcategory-id="@sub.Id">
+                                        <td class="ps-2 text-muted" style="width: 2rem;">
+                                            <i class="bi bi-grip-vertical drag-handle" style="cursor: grab;"></i>
+                                        </td>
+                                        <td>@sub.Name</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(sub.Description))
+                                            {
+                                                <small class="text-muted">@sub.Description</small>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-3" style="white-space: nowrap;">
+                                            <a asp-action="UpsertSubCategory" asp-route-id="@sub.Id"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pen"></i>
+                                            </a>
+                                            <form asp-action="DeleteSubCategory" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Unterkategorie «@sub.Name» wirklich löschen?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@sub.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <div class="card-footer">
+                    <a asp-action="UpsertSubCategory" asp-route-categoryId="@item.Category.Id"
+                       class="btn btn-sm btn-outline-primary">
+                        Unterkategorie hinzufügen <i class="bi bi-plus-square"></i>
                     </a>
-                    <button type="submit" form="deleteCat-@item.Category.Id"
-                            class="btn btn-sm btn-outline-danger"
-                            onclick="return confirm('Kategorie «@item.Category.Name» wirklich löschen?')">
-                        <i class="bi bi-trash"></i>
-                    </button>
                 </div>
             </div>
-
-            @if (item.SubCategories.Any())
-            {
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <tbody>
-                            @foreach (var sub in item.SubCategories)
-                            {
-                                <tr>
-                                    <td class="ps-4 text-muted" style="width: 1rem;">└</td>
-                                    <td>@sub.Name</td>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(sub.Description))
-                                        {
-                                            <small class="text-muted">@sub.Description</small>
-                                        }
-                                    </td>
-                                    <td class="text-muted text-end pe-3">
-                                        <small>Reihenfolge: @sub.SortIndex</small>
-                                    </td>
-                                    <td class="text-end pe-3" style="white-space: nowrap;">
-                                        <a asp-action="UpsertSubCategory" asp-route-id="@sub.Id"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-pen"></i>
-                                        </a>
-                                        <form asp-action="DeleteSubCategory" method="post" class="d-inline"
-                                              onsubmit="return confirm('Unterkategorie «@sub.Name» wirklich löschen?')">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@sub.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-
-            <div class="card-footer">
-                <a asp-action="UpsertSubCategory" asp-route-categoryId="@item.Category.Id"
-                   class="btn btn-sm btn-outline-primary">
-                    <span class="me-2">Unterkategorie hinzufügen</span>
-                    <i class="bi bi-plus-square"></i>
-                </a>
-            </div>
-        </div>
-    }
+        }
+    </div>
 
     @* Hidden delete forms for categories — associated via HTML5 form attribute *@
     @foreach (var item in Model.Categories)
@@ -101,4 +103,9 @@ else
             <input type="hidden" name="id" value="@item.Category.Id" />
         </form>
     }
+}
+
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script src="~/js/category-reorder.js" asp-append-version="true"></script>
 }
