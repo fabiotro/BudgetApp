@@ -16,13 +16,15 @@ namespace BudgetApp.Controllers
         private readonly IBudgetRepository<BudgetModel> _budgetRepo;
         private readonly ITransactionRepository<TransactionModel> _transactionRepo;
         private readonly ICampUserRepository<CampUserModel> _campUserRepo;
+        private readonly ICampInviteRepository<CampInviteModel> _inviteRepo;
 
         public CampController(
             ILogger<CampController> logger,
             ICampRepository<CampModel> campRepo,
             IBudgetRepository<BudgetModel> budgetRepo,
             ITransactionRepository<TransactionModel> transactionRepo,
-            ICampUserRepository<CampUserModel> campUserRepo
+            ICampUserRepository<CampUserModel> campUserRepo,
+            ICampInviteRepository<CampInviteModel> inviteRepo
         )
         {
             _logger = logger;
@@ -30,6 +32,7 @@ namespace BudgetApp.Controllers
             _budgetRepo = budgetRepo;
             _transactionRepo = transactionRepo;
             _campUserRepo = campUserRepo;
+            _inviteRepo = inviteRepo;
         }
 
         private int GetCurrentUserId() =>
@@ -52,12 +55,18 @@ namespace BudgetApp.Controllers
 
             var budgets = (await _budgetRepo.GetByCampId(id)).ToList();
             var userSummaries = (await _transactionRepo.GetUserSummariesByCampId(id)).ToList();
+            var invites = (await _inviteRepo.GetByCampId(id)).ToList();
+            bool isMainLeader = campUsers.Any(cu => cu.UserId == userId && cu.IsMainLeader);
 
             var vm = new CampDetailViewModel
             {
                 Camp = camp,
                 Budgets = budgets,
                 UserSummaries = userSummaries,
+                CampUsers = campUsers,
+                Invites = invites,
+                IsMainLeader = isMainLeader,
+                InviteForm = new SendInviteViewModel { Email = string.Empty, CampId = id },
             };
             return View(vm);
         }

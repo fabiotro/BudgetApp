@@ -21,5 +21,9 @@ namespace BudgetApp.Models
         public required CampModel Camp { get; set; }
         public List<UserExpenseSummaryViewModel> UserSummaries { get; set; } = [];
         public List<BudgetModel> Budgets { get; set; } = [];
+        public List<CampUserModel> CampUsers { get; set; } = [];
+        public List<CampInviteModel> Invites { get; set; } = [];
+        public bool IsMainLeader { get; set; }
+        public SendInviteViewModel InviteForm { get; set; } = new() { Email = string.Empty };
     }
 }

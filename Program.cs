@@ -79,6 +79,10 @@ try
         CampUserRepository<CampUserModel>
     >();
     builder.Services.AddScoped<
+        ICampInviteRepository<CampInviteModel>,
+        CampInviteRepository<CampInviteModel>
+    >();
+    builder.Services.AddScoped<
         ITransactionRepository<TransactionModel>,
         TransactionRepository<TransactionModel>
     >();

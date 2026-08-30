@@ -504,3 +504,49 @@ BEGIN
     UPDATE [dbo].[TransactionDocument] SET ChangeDate = GETDATE() FROM [TransactionDocument] t INNER JOIN Inserted i ON t.Id = i.Id
 END'
 GO
+
+-- =============================================
+-- Camp Invite Feature
+-- =============================================
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CampInvite]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[CampInvite](
+    [Id]               [int] IDENTITY(1,1) NOT NULL,
+    [CampId]           [int] NOT NULL,
+    [InvitedByUserId]  [int] NOT NULL,
+    [InvitedUserId]    [int] NOT NULL,
+    [Status]           [int] NOT NULL DEFAULT 0,
+    [CreateDate]       [datetime] NULL,
+    [ChangeDate]       [datetime] NULL,
+    CONSTRAINT [PK_CampInvite] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [UQ_CampInvite_CampId_InvitedUserId] UNIQUE ([CampId], [InvitedUserId])
+)
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_CampInvite_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[CampInvite] ADD CONSTRAINT [DF_CampInvite_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampInvite_Camp]'))
+    ALTER TABLE [dbo].[CampInvite] WITH CHECK ADD CONSTRAINT [FK_CampInvite_Camp]
+        FOREIGN KEY([CampId]) REFERENCES [dbo].[Camp] ([Id]) ON DELETE CASCADE
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampInvite_InvitedByUser]'))
+    ALTER TABLE [dbo].[CampInvite] WITH CHECK ADD CONSTRAINT [FK_CampInvite_InvitedByUser]
+        FOREIGN KEY([InvitedByUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampInvite_InvitedUser]'))
+    ALTER TABLE [dbo].[CampInvite] WITH CHECK ADD CONSTRAINT [FK_CampInvite_InvitedUser]
+        FOREIGN KEY([InvitedUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[CampInvite_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[CampInvite_UpdateChangeDate] ON [dbo].[CampInvite] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[CampInvite] SET ChangeDate = GETDATE() FROM [CampInvite] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO

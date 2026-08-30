@@ -235,6 +235,11 @@ namespace BudgetApp.Resources {
             get { return ResourceManager.GetString("ProfileIBAN", resourceCulture); }
         }
 
+        public static string InviteEmail
+        {
+            get { return ResourceManager.GetString("InviteEmail", resourceCulture); }
+        }
+
         public static string CategoryName {
             get
             {

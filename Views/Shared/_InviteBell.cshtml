@@ -1,0 +1,21 @@
+@model int
+<li class="nav-item dropdown">
+    <a class="nav-link text-dark position-relative" href="#"
+       id="inviteBellToggle"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       data-invite-url="@Url.Action("Pending", "Invite")">
+        <i class="bi bi-bell"></i>
+        <span id="inviteBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(Model == 0 ? "d-none" : "")">
+            @(Model > 0 ? Model.ToString() : "")
+        </span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end p-0" id="inviteDropdownMenu" style="min-width: 320px">
+        <li><h6 class="dropdown-header">Einladungen</h6></li>
+        <li id="inviteListContainer">
+            <span class="dropdown-item text-muted">Wird geladen…</span>
+        </li>
+    </ul>
+</li>
