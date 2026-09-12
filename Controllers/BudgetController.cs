@@ -12,7 +12,6 @@ namespace BudgetApp.Controllers
     public class BudgetController : Controller
     {
         private readonly ILogger<BudgetController> _logger;
-        private readonly ICampRepository<CampModel> _campRepo;
         private readonly IBudgetRepository<BudgetModel> _budgetRepo;
         private readonly ITemplateBudgetRepository<TemplateBudgetModel> _templateBudgetRepo;
         private readonly ITemplatePositionRepository<TemplatePositionModel> _templatePositionRepo;
@@ -20,11 +19,12 @@ namespace BudgetApp.Controllers
         private readonly IPositionTypeRepository<PositionTypeModel> _positionTypeRepo;
         private readonly ICategoryRepository<CategoryModel> _categoryRepo;
         private readonly ISubCategoryRepository<SubCategoryModel> _subCategoryRepo;
-        private readonly ICampUserRepository<CampUserModel> _campUserRepo;
+        private readonly IBudgetUserRepository<BudgetUserModel> _budgetUserRepo;
+        private readonly IBudgetInviteRepository<BudgetInviteModel> _inviteRepo;
+        private readonly ITransactionRepository<TransactionModel> _transactionRepo;
 
         public BudgetController(
             ILogger<BudgetController> logger,
-            ICampRepository<CampModel> campRepo,
             IBudgetRepository<BudgetModel> budgetRepo,
             ITemplateBudgetRepository<TemplateBudgetModel> templateBudgetRepo,
             ITemplatePositionRepository<TemplatePositionModel> templatePositionRepo,
@@ -32,11 +32,12 @@ namespace BudgetApp.Controllers
             IPositionTypeRepository<PositionTypeModel> positionTypeRepo,
             ICategoryRepository<CategoryModel> categoryRepo,
             ISubCategoryRepository<SubCategoryModel> subCategoryRepo,
-            ICampUserRepository<CampUserModel> campUserRepo
+            IBudgetUserRepository<BudgetUserModel> budgetUserRepo,
+            IBudgetInviteRepository<BudgetInviteModel> inviteRepo,
+            ITransactionRepository<TransactionModel> transactionRepo
         )
         {
             _logger = logger;
-            _campRepo = campRepo;
             _budgetRepo = budgetRepo;
             _templateBudgetRepo = templateBudgetRepo;
             _templatePositionRepo = templatePositionRepo;
@@ -44,179 +45,72 @@ namespace BudgetApp.Controllers
             _positionTypeRepo = positionTypeRepo;
             _categoryRepo = categoryRepo;
             _subCategoryRepo = subCategoryRepo;
-            _campUserRepo = campUserRepo;
+            _budgetUserRepo = budgetUserRepo;
+            _inviteRepo = inviteRepo;
+            _transactionRepo = transactionRepo;
         }
 
         private int GetCurrentUserId() =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+        private async Task<bool> HasAccessAsync(BudgetModel budget, int userId)
+        {
+            if (budget.CreatedByUserId == userId)
+                return true;
+            var budgetUsers = await _budgetUserRepo.GetByBudgetId(budget.Id);
+            return budgetUsers.Any(bu => bu.UserId == userId);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             int userId = GetCurrentUserId();
-            var budgets = (await _budgetRepo.GetAllForUser(userId)).ToList();
-            var camps = (await _campRepo.GetAllForUser(userId)).ToDictionary(c => c.Id);
-
-            var vm = budgets
-                .Select(b =>
-                {
-                    camps.TryGetValue(b.CampId, out var camp);
-                    return new BudgetListViewModel { Budget = b, Camp = camp };
-                })
+            var budgets = (await _budgetRepo.GetAllForUser(userId))
+                .OrderByDescending(b => b.StartDate)
                 .ToList();
-
-            return View(vm);
+            return View(budgets);
         }
 
         [HttpGet]
-        public async Task<IActionResult> NewBudget(int? campId)
+        public async Task<IActionResult> Create()
         {
             int userId = GetCurrentUserId();
-            var vm = new NewBudgetViewModel
+            var vm = new BudgetFormViewModel
             {
-                Camp = new CampViewModel
-                {
-                    StartDate = DateTime.Today,
-                    EndDate = DateTime.Today.AddDays(7),
-                },
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(7),
                 AvailableTemplates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList(),
             };
-
-            if (campId.HasValue)
-            {
-                var camp = await _campRepo.GetById(campId.Value);
-                if (camp != null)
-                {
-                    vm.Camp = MapModelToViewModel(camp);
-                    vm.ExistingBudgets = (await _budgetRepo.GetByCampId(campId.Value)).ToList();
-                    vm.CampUsers = (await _campUserRepo.GetByCampId(campId.Value)).ToList();
-                }
-            }
-
             return View(vm);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> CreateBudgetModal(int campId)
-        {
-            int userId = GetCurrentUserId();
-            var vm = new CreateBudgetModalViewModel
-            {
-                CampId = campId,
-                AvailableTemplates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList(),
-            };
-            return PartialView("_CreateBudgetModal", vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpsertCamp(NewBudgetViewModel newBudget)
+        public async Task<IActionResult> Create(BudgetFormViewModel vm)
         {
             int userId = GetCurrentUserId();
 
             if (!ModelState.IsValid)
             {
-                newBudget.AvailableTemplates = (
-                    await _templateBudgetRepo.GetAllForUser(userId)
-                ).ToList();
-                if (newBudget.Camp.Id > 0)
-                {
-                    newBudget.ExistingBudgets = (
-                        await _budgetRepo.GetByCampId(newBudget.Camp.Id)
-                    ).ToList();
-                    newBudget.CampUsers = (
-                        await _campUserRepo.GetByCampId(newBudget.Camp.Id)
-                    ).ToList();
-                }
-                return View(nameof(NewBudget), newBudget);
-            }
-
-            var toast = new ToastMessageViewModel();
-
-            try
-            {
-                var campModel = MapViewModelToModel(newBudget.Camp);
-
-                if (newBudget.Camp.Id == 0)
-                {
-                    campModel.CreatedByUserId = userId;
-                    int newId = await _campRepo.Create(campModel);
-                    newBudget.Camp.Id = newId;
-
-                    // Auto-add creator as main leader
-                    await _campUserRepo.Create(
-                        new CampUserModel
-                        {
-                            CampId = newId,
-                            UserId = userId,
-                            IsMainLeader = true,
-                        }
-                    );
-
-                    toast = new ToastMessageViewModel
-                    {
-                        Title = "Erfolg",
-                        Message = "Lagerdaten hinzugefügt.",
-                        Type = ToastType.Success,
-                    };
-                }
-                else
-                {
-                    await _campRepo.Update(campModel);
-                    toast = new ToastMessageViewModel
-                    {
-                        Title = "Erfolg",
-                        Message = "Lagerdaten aktualisiert.",
-                        Type = ToastType.Success,
-                    };
-                }
-                TempData.Put("ToastMsg", toast);
-                return RedirectToAction(nameof(NewBudget), new { campId = newBudget.Camp.Id });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in UpsertCamp");
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-                TempData.Put("ToastMsg", toast);
-                newBudget.AvailableTemplates = (
-                    await _templateBudgetRepo.GetAllForUser(userId)
-                ).ToList();
-                return View(nameof(NewBudget), newBudget);
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateBudget(CreateBudgetViewModel vm)
-        {
-            var toast = new ToastMessageViewModel();
-
-            if (!ModelState.IsValid)
-            {
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Bitte Vorlage auswählen und Budgetname eingeben.",
-                    Type = ToastType.Error,
-                };
-                TempData.Put("ToastMsg", toast);
-                return RedirectToAction(nameof(NewBudget), new { campId = vm.CampId });
+                vm.AvailableTemplates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList();
+                return View(vm);
             }
 
             try
             {
-                var budget = new BudgetModel
-                {
-                    Name = vm.BudgetName,
-                    Description = vm.BudgetDescription,
-                    CampId = vm.CampId,
-                };
-                int budgetId = await _budgetRepo.Create(budget);
+                var budget = MapToModel(vm);
+                budget.CreatedByUserId = userId;
+                int newId = await _budgetRepo.Create(budget);
+
+                // Auto-add creator as main leader
+                await _budgetUserRepo.Create(
+                    new BudgetUserModel
+                    {
+                        BudgetId = newId,
+                        UserId = userId,
+                        IsMainLeader = true,
+                    }
+                );
 
                 if (vm.SelectedTemplateBudgetId > 0)
                 {
@@ -227,7 +121,7 @@ namespace BudgetApp.Controllers
                     {
                         var position = new PositionModel
                         {
-                            BudgetId = budgetId,
+                            BudgetId = newId,
                             PositionTypeId = tp.PositionTypeId,
                             CategoryId = tp.CategoryId,
                             SubCategoryId = tp.SubCategoryId == 0 ? null : tp.SubCategoryId,
@@ -246,38 +140,147 @@ namespace BudgetApp.Controllers
                     }
                 }
 
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Erfolg",
-                    Message = "Budget erstellt.",
-                    Type = ToastType.Success,
-                };
-                TempData.Put("ToastMsg", toast);
-                return RedirectToAction(nameof(Detail), new { id = budgetId });
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Erfolg",
+                        Message = "Budget erstellt.",
+                        Type = ToastType.Success,
+                    }
+                );
+                return RedirectToAction(nameof(Detail), new { id = newId });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in CreateBudget");
+                _logger.LogError(ex, "Error in Create");
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                        Type = ToastType.Error,
+                    }
+                );
+                vm.AvailableTemplates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList();
+                return View(vm);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            int userId = GetCurrentUserId();
+            var budget = await _budgetRepo.GetById(id);
+            if (budget == null)
+                return NotFound();
+            if (!await HasAccessAsync(budget, userId))
+                return Forbid();
+
+            return View(MapToViewModel(budget));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(BudgetFormViewModel vm)
+        {
+            int userId = GetCurrentUserId();
+            var existing = await _budgetRepo.GetById(vm.Id);
+            if (existing == null)
+                return NotFound();
+            if (!await HasAccessAsync(existing, userId))
+                return Forbid();
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            try
+            {
+                var budget = MapToModel(vm);
+                budget.Id = existing.Id;
+                budget.CreatedByUserId = existing.CreatedByUserId;
+                await _budgetRepo.Update(budget);
+
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Erfolg",
+                        Message = "Lagerdaten aktualisiert.",
+                        Type = ToastType.Success,
+                    }
+                );
+                return RedirectToAction(nameof(Detail), new { id = vm.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Edit");
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                        Type = ToastType.Error,
+                    }
+                );
+                return View(vm);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            int userId = GetCurrentUserId();
+            var budget = await _budgetRepo.GetById(id);
+            if (budget == null)
+                return NotFound();
+            if (budget.CreatedByUserId != userId)
+                return Forbid();
+
+            var toast = new ToastMessageViewModel();
+            try
+            {
+                await _positionRepo.DeleteByBudgetId(id);
+                await _budgetRepo.Delete(id);
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Erfolg",
+                    Message = "Budget gelöscht.",
+                    Type = ToastType.Success,
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Delete");
                 toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
                     Message = "Ein unerwarteter Fehler ist aufgetreten.",
                     Type = ToastType.Error,
                 };
-                TempData.Put("ToastMsg", toast);
-                return RedirectToAction(nameof(NewBudget), new { campId = vm.CampId });
             }
+            TempData.Put("ToastMsg", toast);
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public async Task<IActionResult> Detail(int id)
         {
+            int userId = GetCurrentUserId();
             var budget = await _budgetRepo.GetById(id);
             if (budget == null)
                 return NotFound();
+            if (!await HasAccessAsync(budget, userId))
+                return Forbid();
 
-            var camp = await _campRepo.GetById(budget.CampId);
-            var campUsers = (await _campUserRepo.GetByCampId(budget.CampId)).ToList();
+            var budgetUsers = (await _budgetUserRepo.GetByBudgetId(id)).ToList();
+            var userSummaries = (await _transactionRepo.GetUserSummariesByBudgetId(id)).ToList();
+            var invites = (await _inviteRepo.GetByBudgetId(id)).ToList();
+            bool isMainLeader = budgetUsers.Any(bu => bu.UserId == userId && bu.IsMainLeader);
+
             var positions = (await _positionRepo.GetByBudgetId(id)).ToList();
             var categories = (await _categoryRepo.GetAll()).ToDictionary(c => c.Id);
             var subCategories = (await _subCategoryRepo.GetAll()).ToDictionary(sc => sc.Id);
@@ -313,11 +316,11 @@ namespace BudgetApp.Controllers
                                                 Quantity_fc = p.QuantityVar_fc switch
                                                 {
                                                     "ParticipantsCount_fc" => (decimal)
-                                                        camp!.ParticipantsCount_fc,
+                                                        budget.ParticipantsCount_fc,
                                                     "js_PersonsCount_fc" => (decimal)
-                                                        camp!.js_PersonsCount_fc,
+                                                        budget.js_PersonsCount_fc,
                                                     "LeadersTeamCount_fc" => (decimal)
-                                                        camp!.LeadersTeamCount_fc,
+                                                        budget.LeadersTeamCount_fc,
                                                     _ => p.Quantity_fc,
                                                 },
                                                 UnitAmount_fc = p.UnitAmount_fc,
@@ -325,13 +328,13 @@ namespace BudgetApp.Controllers
                                                 Quantity_rl = p.QuantityVar_rl switch
                                                 {
                                                     "ParticipantsCount_rl" => (decimal?)(
-                                                        camp!.ParticipantsCount_rl ?? 0
+                                                        budget.ParticipantsCount_rl ?? 0
                                                     ),
                                                     "js_PersonsCount_rl" => (decimal?)(
-                                                        camp!.js_PersonsCount_rl ?? 0
+                                                        budget.js_PersonsCount_rl ?? 0
                                                     ),
                                                     "LeadersTeamCount_rl" => (decimal?)(
-                                                        camp!.LeadersTeamCount_rl ?? 0
+                                                        budget.LeadersTeamCount_rl ?? 0
                                                     ),
                                                     _ => p.Quantity_rl,
                                                 },
@@ -355,8 +358,11 @@ namespace BudgetApp.Controllers
             var vm = new BudgetDetailViewModel
             {
                 Budget = budget,
-                Camp = camp!,
-                CampUsers = campUsers,
+                BudgetUsers = budgetUsers,
+                UserSummaries = userSummaries,
+                Invites = invites,
+                IsMainLeader = isMainLeader,
+                InviteForm = new SendInviteViewModel { Email = string.Empty, BudgetId = id },
                 Groups = groups,
                 PositionTypes = positionTypes.Values.OrderBy(pt => pt.Name).ToList(),
                 AllCategories = categories.Values.OrderBy(c => c.SortIndex).ToList(),
@@ -377,7 +383,6 @@ namespace BudgetApp.Controllers
             if (budget == null)
                 return NotFound();
 
-            var camp = await _campRepo.GetById(budget.CampId);
             var positionTypes = (await _positionTypeRepo.GetAll()).OrderBy(pt => pt.Name).ToList();
             var categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
             var subCategories = (await _subCategoryRepo.GetAll())
@@ -403,12 +408,12 @@ namespace BudgetApp.Controllers
                 PositionTypes = positionTypes,
                 Categories = categories,
                 SubCategories = subCategories,
-                CampParticipantsCount_fc = camp?.ParticipantsCount_fc ?? 0,
-                CampJs_PersonsCount_fc = camp?.js_PersonsCount_fc ?? 0,
-                CampLeadersTeamCount_fc = camp?.LeadersTeamCount_fc ?? 0,
-                CampParticipantsCount_rl = camp?.ParticipantsCount_rl,
-                CampJs_PersonsCount_rl = camp?.js_PersonsCount_rl,
-                CampLeadersTeamCount_rl = camp?.LeadersTeamCount_rl,
+                CampParticipantsCount_fc = budget.ParticipantsCount_fc,
+                CampJs_PersonsCount_fc = budget.js_PersonsCount_fc,
+                CampLeadersTeamCount_fc = budget.LeadersTeamCount_fc,
+                CampParticipantsCount_rl = budget.ParticipantsCount_rl,
+                CampJs_PersonsCount_rl = budget.js_PersonsCount_rl,
+                CampLeadersTeamCount_rl = budget.LeadersTeamCount_rl,
             };
             return PartialView("_EditPositionModal", vm);
         }
@@ -470,13 +475,13 @@ namespace BudgetApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var toast = new ToastMessageViewModel
+                var invalidToast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
                     Message = "Bitte alle Pflichtfelder ausfüllen.",
                     Type = ToastType.Error,
                 };
-                TempData.Put("ToastMsg", toast);
+                TempData.Put("ToastMsg", invalidToast);
                 return RedirectToAction(nameof(Detail), new { id = vm.BudgetId });
             }
 
@@ -523,36 +528,6 @@ namespace BudgetApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteBudget(int id, int campId)
-        {
-            var toast = new ToastMessageViewModel();
-            try
-            {
-                await _positionRepo.DeleteByBudgetId(id);
-                await _budgetRepo.Delete(id);
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Erfolg",
-                    Message = "Budget gelöscht.",
-                    Type = ToastType.Success,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in DeleteBudget");
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-            }
-            TempData.Put("ToastMsg", toast);
-            return RedirectToAction(nameof(NewBudget), new { campId });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteBudgetPosition(int id, int budgetId)
         {
             var toast = new ToastMessageViewModel();
@@ -582,13 +557,13 @@ namespace BudgetApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveCampUser(int campUserId, int campId)
+        public async Task<IActionResult> RemoveBudgetUser(int budgetUserId, int budgetId)
         {
             var toast = new ToastMessageViewModel();
             try
             {
-                var camp = await _campRepo.GetById(campId);
-                if (camp == null || camp.CreatedByUserId != GetCurrentUserId())
+                var budget = await _budgetRepo.GetById(budgetId);
+                if (budget == null || budget.CreatedByUserId != GetCurrentUserId())
                 {
                     toast = new ToastMessageViewModel
                     {
@@ -597,10 +572,10 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     };
                     TempData.Put("ToastMsg", toast);
-                    return RedirectToAction(nameof(NewBudget), new { campId });
+                    return RedirectToAction(nameof(Detail), new { id = budgetId });
                 }
 
-                await _campUserRepo.Delete(campUserId);
+                await _budgetUserRepo.Delete(budgetUserId);
                 toast = new ToastMessageViewModel
                 {
                     Title = "Erfolg",
@@ -610,7 +585,7 @@ namespace BudgetApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in RemoveCampUser");
+                _logger.LogError(ex, "Error in RemoveBudgetUser");
                 toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
@@ -619,41 +594,45 @@ namespace BudgetApp.Controllers
                 };
             }
             TempData.Put("ToastMsg", toast);
-            return RedirectToAction(nameof(NewBudget), new { campId });
+            return RedirectToAction(nameof(Detail), new { id = budgetId });
         }
 
         #region Helpers
-        private CampModel MapViewModelToModel(CampViewModel campViewModel)
+        private static BudgetModel MapToModel(BudgetFormViewModel vm)
         {
-            return new CampModel
+            return new BudgetModel
             {
-                Id = campViewModel.Id,
-                StartDate = campViewModel.StartDate,
-                EndDate = campViewModel.EndDate,
-                MainLeader = campViewModel.MainLeader,
-                ParticipantsCount_fc = campViewModel.ParticipantsCount_fc ?? 0,
-                js_PersonsCount_fc = campViewModel.js_PersonsCount_fc ?? 0,
-                LeadersTeamCount_fc = campViewModel.LeadersTeamCount_fc ?? 0,
-                ParticipantsCount_rl = campViewModel.ParticipantsCount_rl,
-                js_PersonsCount_rl = campViewModel.js_PersonsCount_rl,
-                LeadersTeamCount_rl = campViewModel.LeadersTeamCount_rl,
+                Id = vm.Id,
+                Name = vm.Name,
+                Description = vm.Description,
+                StartDate = vm.StartDate,
+                EndDate = vm.EndDate,
+                MainLeader = vm.MainLeader,
+                ParticipantsCount_fc = vm.ParticipantsCount_fc ?? 0,
+                js_PersonsCount_fc = vm.js_PersonsCount_fc ?? 0,
+                LeadersTeamCount_fc = vm.LeadersTeamCount_fc ?? 0,
+                ParticipantsCount_rl = vm.ParticipantsCount_rl,
+                js_PersonsCount_rl = vm.js_PersonsCount_rl,
+                LeadersTeamCount_rl = vm.LeadersTeamCount_rl,
             };
         }
 
-        private CampViewModel MapModelToViewModel(CampModel campModel)
+        private static BudgetFormViewModel MapToViewModel(BudgetModel budget)
         {
-            return new CampViewModel
+            return new BudgetFormViewModel
             {
-                Id = campModel.Id,
-                StartDate = campModel.StartDate,
-                EndDate = campModel.EndDate,
-                MainLeader = campModel.MainLeader,
-                ParticipantsCount_fc = campModel.ParticipantsCount_fc,
-                js_PersonsCount_fc = campModel.js_PersonsCount_fc,
-                LeadersTeamCount_fc = campModel.LeadersTeamCount_fc,
-                ParticipantsCount_rl = campModel.ParticipantsCount_rl,
-                js_PersonsCount_rl = campModel.js_PersonsCount_rl,
-                LeadersTeamCount_rl = campModel.LeadersTeamCount_rl,
+                Id = budget.Id,
+                Name = budget.Name,
+                Description = budget.Description,
+                StartDate = budget.StartDate,
+                EndDate = budget.EndDate,
+                MainLeader = budget.MainLeader,
+                ParticipantsCount_fc = budget.ParticipantsCount_fc,
+                js_PersonsCount_fc = budget.js_PersonsCount_fc,
+                LeadersTeamCount_fc = budget.LeadersTeamCount_fc,
+                ParticipantsCount_rl = budget.ParticipantsCount_rl,
+                js_PersonsCount_rl = budget.js_PersonsCount_rl,
+                LeadersTeamCount_rl = budget.LeadersTeamCount_rl,
             };
         }
         #endregion

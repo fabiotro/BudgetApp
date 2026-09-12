@@ -13,24 +13,24 @@ namespace BudgetApp.Controllers
     public class InviteController : Controller
     {
         private readonly ILogger<InviteController> _logger;
-        private readonly ICampRepository<CampModel> _campRepo;
-        private readonly ICampUserRepository<CampUserModel> _campUserRepo;
-        private readonly ICampInviteRepository<CampInviteModel> _inviteRepo;
+        private readonly IBudgetRepository<BudgetModel> _budgetRepo;
+        private readonly IBudgetUserRepository<BudgetUserModel> _budgetUserRepo;
+        private readonly IBudgetInviteRepository<BudgetInviteModel> _inviteRepo;
         private readonly IUserRepository<UserModel> _userRepo;
         private readonly IEmailService _emailService;
 
         public InviteController(
             ILogger<InviteController> logger,
-            ICampRepository<CampModel> campRepo,
-            ICampUserRepository<CampUserModel> campUserRepo,
-            ICampInviteRepository<CampInviteModel> inviteRepo,
+            IBudgetRepository<BudgetModel> budgetRepo,
+            IBudgetUserRepository<BudgetUserModel> budgetUserRepo,
+            IBudgetInviteRepository<BudgetInviteModel> inviteRepo,
             IUserRepository<UserModel> userRepo,
             IEmailService emailService
         )
         {
             _logger = logger;
-            _campRepo = campRepo;
-            _campUserRepo = campUserRepo;
+            _budgetRepo = budgetRepo;
+            _budgetUserRepo = budgetUserRepo;
             _inviteRepo = inviteRepo;
             _userRepo = userRepo;
             _emailService = emailService;
@@ -38,14 +38,6 @@ namespace BudgetApp.Controllers
 
         private int GetCurrentUserId() =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-        private static string FormatCampLabel(
-            DateTime startDate,
-            DateTime endDate,
-            string? mainLeader
-        ) =>
-            $"{startDate:dd.MM.yyyy} – {endDate:dd.MM.yyyy}"
-            + (string.IsNullOrWhiteSpace(mainLeader) ? "" : $" ({mainLeader})");
 
         [HttpGet]
         public async Task<IActionResult> Pending()
@@ -55,9 +47,9 @@ namespace BudgetApp.Controllers
             var result = invites.Select(i => new
             {
                 i.Id,
-                i.CampId,
+                i.BudgetId,
                 InvitedBy = i.InvitedByDisplayName,
-                CampName = FormatCampLabel(i.CampStartDate, i.CampEndDate, i.CampMainLeader),
+                BudgetName = i.BudgetName,
             });
             return Json(new { count = invites.Count, invites = result });
         }
@@ -68,12 +60,12 @@ namespace BudgetApp.Controllers
         {
             int userId = GetCurrentUserId();
 
-            var camp = await _campRepo.GetById(vm.CampId);
-            if (camp == null)
+            var budget = await _budgetRepo.GetById(vm.BudgetId);
+            if (budget == null)
                 return NotFound();
 
-            var campUsers = (await _campUserRepo.GetByCampId(vm.CampId)).ToList();
-            bool isMainLeader = campUsers.Any(cu => cu.UserId == userId && cu.IsMainLeader);
+            var budgetUsers = (await _budgetUserRepo.GetByBudgetId(vm.BudgetId)).ToList();
+            bool isMainLeader = budgetUsers.Any(bu => bu.UserId == userId && bu.IsMainLeader);
             if (!isMainLeader)
             {
                 TempData.Put(
@@ -85,7 +77,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
             }
 
             if (!ModelState.IsValid)
@@ -99,7 +91,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
             }
 
             var targetUser = await _userRepo.GetByEmail(vm.Email.Trim().ToLowerInvariant());
@@ -114,7 +106,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
             }
 
             if (targetUser.Id == userId)
@@ -128,10 +120,10 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
             }
 
-            if (campUsers.Any(cu => cu.UserId == targetUser.Id))
+            if (budgetUsers.Any(bu => bu.UserId == targetUser.Id))
             {
                 TempData.Put(
                     "ToastMsg",
@@ -142,10 +134,10 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
             }
 
-            var existingInvites = await _inviteRepo.GetByCampId(vm.CampId);
+            var existingInvites = await _inviteRepo.GetByBudgetId(vm.BudgetId);
             var existingInvite = existingInvites.FirstOrDefault(i =>
                 i.InvitedUserId == targetUser.Id
             );
@@ -161,22 +153,22 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
             }
 
             try
             {
                 if (existingInvite != null)
                 {
-                    // A declined invite for this CampId+InvitedUserId already exists —
-                    // UQ_CampInvite_CampId_InvitedUserId forbids a second row, so revive it.
+                    // A declined invite for this BudgetId+InvitedUserId already exists —
+                    // UQ_BudgetInvite_BudgetId_InvitedUserId forbids a second row, so revive it.
                     await _inviteRepo.Reinvite(existingInvite.Id, userId);
                 }
                 else
                 {
-                    var invite = new CampInviteModel
+                    var invite = new BudgetInviteModel
                     {
-                        CampId = vm.CampId,
+                        BudgetId = vm.BudgetId,
                         InvitedByUserId = userId,
                         InvitedUserId = targetUser.Id,
                         Status = InviteStatus.Pending,
@@ -186,10 +178,10 @@ namespace BudgetApp.Controllers
 
                 try
                 {
-                    await _emailService.SendCampInviteEmailAsync(
+                    await _emailService.SendBudgetInviteEmailAsync(
                         targetUser.Email,
                         targetUser.DisplayName,
-                        FormatCampLabel(camp.StartDate, camp.EndDate, camp.MainLeader),
+                        budget.Name,
                         Url.Action("Index", "Home", new { openInvites = "1" }, Request.Scheme)!
                     );
                 }
@@ -197,9 +189,9 @@ namespace BudgetApp.Controllers
                 {
                     _logger.LogError(
                         ex,
-                        "Error sending invite email to user {UserId} for camp {CampId}",
+                        "Error sending invite email to user {UserId} for budget {BudgetId}",
                         targetUser.Id,
-                        vm.CampId
+                        vm.BudgetId
                     );
                 }
 
@@ -217,9 +209,9 @@ namespace BudgetApp.Controllers
             {
                 _logger.LogError(
                     ex,
-                    "Error sending invite to user {UserId} for camp {CampId}",
+                    "Error sending invite to user {UserId} for budget {BudgetId}",
                     targetUser.Id,
-                    vm.CampId
+                    vm.BudgetId
                 );
                 TempData.Put(
                     "ToastMsg",
@@ -232,7 +224,7 @@ namespace BudgetApp.Controllers
                 );
             }
 
-            return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+            return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
         }
 
         [HttpPost]
@@ -244,8 +236,8 @@ namespace BudgetApp.Controllers
             if (invite == null)
                 return NotFound();
 
-            var campUsers = (await _campUserRepo.GetByCampId(invite.CampId)).ToList();
-            bool isMainLeader = campUsers.Any(cu => cu.UserId == userId && cu.IsMainLeader);
+            var budgetUsers = (await _budgetUserRepo.GetByBudgetId(invite.BudgetId)).ToList();
+            bool isMainLeader = budgetUsers.Any(bu => bu.UserId == userId && bu.IsMainLeader);
             if (!isMainLeader)
             {
                 TempData.Put(
@@ -257,7 +249,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
             }
 
             if (invite.Status != InviteStatus.Declined)
@@ -271,7 +263,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Warning,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
             }
 
             try
@@ -280,14 +272,10 @@ namespace BudgetApp.Controllers
 
                 try
                 {
-                    await _emailService.SendCampInviteEmailAsync(
+                    await _emailService.SendBudgetInviteEmailAsync(
                         invite.InvitedUserEmail!,
                         invite.InvitedUserDisplayName!,
-                        FormatCampLabel(
-                            invite.CampStartDate,
-                            invite.CampEndDate,
-                            invite.CampMainLeader
-                        ),
+                        invite.BudgetName!,
                         Url.Action("Index", "Home", new { openInvites = "1" }, Request.Scheme)!
                     );
                 }
@@ -320,7 +308,7 @@ namespace BudgetApp.Controllers
                 );
             }
 
-            return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+            return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
         }
 
         [HttpPost]
@@ -346,20 +334,20 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Warning,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
             }
 
             try
             {
                 await _inviteRepo.UpdateStatus(id, InviteStatus.Accepted);
 
-                var campUser = new CampUserModel
+                var budgetUser = new BudgetUserModel
                 {
-                    CampId = invite.CampId,
+                    BudgetId = invite.BudgetId,
                     UserId = userId,
                     IsMainLeader = false,
                 };
-                await _campUserRepo.Create(campUser);
+                await _budgetUserRepo.Create(budgetUser);
 
                 TempData.Put(
                     "ToastMsg",
@@ -370,7 +358,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Success,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
             }
             catch (Exception ex)
             {
@@ -384,7 +372,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
             }
         }
 

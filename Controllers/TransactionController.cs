@@ -12,8 +12,8 @@ namespace BudgetApp.Controllers
     public class TransactionController : Controller
     {
         private readonly ILogger<TransactionController> _logger;
-        private readonly ICampRepository<CampModel> _campRepo;
-        private readonly ICampUserRepository<CampUserModel> _campUserRepo;
+        private readonly IBudgetRepository<BudgetModel> _budgetRepo;
+        private readonly IBudgetUserRepository<BudgetUserModel> _budgetUserRepo;
         private readonly ITransactionRepository<TransactionModel> _transactionRepo;
         private readonly ITransactionDocumentRepository<TransactionDocumentModel> _docRepo;
         private readonly IPositionRepository<PositionModel> _positionRepo;
@@ -32,16 +32,16 @@ namespace BudgetApp.Controllers
 
         public TransactionController(
             ILogger<TransactionController> logger,
-            ICampRepository<CampModel> campRepo,
-            ICampUserRepository<CampUserModel> campUserRepo,
+            IBudgetRepository<BudgetModel> budgetRepo,
+            IBudgetUserRepository<BudgetUserModel> budgetUserRepo,
             ITransactionRepository<TransactionModel> transactionRepo,
             ITransactionDocumentRepository<TransactionDocumentModel> docRepo,
             IPositionRepository<PositionModel> positionRepo
         )
         {
             _logger = logger;
-            _campRepo = campRepo;
-            _campUserRepo = campUserRepo;
+            _budgetRepo = budgetRepo;
+            _budgetUserRepo = budgetUserRepo;
             _transactionRepo = transactionRepo;
             _docRepo = docRepo;
             _positionRepo = positionRepo;
@@ -50,21 +50,21 @@ namespace BudgetApp.Controllers
         private int GetCurrentUserId() =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        private async Task<bool> HasCampAccessAsync(int campId, int userId)
+        private async Task<bool> HasBudgetAccessAsync(int budgetId, int userId)
         {
-            var camp = await _campRepo.GetById(campId);
-            if (camp == null)
+            var budget = await _budgetRepo.GetById(budgetId);
+            if (budget == null)
                 return false;
-            if (camp.CreatedByUserId == userId)
+            if (budget.CreatedByUserId == userId)
                 return true;
-            var campUsers = await _campUserRepo.GetByCampId(campId);
-            return campUsers.Any(cu => cu.UserId == userId);
+            var budgetUsers = await _budgetUserRepo.GetByBudgetId(budgetId);
+            return budgetUsers.Any(bu => bu.UserId == userId);
         }
 
         private async Task PopulateFormListsAsync(CreateTransactionViewModel vm)
         {
-            vm.CampUsers = (await _campUserRepo.GetByCampId(vm.CampId)).ToList();
-            vm.Positions = (await _positionRepo.GetByCampId(vm.CampId)).ToList();
+            vm.BudgetUsers = (await _budgetUserRepo.GetByBudgetId(vm.BudgetId)).ToList();
+            vm.Positions = (await _positionRepo.GetByBudgetId(vm.BudgetId)).ToList();
         }
 
         private async Task SaveAttachmentsAsync(int transactionId, List<IFormFile> attachments)
@@ -122,15 +122,15 @@ namespace BudgetApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create(int campId)
+        public async Task<IActionResult> Create(int budgetId)
         {
             int userId = GetCurrentUserId();
-            if (!await HasCampAccessAsync(campId, userId))
+            if (!await HasBudgetAccessAsync(budgetId, userId))
                 return Forbid();
 
             var vm = new CreateTransactionViewModel
             {
-                CampId = campId,
+                BudgetId = budgetId,
                 PerformedByUserId = userId,
                 Name = string.Empty,
             };
@@ -152,14 +152,14 @@ namespace BudgetApp.Controllers
             }
 
             int userId = GetCurrentUserId();
-            if (!await HasCampAccessAsync(vm.CampId, userId))
+            if (!await HasBudgetAccessAsync(vm.BudgetId, userId))
                 return Forbid();
 
             try
             {
                 var transaction = new TransactionModel
                 {
-                    CampId = vm.CampId,
+                    BudgetId = vm.BudgetId,
                     PerformedByUserId = vm.PerformedByUserId,
                     PositionId = vm.PositionId,
                     Name = vm.Name.Trim(),
@@ -183,11 +183,15 @@ namespace BudgetApp.Controllers
                     Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
-                return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating transaction for camp {CampId}", vm.CampId);
+                _logger.LogError(
+                    ex,
+                    "Error creating transaction for budget {BudgetId}",
+                    vm.BudgetId
+                );
                 var toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
@@ -208,7 +212,7 @@ namespace BudgetApp.Controllers
             if (transaction == null)
                 return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId))
+            if (!await HasBudgetAccessAsync(transaction.BudgetId, userId))
                 return Forbid();
 
             var existingDocs = (await _docRepo.GetByTransactionId(id)).ToList();
@@ -216,7 +220,7 @@ namespace BudgetApp.Controllers
             var vm = new EditTransactionViewModel
             {
                 Id = id,
-                CampId = transaction.CampId,
+                BudgetId = transaction.BudgetId,
                 PerformedByUserId = transaction.PerformedByUserId,
                 PositionId = transaction.PositionId,
                 Name = transaction.Name,
@@ -249,7 +253,7 @@ namespace BudgetApp.Controllers
             if (existing == null)
                 return NotFound();
 
-            if (!await HasCampAccessAsync(existing.CampId, userId))
+            if (!await HasBudgetAccessAsync(existing.BudgetId, userId))
                 return Forbid();
 
             try
@@ -278,7 +282,7 @@ namespace BudgetApp.Controllers
                 TempData.Put("ToastMsg", toast);
                 return RedirectToAction(
                     nameof(UserTransactions),
-                    new { campId = existing.CampId, userId = existing.PerformedByUserId }
+                    new { budgetId = existing.BudgetId, userId = existing.PerformedByUserId }
                 );
             }
             catch (Exception ex)
@@ -299,14 +303,14 @@ namespace BudgetApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id, int campId)
+        public async Task<IActionResult> Delete(int id, int budgetId)
         {
             int userId = GetCurrentUserId();
             var transaction = await _transactionRepo.GetById(id);
             if (transaction == null)
                 return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId))
+            if (!await HasBudgetAccessAsync(transaction.BudgetId, userId))
                 return Forbid();
 
             try
@@ -333,31 +337,31 @@ namespace BudgetApp.Controllers
                 TempData.Put("ToastMsg", toast);
             }
 
-            return RedirectToAction("Detail", "Camp", new { id = campId });
+            return RedirectToAction("Detail", "Budget", new { id = budgetId });
         }
 
         [HttpGet]
-        public async Task<IActionResult> UserTransactions(int campId, int userId)
+        public async Task<IActionResult> UserTransactions(int budgetId, int userId)
         {
             int currentUserId = GetCurrentUserId();
-            if (!await HasCampAccessAsync(campId, currentUserId))
+            if (!await HasBudgetAccessAsync(budgetId, currentUserId))
                 return Forbid();
 
-            var camp = await _campRepo.GetById(campId);
-            if (camp == null)
+            var budget = await _budgetRepo.GetById(budgetId);
+            if (budget == null)
                 return NotFound();
 
-            var allSummaries = await _transactionRepo.GetUserSummariesByCampId(campId);
+            var allSummaries = await _transactionRepo.GetUserSummariesByBudgetId(budgetId);
             var userSummary = allSummaries.FirstOrDefault(s => s.UserId == userId);
             if (userSummary == null)
             {
                 userSummary = new UserExpenseSummaryViewModel { UserId = userId };
             }
 
-            var transactions = (await _transactionRepo.GetByUserId(userId, campId)).ToList();
+            var transactions = (await _transactionRepo.GetByUserId(userId, budgetId)).ToList();
 
             // Load positions for name lookup
-            var positions = (await _positionRepo.GetByCampId(campId)).ToDictionary(p => p.Id);
+            var positions = (await _positionRepo.GetByBudgetId(budgetId)).ToDictionary(p => p.Id);
 
             var transactionsWithDocs = new List<TransactionWithDocumentsViewModel>();
             foreach (var t in transactions)
@@ -380,7 +384,7 @@ namespace BudgetApp.Controllers
 
             var vm = new UserTransactionsViewModel
             {
-                Camp = camp,
+                Budget = budget,
                 UserSummary = userSummary,
                 Transactions = transactionsWithDocs,
             };
@@ -399,7 +403,7 @@ namespace BudgetApp.Controllers
             if (transaction == null)
                 return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId))
+            if (!await HasBudgetAccessAsync(transaction.BudgetId, userId))
                 return Forbid();
 
             return File(doc.FileData!, doc.ContentType, doc.FileName);
@@ -421,7 +425,7 @@ namespace BudgetApp.Controllers
             if (transaction == null)
                 return NotFound();
 
-            if (!await HasCampAccessAsync(transaction.CampId, userId))
+            if (!await HasBudgetAccessAsync(transaction.BudgetId, userId))
                 return Forbid();
 
             try
