@@ -6,6 +6,7 @@ namespace BudgetApp.Models
     {
         public required BudgetModel Budget { get; set; }
         public required CampModel Camp { get; set; }
+        public List<CampUserModel> CampUsers { get; set; } = [];
         public List<CategoryGroupViewModel> Groups { get; set; } = [];
 
         public decimal TotalAmount_fc => Groups.Sum(g => g.TotalAmount_fc);

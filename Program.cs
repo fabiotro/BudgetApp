@@ -2,6 +2,9 @@ using BudgetApp.Data;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Models;
 using BudgetApp.Resources;
+using BudgetApp.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using NLog;
 using NLog.Web;
 
@@ -15,7 +18,10 @@ try
 
     // Add services to the container.
     builder
-        .Services.AddControllersWithViews()
+        .Services.AddControllersWithViews(options =>
+        {
+            options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
+        })
         .AddDataAnnotationsLocalization(options =>
         {
             options.DataAnnotationLocalizerProvider = (type, factory) =>
@@ -23,6 +29,25 @@ try
         });
 
     builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+    // Authentication
+    builder
+        .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(options =>
+        {
+            options.LoginPath = "/Account/Login";
+            options.AccessDeniedPath = "/Account/Login";
+            options.ExpireTimeSpan = TimeSpan.FromDays(14);
+            options.SlidingExpiration = true;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+        });
+
+    builder.Services.AddScoped<IPasswordHasher<UserModel>, PasswordHasher<UserModel>>();
+
+    // Email
+    builder.Services.AddScoped<IEmailService, EmailService>();
 
     // Dependency Injection for Repositories
     builder.Services.AddScoped<DapperContext>();
@@ -52,6 +77,23 @@ try
         ITemplatePositionRepository<TemplatePositionModel>,
         TemplatePositionRepository<TemplatePositionModel>
     >();
+    builder.Services.AddScoped<IUserRepository<UserModel>, UserRepository<UserModel>>();
+    builder.Services.AddScoped<
+        ICampUserRepository<CampUserModel>,
+        CampUserRepository<CampUserModel>
+    >();
+    builder.Services.AddScoped<
+        ICampInviteRepository<CampInviteModel>,
+        CampInviteRepository<CampInviteModel>
+    >();
+    builder.Services.AddScoped<
+        ITransactionRepository<TransactionModel>,
+        TransactionRepository<TransactionModel>
+    >();
+    builder.Services.AddScoped<
+        ITransactionDocumentRepository<TransactionDocumentModel>,
+        TransactionDocumentRepository<TransactionDocumentModel>
+    >();
 
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
@@ -77,6 +119,7 @@ try
 
     app.UseRouting();
 
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");

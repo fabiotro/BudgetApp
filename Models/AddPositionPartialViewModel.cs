@@ -15,6 +15,7 @@ namespace BudgetApp.Models
         public string ModalId { get; set; } = "addPositionModal";
 
         public bool ShowCampVariables { get; set; } = false;
+        public bool ShowTemplateVariables { get; set; } = false;
         public int CampParticipantsCount_fc { get; set; }
         public int CampJs_PersonsCount_fc { get; set; }
         public int CampLeadersTeamCount_fc { get; set; }

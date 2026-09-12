@@ -17,9 +17,25 @@ namespace BudgetApp.Data.Repositories
             SELECT [Id]
                   ,[Name]
                   ,[Description]
+                  ,[CreatedByUserId]
               FROM [dbo].[TemplateBudget]
             ";
             return await conn.QueryAsync<T>(sql);
+        }
+
+        public async Task<IEnumerable<T>> GetAllForUser(int userId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+                @"
+            SELECT [Id]
+                  ,[Name]
+                  ,[Description]
+                  ,[CreatedByUserId]
+              FROM [dbo].[TemplateBudget]
+              WHERE [CreatedByUserId] = @UserId
+            ";
+            return await conn.QueryAsync<T>(sql, new { UserId = userId });
         }
 
         public async Task<T?> GetById(int id)
@@ -31,6 +47,7 @@ namespace BudgetApp.Data.Repositories
             SELECT [Id]
                   ,[Name]
                   ,[Description]
+                  ,[CreatedByUserId]
               FROM [dbo].[TemplateBudget]
               WHERE [Id] = @Id
             ";
@@ -44,10 +61,12 @@ namespace BudgetApp.Data.Repositories
                 @"
             INSERT INTO [dbo].[TemplateBudget]
                        ([Name]
-                       ,[Description])
+                       ,[Description]
+                       ,[CreatedByUserId])
                  VALUES
                        (@Name
-                       ,@Description);
+                       ,@Description
+                       ,@CreatedByUserId);
                     SELECT CAST(SCOPE_IDENTITY() as int);
             ";
             return await conn.ExecuteScalarAsync<int>(sql, templateBudget);

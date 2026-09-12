@@ -8,6 +8,7 @@ namespace BudgetApp.Data.Repositories
         Task<IEnumerable<T>> GetAll();
         Task<T?> GetById(int id);
         Task<IEnumerable<T>> GetByBudgetId(int budgetId);
+        Task<IEnumerable<T>> GetByCampId(int campId);
         Task<int> Create(T position);
         Task<int> Update(T position);
         Task<int> Delete(int id);

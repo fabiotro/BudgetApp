@@ -6,6 +6,7 @@ namespace BudgetApp.Data.Repositories
         where T : CampModel
     {
         Task<IEnumerable<T>> GetAll();
+        Task<IEnumerable<T>> GetAllForUser(int userId);
         Task<T?> GetById(int id);
         Task<int> Create(T camp);
         Task<int> Update(T camp);

@@ -1,11 +1,14 @@
+using System.Security.Claims;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BudgetApp.Controllers
 {
+    [Authorize]
     public class TemplateBudgetController : Controller
     {
         private readonly ILogger<TemplateBudgetController> _logger;
@@ -32,24 +35,34 @@ namespace BudgetApp.Controllers
             _subCategoryRepo = subCategoryRepo;
         }
 
+        private int GetCurrentUserId() =>
+            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var templates = (await _templateBudgetRepo.GetAll()).ToList();
+            int userId = GetCurrentUserId();
+            var templates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList();
             return View(templates);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Upsert(int? id)
+        public async Task<IActionResult> UpsertModal(int? id)
         {
+            int userId = GetCurrentUserId();
             if (id.HasValue)
             {
                 var template = await _templateBudgetRepo.GetById(id.Value);
                 if (template == null)
                     return NotFound();
-                return View(template);
+                if (template.CreatedByUserId != userId)
+                    return Forbid();
+                return PartialView("_UpsertModal", template);
             }
-            return View(new TemplateBudgetModel { Name = string.Empty });
+            return PartialView(
+                "_UpsertModal",
+                new TemplateBudgetModel { Name = string.Empty, CreatedByUserId = userId }
+            );
         }
 
         [HttpPost]
@@ -57,13 +70,26 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> Upsert(TemplateBudgetModel model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Bitte alle Pflichtfelder ausfüllen.",
+                        Type = ToastType.Error,
+                    }
+                );
+                return RedirectToAction(nameof(Index));
+            }
 
+            int userId = GetCurrentUserId();
             var toast = new ToastMessageViewModel();
             try
             {
                 if (model.Id == 0)
                 {
+                    model.CreatedByUserId = userId;
                     int newId = await _templateBudgetRepo.Create(model);
                     toast = new ToastMessageViewModel
                     {
@@ -97,7 +123,7 @@ namespace BudgetApp.Controllers
                     Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
-                return View(model);
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -127,6 +153,7 @@ namespace BudgetApp.Controllers
                         SubCategoryId = p.SubCategoryId,
                         FixedAmount = p.FixedAmount,
                         Quantity = p.Quantity,
+                        QuantityVar = p.QuantityVar,
                         UnitAmount = p.UnitAmount,
                         SortIndex = p.SortIndex,
                     };
@@ -245,7 +272,8 @@ namespace BudgetApp.Controllers
                     SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId,
                     Name = vm.Name,
                     FixedAmount = vm.FixedAmount,
-                    Quantity = vm.Quantity,
+                    QuantityVar = string.IsNullOrEmpty(vm.QuantityVar) ? null : vm.QuantityVar,
+                    Quantity = string.IsNullOrEmpty(vm.QuantityVar) ? vm.Quantity : null,
                     UnitAmount = vm.UnitAmount,
                     SortIndex = nextSortIndex,
                 };
@@ -295,6 +323,7 @@ namespace BudgetApp.Controllers
                 Name = pos.Name,
                 FixedAmount = pos.FixedAmount,
                 Quantity = pos.Quantity,
+                QuantityVar = pos.QuantityVar,
                 UnitAmount = pos.UnitAmount,
                 SortIndex = pos.SortIndex,
                 PositionTypes = positionTypes,
@@ -364,7 +393,8 @@ namespace BudgetApp.Controllers
                     SubCategoryId = vm.SubCategoryId == 0 ? null : vm.SubCategoryId,
                     Name = vm.Name,
                     FixedAmount = vm.FixedAmount,
-                    Quantity = vm.Quantity,
+                    QuantityVar = string.IsNullOrEmpty(vm.QuantityVar) ? null : vm.QuantityVar,
+                    Quantity = string.IsNullOrEmpty(vm.QuantityVar) ? vm.Quantity : null,
                     UnitAmount = vm.UnitAmount,
                     SortIndex = vm.SortIndex,
                 };

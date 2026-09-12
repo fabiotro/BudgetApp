@@ -30,6 +30,9 @@ namespace BudgetApp.Models
         [Range(0, int.MaxValue)]
         public decimal? Quantity { get; set; }
 
+        [StringLength(50)]
+        public string? QuantityVar { get; set; }
+
         [Range(0, int.MaxValue)]
         public decimal? UnitAmount { get; set; }
 

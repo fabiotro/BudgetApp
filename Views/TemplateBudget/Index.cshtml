@@ -5,13 +5,16 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Budgetvorlagen</h2>
-    <a asp-action="Upsert" class="btn btn-primary">Neue Vorlage</a>
+    <button type="button" class="btn btn-primary" id="openCreateTemplateModal">
+        <span class="me-2">Budgetvorlage erstellen</span>
+        <i class="bi bi-plus-square"></i>
+    </button>
 </div>
 <hr />
 
 @if (!Model.Any())
 {
-    <p class="text-muted">Noch keine Vorlagen vorhanden. <a asp-action="Upsert">Jetzt erstellen.</a></p>
+    <p class="text-muted">Noch keine Vorlagen vorhanden.</p>
 }
 else
 {
@@ -42,9 +45,10 @@ else
                         <a asp-action="Detail" asp-route-id="@template.Id" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a asp-action="Upsert" asp-route-id="@template.Id" class="btn btn-sm btn-outline-secondary">
+                        <button type="button" class="btn btn-sm btn-outline-secondary open-edit-template-modal"
+                                data-id="@template.Id">
                             <i class="bi bi-pen"></i>
-                        </a>
+                        </button>
                         <form asp-action="DeleteTemplate" method="post" class="d-inline"
                               onsubmit="return confirm('Vorlage «@template.Name» wirklich löschen?')">
                             @Html.AntiForgeryToken()
@@ -59,3 +63,27 @@ else
         </tbody>
     </table>
 }
+
+<div id="templateModalContainer"></div>
+
+<script>
+    function openTemplateModal(url) {
+        fetch(url)
+            .then(r => r.text())
+            .then(html => {
+                const container = document.getElementById('templateModalContainer');
+                container.innerHTML = html;
+                new bootstrap.Modal(container.querySelector('.modal')).show();
+            });
+    }
+
+    document.getElementById('openCreateTemplateModal').addEventListener('click', function () {
+        openTemplateModal('@Url.Action("UpsertModal", "TemplateBudget")');
+    });
+
+    document.querySelectorAll('.open-edit-template-modal').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            openTemplateModal('@Url.Action("UpsertModal", "TemplateBudget")' + '?id=' + this.dataset.id);
+        });
+    });
+</script>

@@ -155,6 +155,91 @@ namespace BudgetApp.Resources {
             }
         }
 
+        public static string LoginEmail {
+            get { return ResourceManager.GetString("LoginEmail", resourceCulture); }
+        }
+
+        public static string LoginPassword {
+            get { return ResourceManager.GetString("LoginPassword", resourceCulture); }
+        }
+
+        public static string RegisterEmail {
+            get { return ResourceManager.GetString("RegisterEmail", resourceCulture); }
+        }
+
+        public static string RegisterDisplayName {
+            get { return ResourceManager.GetString("RegisterDisplayName", resourceCulture); }
+        }
+
+        public static string RegisterPassword {
+            get { return ResourceManager.GetString("RegisterPassword", resourceCulture); }
+        }
+
+        public static string RegisterConfirmPassword {
+            get { return ResourceManager.GetString("RegisterConfirmPassword", resourceCulture); }
+        }
+
+        public static string PasswordMismatch {
+            get { return ResourceManager.GetString("PasswordMismatch", resourceCulture); }
+        }
+
+        public static string StringLengthMin {
+            get { return ResourceManager.GetString("StringLengthMin", resourceCulture); }
+        }
+
+        public static string EmailAlreadyExists {
+            get { return ResourceManager.GetString("EmailAlreadyExists", resourceCulture); }
+        }
+
+        public static string AddLeader {
+            get { return ResourceManager.GetString("AddLeader", resourceCulture); }
+        }
+
+        public static string TransactionName {
+            get { return ResourceManager.GetString("TransactionName", resourceCulture); }
+        }
+
+        public static string TransactionDescription {
+            get { return ResourceManager.GetString("TransactionDescription", resourceCulture); }
+        }
+
+        public static string TransactionAmount {
+            get { return ResourceManager.GetString("TransactionAmount", resourceCulture); }
+        }
+
+        public static string TransactionPerformedBy {
+            get { return ResourceManager.GetString("TransactionPerformedBy", resourceCulture); }
+        }
+
+        public static string TransactionPaymentSource {
+            get { return ResourceManager.GetString("TransactionPaymentSource", resourceCulture); }
+        }
+
+        public static string TransactionPaymentMethod {
+            get { return ResourceManager.GetString("TransactionPaymentMethod", resourceCulture); }
+        }
+
+        public static string ProfileDisplayName {
+            get { return ResourceManager.GetString("ProfileDisplayName", resourceCulture); }
+        }
+
+        public static string ProfileFirstName {
+            get { return ResourceManager.GetString("ProfileFirstName", resourceCulture); }
+        }
+
+        public static string ProfileLastName {
+            get { return ResourceManager.GetString("ProfileLastName", resourceCulture); }
+        }
+
+        public static string ProfileIBAN {
+            get { return ResourceManager.GetString("ProfileIBAN", resourceCulture); }
+        }
+
+        public static string InviteEmail
+        {
+            get { return ResourceManager.GetString("InviteEmail", resourceCulture); }
+        }
+
         public static string CategoryName {
             get
             {

@@ -1,9 +1,24 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+@inject BudgetApp.Data.Repositories.ICampInviteRepository<BudgetApp.Models.CampInviteModel> InviteRepo
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    int pendingInviteCount = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        int bellUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        pendingInviteCount = await InviteRepo.GetPendingCountByInvitedUserId(bellUserId);
+    }
+}
+<!DOCTYPE html>
 <html lang="de-ch">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - BudgetApp</title>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <meta name="RequestVerificationToken" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    }
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -24,15 +39,35 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Budget" asp-action="Index">Budgets</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="TemplateBudget" asp-action="Index">Vorlagen</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Category" asp-action="Index">Kategorien</a>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Budget" asp-action="Index">Budgets</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="TemplateBudget" asp-action="Index">Vorlagen</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Category" asp-action="Index">Kategorien</a>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Profile" asp-action="Edit">
+                                    <i class="bi bi-person-circle"></i> @User.Identity.Name
+                                </a>
+                            </li>
+                            <partial name="_InviteBell" model="pendingInviteCount" />
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-secondary"><i class="bi bi-box-arrow-right"></i></button>
+                                </form>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

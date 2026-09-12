@@ -91,7 +91,10 @@
         </div>
     </div>
     <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary">Lagerdaten speichern <i class="bi bi-floppy ml-3"></i></button>
+        <button type="submit" class="btn btn-primary">
+            <span class="me-2">Lagerdaten speichern</span>
+            <i class="bi bi-floppy ml-3"></i>
+        </button>
     </div>
 }
 
@@ -159,6 +162,59 @@ else
                 });
         });
     </script>
+}
+
+@if (Model.Camp.Id > 0)
+{
+    <hr />
+    <h3>Lagerleitung</h3>
+
+    @if (Model.CampUsers.Any())
+    {
+        <table class="table table-sm mb-3">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>E-Mail</th>
+                    <th>Rolle</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cu in Model.CampUsers)
+                {
+                    <tr>
+                        <td>@cu.DisplayName</td>
+                        <td>@cu.Email</td>
+                        <td>
+                            @if (cu.IsMainLeader)
+                            {
+                                <span class="badge bg-primary">Hauptleitung</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Leitung</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (!cu.IsMainLeader)
+                            {
+                                <form asp-action="RemoveCampUser" method="post" class="d-inline"
+                                      onsubmit="return confirm('Person wirklich entfernen?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="campUserId" value="@cu.Id" />
+                                    <input type="hidden" name="campId" value="@Model.Camp.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
 @section Scripts {

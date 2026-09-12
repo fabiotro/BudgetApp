@@ -23,11 +23,23 @@
         }
         <small class="text-muted">
             Lager: @Model.Camp.StartDate.ToString("dd.MM.yyyy") – @Model.Camp.EndDate.ToString("dd.MM.yyyy")
-            @if (!string.IsNullOrEmpty(Model.Camp.MainLeader))
+            @{
+                var mainLeader = Model.CampUsers.FirstOrDefault(cu => cu.IsMainLeader);
+            }
+            @if (mainLeader != null)
             {
-                <span> | Lagerleiter: @Model.Camp.MainLeader</span>
+                <span> | Lagerleiter: @mainLeader.DisplayName</span>
             }
         </small>
+        @if (Model.CampUsers.Count > 1)
+        {
+            <div class="mt-1">
+                @foreach (var cu in Model.CampUsers)
+                {
+                    <span class="badge @(cu.IsMainLeader ? "bg-primary" : "bg-secondary") me-1">@cu.DisplayName</span>
+                }
+            </div>
+        }
     </div>
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#budgetAddPositionModal">
@@ -35,6 +47,9 @@
         </button>
         <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">
             Lagerdaten bearbeiten <i class="bi bi-pen"></i>
+        </a>
+        <a asp-controller="Camp" asp-action="Detail" asp-route-id="@Model.Camp.Id" class="btn btn-outline-primary btn-sm">
+            Lagerübersicht <i class="bi bi-people"></i>
         </a>
     </div>
 </div>

@@ -17,6 +17,7 @@ namespace BudgetApp.Data.Repositories
             SELECT [Id]
                   ,[StartDate]
                   ,[EndDate]
+                  ,[CreatedByUserId]
                   ,[MainLeader]
                   ,[ParticipantsCount_fc]
                   ,[js_PersonsCount_fc]
@@ -29,6 +30,32 @@ namespace BudgetApp.Data.Repositories
             return await conn.QueryAsync<T>(sql);
         }
 
+        public async Task<IEnumerable<T>> GetAllForUser(int userId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+                @"
+            SELECT [Id]
+                  ,[StartDate]
+                  ,[EndDate]
+                  ,[CreatedByUserId]
+                  ,[MainLeader]
+                  ,[ParticipantsCount_fc]
+                  ,[js_PersonsCount_fc]
+                  ,[LeadersTeamCount_fc]
+                  ,[ParticipantsCount_rl]
+                  ,[js_PersonsCount_rl]
+                  ,[LeadersTeamCount_rl]
+              FROM [dbo].[Camp]
+              WHERE [CreatedByUserId] = @UserId
+                 OR EXISTS (
+                     SELECT 1 FROM [dbo].[CampUser] cu
+                     WHERE cu.[CampId] = [Id] AND cu.[UserId] = @UserId
+                 )
+            ";
+            return await conn.QueryAsync<T>(sql, new { UserId = userId });
+        }
+
         public async Task<T?> GetById(int id)
         {
             ValidateId(id);
@@ -38,6 +65,7 @@ namespace BudgetApp.Data.Repositories
             SELECT [Id]
                   ,[StartDate]
                   ,[EndDate]
+                  ,[CreatedByUserId]
                   ,[MainLeader]
                   ,[ParticipantsCount_fc]
                   ,[js_PersonsCount_fc]
@@ -61,6 +89,7 @@ namespace BudgetApp.Data.Repositories
             INSERT INTO [dbo].[Camp]
                         ([StartDate]
                         ,[EndDate]
+                        ,[CreatedByUserId]
                         ,[MainLeader]
                         ,[ParticipantsCount_fc]
                         ,[js_PersonsCount_fc]
@@ -71,6 +100,7 @@ namespace BudgetApp.Data.Repositories
                     VALUES
                         (@StartDate
                         ,@EndDate
+                        ,@CreatedByUserId
                         ,@MainLeader
                         ,@ParticipantsCount_fc
                         ,@js_PersonsCount_fc

@@ -45,3 +45,71 @@ document.addEventListener('focusout', function (e) {
         formatCountInput(e.target);
     }
 });
+
+// Invite notification bell — load pending invites on dropdown open
+(function () {
+    var bell = document.getElementById('inviteBellToggle');
+    if (!bell) return;
+
+    // Invite emails link here with ?openInvites=1 so the recipient lands
+    // straight on their pending invites instead of a camp they can't open yet.
+    if (new URLSearchParams(window.location.search).get('openInvites') === '1') {
+        bootstrap.Dropdown.getOrCreateInstance(bell).show();
+    }
+
+    bell.addEventListener('show.bs.dropdown', function () {
+        var url = bell.getAttribute('data-invite-url');
+        var container = document.getElementById('inviteListContainer');
+        var badge = document.getElementById('inviteBadge');
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.textContent = '';
+                    badge.classList.add('d-none');
+                }
+
+                if (data.invites.length === 0) {
+                    container.innerHTML = '<span class="dropdown-item text-muted">Keine ausstehenden Einladungen.</span>';
+                    return;
+                }
+
+                var token = '';
+                var meta = document.querySelector('meta[name="RequestVerificationToken"]');
+                if (meta) token = meta.getAttribute('content');
+
+                var html = '';
+                data.invites.forEach(function (inv) {
+                    html += '<li class="px-3 py-2 border-bottom">';
+                    html += '<div class="small fw-semibold">' + escapeHtml(inv.invitedBy) + ' lädt dich ein</div>';
+                    html += '<div class="small text-muted mb-2">Lager: ' + escapeHtml(inv.campName) + '</div>';
+                    html += '<form method="post" action="/Invite/Accept" class="d-inline">';
+                    html += '<input type="hidden" name="__RequestVerificationToken" value="' + escapeHtml(token) + '">';
+                    html += '<input type="hidden" name="id" value="' + inv.id + '">';
+                    html += '<button type="submit" class="btn btn-sm btn-success me-1">Annehmen</button>';
+                    html += '</form>';
+                    html += '<form method="post" action="/Invite/Decline" class="d-inline">';
+                    html += '<input type="hidden" name="__RequestVerificationToken" value="' + escapeHtml(token) + '">';
+                    html += '<input type="hidden" name="id" value="' + inv.id + '">';
+                    html += '<button type="submit" class="btn btn-sm btn-outline-secondary">Ablehnen</button>';
+                    html += '</form>';
+                    html += '</li>';
+                });
+                container.innerHTML = html;
+            })
+            .catch(function () {
+                container.innerHTML = '<span class="dropdown-item text-danger small">Fehler beim Laden.</span>';
+            });
+    });
+
+    function escapeHtml(text) {
+        if (text == null) return '';
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(text));
+        return d.innerHTML;
+    }
+}());

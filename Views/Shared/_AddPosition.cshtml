@@ -64,6 +64,16 @@
                             </select>
                             <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" value="0" />
                         }
+                        else if (Model.ShowTemplateVariables)
+                        {
+                            <select name="QuantityVar" id="@(Model.CategorySelectId)_qvar" class="form-select mb-2">
+                                <option value="">– Zahl –</option>
+                                <option value="ParticipantsCount">Teilnehmer</option>
+                                <option value="js_PersonsCount">J+S Pers.</option>
+                                <option value="LeadersTeamCount">Leitungsteam</option>
+                            </select>
+                            <input type="number" name="Quantity" id="@(Model.CategorySelectId)_qty" class="form-control text-end" value="0" />
+                        }
                         else
                         {
                             <input type="number" name="Quantity" class="form-control text-end" value="0" />
@@ -103,7 +113,7 @@
         filterSubCategories();
         categorySelect.addEventListener('change', filterSubCategories);
 
-        @if (Model.ShowCampVariables)
+        @if (Model.ShowCampVariables || Model.ShowTemplateVariables)
         {
             <text>
         const qvarSelect = document.getElementById('@(Model.CategorySelectId)_qvar');

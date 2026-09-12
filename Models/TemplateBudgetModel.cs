@@ -7,6 +7,8 @@ namespace BudgetApp.Models
     {
         public int Id { get; set; }
 
+        public int CreatedByUserId { get; set; }
+
         [Required(
             ErrorMessageResourceName = "Required",
             ErrorMessageResourceType = typeof(DataAnnotations)

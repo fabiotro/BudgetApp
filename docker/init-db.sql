@@ -12,12 +12,28 @@ GO
 
 -- Tables
 
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[User](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Email] [nvarchar](255) NOT NULL,
+    [DisplayName] [nvarchar](100) NOT NULL,
+    [PasswordHash] [nvarchar](500) NOT NULL,
+    [CreateDate] [datetime] NULL,
+    [ChangeDate] [datetime] NULL,
+    CONSTRAINT [PK_User] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [UQ_User_Email] UNIQUE ([Email])
+)
+END
+GO
+
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Camp]') AND type = N'U')
 BEGIN
 CREATE TABLE [dbo].[Camp](
     [Id] [int] IDENTITY(1,1) NOT NULL,
     [StartDate] [datetime] NOT NULL,
     [EndDate] [datetime] NOT NULL,
+    [CreatedByUserId] [int] NOT NULL,
     [MainLeader] [nvarchar](255) NULL,
     [ParticipantsCount_fc] [int] NOT NULL,
     [js_PersonsCount_fc] [int] NOT NULL,
@@ -28,6 +44,20 @@ CREATE TABLE [dbo].[Camp](
     [CreateDate] [datetime] NULL,
     [ChangeDate] [datetime] NULL,
     CONSTRAINT [PK_Camp] PRIMARY KEY CLUSTERED ([Id] ASC)
+)
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CampUser]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[CampUser](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [CampId] [int] NOT NULL,
+    [UserId] [int] NOT NULL,
+    [IsMainLeader] [bit] NOT NULL DEFAULT 0,
+    [CreateDate] [datetime] NULL,
+    CONSTRAINT [PK_CampUser] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [UQ_CampUser_CampId_UserId] UNIQUE ([CampId], [UserId])
 )
 END
 GO
@@ -126,6 +156,7 @@ CREATE TABLE [dbo].[TemplateBudget](
     [Id] [int] IDENTITY(1,1) NOT NULL,
     [Name] [nvarchar](100) NOT NULL,
     [Description] [nvarchar](255) NULL,
+    [CreatedByUserId] [int] NOT NULL,
     [CreateDate] [datetime] NULL,
     [ChangeDate] [datetime] NULL,
     CONSTRAINT [PK_TemplateBudget] PRIMARY KEY CLUSTERED ([Id] ASC)
@@ -144,6 +175,7 @@ CREATE TABLE [dbo].[TemplatePosition](
     [Name] [nvarchar](255) NOT NULL,
     [FixedAmount] [decimal](18, 2) NULL,
     [Quantity] [decimal](18, 2) NULL,
+    [QuantityVar] [nvarchar](50) NULL,
     [UnitAmount] [decimal](18, 2) NULL,
     [SortIndex] [int] NOT NULL,
     [CreateDate] [datetime] NULL,
@@ -153,8 +185,18 @@ CREATE TABLE [dbo].[TemplatePosition](
 END
 GO
 
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[TemplatePosition]') AND name = 'QuantityVar')
+    ALTER TABLE [dbo].[TemplatePosition] ADD [QuantityVar] [nvarchar](50) NULL
+GO
+
 -- Default constraints for CreateDate
 
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_User_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[User] ADD CONSTRAINT [DF_User_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_CampUser_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[CampUser] ADD CONSTRAINT [DF_CampUser_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_Camp_CreateDate]') AND type = 'D')
     ALTER TABLE [dbo].[Camp] ADD CONSTRAINT [DF_Camp_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
 GO
@@ -182,6 +224,18 @@ GO
 
 -- Foreign keys
 
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Camp_User]'))
+    ALTER TABLE [dbo].[Camp] WITH CHECK ADD CONSTRAINT [FK_Camp_User] FOREIGN KEY([CreatedByUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampUser_Camp]'))
+    ALTER TABLE [dbo].[CampUser] WITH CHECK ADD CONSTRAINT [FK_CampUser_Camp] FOREIGN KEY([CampId]) REFERENCES [dbo].[Camp] ([Id]) ON DELETE CASCADE
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampUser_User]'))
+    ALTER TABLE [dbo].[CampUser] WITH CHECK ADD CONSTRAINT [FK_CampUser_User] FOREIGN KEY([UserId]) REFERENCES [dbo].[User] ([Id])
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_TemplateBudget_User]'))
+    ALTER TABLE [dbo].[TemplateBudget] WITH CHECK ADD CONSTRAINT [FK_TemplateBudget_User] FOREIGN KEY([CreatedByUserId]) REFERENCES [dbo].[User] ([Id])
+GO
 IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Budget_Camp]'))
     ALTER TABLE [dbo].[Budget] WITH CHECK ADD CONSTRAINT [FK_Budget_Camp] FOREIGN KEY([CampId]) REFERENCES [dbo].[Camp] ([Id])
 GO
@@ -264,6 +318,15 @@ GO
 
 -- Triggers for ChangeDate
 
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[User_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[User_UpdateChangeDate] ON [dbo].[User] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[User] SET ChangeDate = GETDATE() FROM [User] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO
+
 IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[Camp_UpdateChangeDate]'))
 EXEC dbo.sp_executesql @statement = N'
 CREATE TRIGGER [dbo].[Camp_UpdateChangeDate] ON [dbo].[Camp] AFTER INSERT, UPDATE AS
@@ -334,4 +397,172 @@ BEGIN
     SET NOCOUNT ON;
     UPDATE [dbo].[TemplatePosition] SET ChangeDate = GETDATE() FROM TemplatePosition t INNER JOIN Inserted i ON t.Id = i.Id
 END'
+GO
+
+-- =============================================
+-- Expense Tracking Feature
+-- =============================================
+
+-- New columns on [User] table
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'FirstName')
+    ALTER TABLE [dbo].[User] ADD [FirstName] [nvarchar](100) NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'LastName')
+    ALTER TABLE [dbo].[User] ADD [LastName] [nvarchar](100) NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'IBAN')
+    ALTER TABLE [dbo].[User] ADD [IBAN] [nvarchar](34) NULL;
+GO
+
+-- New column on [Camp] table
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Camp]') AND name = 'MainLeader')
+    ALTER TABLE [dbo].[Camp] ADD [MainLeader] [nvarchar](255) NULL;
+GO
+
+-- [Transaction] table (Transaction is a reserved word, always use brackets)
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Transaction]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[Transaction](
+    [Id]                [int] IDENTITY(1,1) NOT NULL,
+    [CampId]            [int] NOT NULL,
+    [PerformedByUserId] [int] NOT NULL,
+    [PositionId]        [int] NULL,
+    [Name]              [nvarchar](255) NOT NULL,
+    [Description]       [nvarchar](500) NULL,
+    [Amount]            [decimal](18, 2) NOT NULL,
+    [PaymentSource]     [int] NOT NULL,
+    [PaymentMethod]     [int] NOT NULL,
+    [CreateDate]        [datetime] NULL,
+    [ChangeDate]        [datetime] NULL,
+    CONSTRAINT [PK_Transaction] PRIMARY KEY CLUSTERED ([Id] ASC)
+)
+END
+GO
+
+-- [TransactionDocument] table
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TransactionDocument]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[TransactionDocument](
+    [Id]            [int] IDENTITY(1,1) NOT NULL,
+    [TransactionId] [int] NOT NULL,
+    [FileName]      [nvarchar](255) NOT NULL,
+    [ContentType]   [nvarchar](100) NOT NULL,
+    [FileSize]      [int] NOT NULL,
+    [FileData]      [varbinary](max) NOT NULL,
+    [CreateDate]    [datetime] NULL,
+    [ChangeDate]    [datetime] NULL,
+    CONSTRAINT [PK_TransactionDocument] PRIMARY KEY CLUSTERED ([Id] ASC)
+)
+END
+GO
+
+-- CreateDate default constraints
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_Transaction_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[Transaction] ADD CONSTRAINT [DF_Transaction_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_TransactionDocument_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[TransactionDocument] ADD CONSTRAINT [DF_TransactionDocument_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
+
+-- Foreign keys
+-- CampId CASCADE: deleting a camp removes all its transactions
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Transaction_Camp]'))
+    ALTER TABLE [dbo].[Transaction] WITH CHECK ADD CONSTRAINT [FK_Transaction_Camp]
+        FOREIGN KEY([CampId]) REFERENCES [dbo].[Camp] ([Id]) ON DELETE CASCADE
+GO
+-- PerformedByUserId NO ACTION: prevent deleting a user who has transactions
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Transaction_User]'))
+    ALTER TABLE [dbo].[Transaction] WITH CHECK ADD CONSTRAINT [FK_Transaction_User]
+        FOREIGN KEY([PerformedByUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+-- PositionId SET NULL: position deletion nulls out FK, preserves transaction history
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_Transaction_Position]'))
+    ALTER TABLE [dbo].[Transaction] WITH CHECK ADD CONSTRAINT [FK_Transaction_Position]
+        FOREIGN KEY([PositionId]) REFERENCES [dbo].[Position] ([Id]) ON DELETE SET NULL
+GO
+-- TransactionId CASCADE: deleting a transaction removes its documents
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_TransactionDocument_Transaction]'))
+    ALTER TABLE [dbo].[TransactionDocument] WITH CHECK ADD CONSTRAINT [FK_TransactionDocument_Transaction]
+        FOREIGN KEY([TransactionId]) REFERENCES [dbo].[Transaction] ([Id]) ON DELETE CASCADE
+GO
+
+-- ChangeDate triggers
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[Transaction_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[Transaction_UpdateChangeDate] ON [dbo].[Transaction] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[Transaction] SET ChangeDate = GETDATE() FROM [Transaction] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[TransactionDocument_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[TransactionDocument_UpdateChangeDate] ON [dbo].[TransactionDocument] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[TransactionDocument] SET ChangeDate = GETDATE() FROM [TransactionDocument] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO
+
+-- =============================================
+-- Camp Invite Feature
+-- =============================================
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CampInvite]') AND type = N'U')
+BEGIN
+CREATE TABLE [dbo].[CampInvite](
+    [Id]               [int] IDENTITY(1,1) NOT NULL,
+    [CampId]           [int] NOT NULL,
+    [InvitedByUserId]  [int] NOT NULL,
+    [InvitedUserId]    [int] NOT NULL,
+    [Status]           [int] NOT NULL DEFAULT 0,
+    [CreateDate]       [datetime] NULL,
+    [ChangeDate]       [datetime] NULL,
+    CONSTRAINT [PK_CampInvite] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [UQ_CampInvite_CampId_InvitedUserId] UNIQUE ([CampId], [InvitedUserId])
+)
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DF_CampInvite_CreateDate]') AND type = 'D')
+    ALTER TABLE [dbo].[CampInvite] ADD CONSTRAINT [DF_CampInvite_CreateDate] DEFAULT (GETDATE()) FOR [CreateDate]
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampInvite_Camp]'))
+    ALTER TABLE [dbo].[CampInvite] WITH CHECK ADD CONSTRAINT [FK_CampInvite_Camp]
+        FOREIGN KEY([CampId]) REFERENCES [dbo].[Camp] ([Id]) ON DELETE CASCADE
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampInvite_InvitedByUser]'))
+    ALTER TABLE [dbo].[CampInvite] WITH CHECK ADD CONSTRAINT [FK_CampInvite_InvitedByUser]
+        FOREIGN KEY([InvitedByUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_CampInvite_InvitedUser]'))
+    ALTER TABLE [dbo].[CampInvite] WITH CHECK ADD CONSTRAINT [FK_CampInvite_InvitedUser]
+        FOREIGN KEY([InvitedUserId]) REFERENCES [dbo].[User] ([Id])
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.triggers WHERE object_id = OBJECT_ID(N'[dbo].[CampInvite_UpdateChangeDate]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE TRIGGER [dbo].[CampInvite_UpdateChangeDate] ON [dbo].[CampInvite] AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[CampInvite] SET ChangeDate = GETDATE() FROM [CampInvite] t INNER JOIN Inserted i ON t.Id = i.Id
+END'
+GO
+
+-- =============================================
+-- Email Confirmation Feature
+-- =============================================
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'IsEmailConfirmed')
+BEGIN
+    ALTER TABLE [dbo].[User] ADD [IsEmailConfirmed] [bit] NOT NULL DEFAULT 0;
+    ALTER TABLE [dbo].[User] ADD [EmailConfirmationToken] [nvarchar](128) NULL;
+    ALTER TABLE [dbo].[User] ADD [EmailConfirmationTokenExpiry] [datetime] NULL;
+
+    -- Grandfather in everyone who existed before this feature shipped.
+    -- (sp_executesql defers compilation so the column just added above resolves.)
+    EXEC dbo.sp_executesql @statement = N'UPDATE [dbo].[User] SET [IsEmailConfirmed] = 1';
+END
 GO

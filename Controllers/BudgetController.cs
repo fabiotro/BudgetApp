@@ -1,11 +1,14 @@
+using System.Security.Claims;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BudgetApp.Controllers
 {
+    [Authorize]
     public class BudgetController : Controller
     {
         private readonly ILogger<BudgetController> _logger;
@@ -17,6 +20,7 @@ namespace BudgetApp.Controllers
         private readonly IPositionTypeRepository<PositionTypeModel> _positionTypeRepo;
         private readonly ICategoryRepository<CategoryModel> _categoryRepo;
         private readonly ISubCategoryRepository<SubCategoryModel> _subCategoryRepo;
+        private readonly ICampUserRepository<CampUserModel> _campUserRepo;
 
         public BudgetController(
             ILogger<BudgetController> logger,
@@ -27,7 +31,8 @@ namespace BudgetApp.Controllers
             IPositionRepository<PositionModel> positionRepo,
             IPositionTypeRepository<PositionTypeModel> positionTypeRepo,
             ICategoryRepository<CategoryModel> categoryRepo,
-            ISubCategoryRepository<SubCategoryModel> subCategoryRepo
+            ISubCategoryRepository<SubCategoryModel> subCategoryRepo,
+            ICampUserRepository<CampUserModel> campUserRepo
         )
         {
             _logger = logger;
@@ -39,13 +44,18 @@ namespace BudgetApp.Controllers
             _positionTypeRepo = positionTypeRepo;
             _categoryRepo = categoryRepo;
             _subCategoryRepo = subCategoryRepo;
+            _campUserRepo = campUserRepo;
         }
+
+        private int GetCurrentUserId() =>
+            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var budgets = (await _budgetRepo.GetAll()).ToList();
-            var camps = (await _campRepo.GetAll()).ToDictionary(c => c.Id);
+            int userId = GetCurrentUserId();
+            var budgets = (await _budgetRepo.GetAllForUser(userId)).ToList();
+            var camps = (await _campRepo.GetAllForUser(userId)).ToDictionary(c => c.Id);
 
             var vm = budgets
                 .Select(b =>
@@ -61,6 +71,7 @@ namespace BudgetApp.Controllers
         [HttpGet]
         public async Task<IActionResult> NewBudget(int? campId)
         {
+            int userId = GetCurrentUserId();
             var vm = new NewBudgetViewModel
             {
                 Camp = new CampViewModel
@@ -68,7 +79,7 @@ namespace BudgetApp.Controllers
                     StartDate = DateTime.Today,
                     EndDate = DateTime.Today.AddDays(7),
                 },
-                AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList(),
+                AvailableTemplates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList(),
             };
 
             if (campId.HasValue)
@@ -78,6 +89,7 @@ namespace BudgetApp.Controllers
                 {
                     vm.Camp = MapModelToViewModel(camp);
                     vm.ExistingBudgets = (await _budgetRepo.GetByCampId(campId.Value)).ToList();
+                    vm.CampUsers = (await _campUserRepo.GetByCampId(campId.Value)).ToList();
                 }
             }
 
@@ -87,10 +99,11 @@ namespace BudgetApp.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateBudgetModal(int campId)
         {
+            int userId = GetCurrentUserId();
             var vm = new CreateBudgetModalViewModel
             {
                 CampId = campId,
-                AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList(),
+                AvailableTemplates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList(),
             };
             return PartialView("_CreateBudgetModal", vm);
         }
@@ -99,13 +112,22 @@ namespace BudgetApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpsertCamp(NewBudgetViewModel newBudget)
         {
+            int userId = GetCurrentUserId();
+
             if (!ModelState.IsValid)
             {
-                newBudget.AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList();
+                newBudget.AvailableTemplates = (
+                    await _templateBudgetRepo.GetAllForUser(userId)
+                ).ToList();
                 if (newBudget.Camp.Id > 0)
+                {
                     newBudget.ExistingBudgets = (
                         await _budgetRepo.GetByCampId(newBudget.Camp.Id)
                     ).ToList();
+                    newBudget.CampUsers = (
+                        await _campUserRepo.GetByCampId(newBudget.Camp.Id)
+                    ).ToList();
+                }
                 return View(nameof(NewBudget), newBudget);
             }
 
@@ -117,8 +139,20 @@ namespace BudgetApp.Controllers
 
                 if (newBudget.Camp.Id == 0)
                 {
+                    campModel.CreatedByUserId = userId;
                     int newId = await _campRepo.Create(campModel);
                     newBudget.Camp.Id = newId;
+
+                    // Auto-add creator as main leader
+                    await _campUserRepo.Create(
+                        new CampUserModel
+                        {
+                            CampId = newId,
+                            UserId = userId,
+                            IsMainLeader = true,
+                        }
+                    );
+
                     toast = new ToastMessageViewModel
                     {
                         Title = "Erfolg",
@@ -149,7 +183,9 @@ namespace BudgetApp.Controllers
                     Type = ToastType.Error,
                 };
                 TempData.Put("ToastMsg", toast);
-                newBudget.AvailableTemplates = (await _templateBudgetRepo.GetAll()).ToList();
+                newBudget.AvailableTemplates = (
+                    await _templateBudgetRepo.GetAllForUser(userId)
+                ).ToList();
                 return View(nameof(NewBudget), newBudget);
             }
         }
@@ -197,7 +233,12 @@ namespace BudgetApp.Controllers
                             SubCategoryId = tp.SubCategoryId == 0 ? null : tp.SubCategoryId,
                             Name = tp.Name,
                             FixedAmount_fc = tp.FixedAmount ?? 0,
-                            Quantity_fc = tp.Quantity ?? 0,
+                            QuantityVar_fc = string.IsNullOrEmpty(tp.QuantityVar)
+                                ? null
+                                : tp.QuantityVar + "_fc",
+                            Quantity_fc = string.IsNullOrEmpty(tp.QuantityVar)
+                                ? (tp.Quantity ?? 0)
+                                : 0m,
                             UnitAmount_fc = tp.UnitAmount ?? 0,
                             SortIndex = tp.SortIndex,
                         };
@@ -236,6 +277,7 @@ namespace BudgetApp.Controllers
                 return NotFound();
 
             var camp = await _campRepo.GetById(budget.CampId);
+            var campUsers = (await _campUserRepo.GetByCampId(budget.CampId)).ToList();
             var positions = (await _positionRepo.GetByBudgetId(id)).ToList();
             var categories = (await _categoryRepo.GetAll()).ToDictionary(c => c.Id);
             var subCategories = (await _subCategoryRepo.GetAll()).ToDictionary(sc => sc.Id);
@@ -314,6 +356,7 @@ namespace BudgetApp.Controllers
             {
                 Budget = budget,
                 Camp = camp!,
+                CampUsers = campUsers,
                 Groups = groups,
                 PositionTypes = positionTypes.Values.OrderBy(pt => pt.Name).ToList(),
                 AllCategories = categories.Values.OrderBy(c => c.SortIndex).ToList(),
@@ -535,6 +578,48 @@ namespace BudgetApp.Controllers
             }
             TempData.Put("ToastMsg", toast);
             return RedirectToAction(nameof(Detail), new { id = budgetId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveCampUser(int campUserId, int campId)
+        {
+            var toast = new ToastMessageViewModel();
+            try
+            {
+                var camp = await _campRepo.GetById(campId);
+                if (camp == null || camp.CreatedByUserId != GetCurrentUserId())
+                {
+                    toast = new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Keine Berechtigung.",
+                        Type = ToastType.Error,
+                    };
+                    TempData.Put("ToastMsg", toast);
+                    return RedirectToAction(nameof(NewBudget), new { campId });
+                }
+
+                await _campUserRepo.Delete(campUserId);
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Erfolg",
+                    Message = "Person entfernt.",
+                    Type = ToastType.Success,
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RemoveCampUser");
+                toast = new ToastMessageViewModel
+                {
+                    Title = "Fehler",
+                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
+                    Type = ToastType.Error,
+                };
+            }
+            TempData.Put("ToastMsg", toast);
+            return RedirectToAction(nameof(NewBudget), new { campId });
         }
 
         #region Helpers

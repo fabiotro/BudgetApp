@@ -150,6 +150,69 @@
   <data name="TemplateBudgetDescription" xml:space="preserve">
     <value>Beschreibung</value>
   </data>
+  <data name="LoginEmail" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="LoginPassword" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="RegisterEmail" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="RegisterDisplayName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RegisterPassword" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="RegisterConfirmPassword" xml:space="preserve">
+    <value>Passwort bestätigen</value>
+  </data>
+  <data name="PasswordMismatch" xml:space="preserve">
+    <value>Die Passwörter stimmen nicht überein.</value>
+  </data>
+  <data name="StringLengthMin" xml:space="preserve">
+    <value>Das Feld "{0}" muss mindestens {2} und maximal {1} Zeichen lang sein.</value>
+  </data>
+  <data name="EmailAlreadyExists" xml:space="preserve">
+    <value>Diese E-Mail-Adresse ist bereits registriert.</value>
+  </data>
+  <data name="AddLeader" xml:space="preserve">
+    <value>Leitung hinzufügen</value>
+  </data>
+  <data name="TransactionName" xml:space="preserve">
+    <value>Bezeichnung</value>
+  </data>
+  <data name="TransactionDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="TransactionAmount" xml:space="preserve">
+    <value>Betrag (CHF)</value>
+  </data>
+  <data name="TransactionPerformedBy" xml:space="preserve">
+    <value>Ausgabe durch</value>
+  </data>
+  <data name="TransactionPaymentSource" xml:space="preserve">
+    <value>Zahlungsquelle</value>
+  </data>
+  <data name="TransactionPaymentMethod" xml:space="preserve">
+    <value>Zahlungsart</value>
+  </data>
+  <data name="ProfileDisplayName" xml:space="preserve">
+    <value>Anzeigename</value>
+  </data>
+  <data name="ProfileFirstName" xml:space="preserve">
+    <value>Vorname</value>
+  </data>
+  <data name="ProfileLastName" xml:space="preserve">
+    <value>Nachname</value>
+  </data>
+  <data name="ProfileIBAN" xml:space="preserve">
+    <value>IBAN</value>
+  </data>
+  <data name="InviteEmail" xml:space="preserve">
+    <value>E-Mail der einzuladenden Person</value>
+  </data>
   <data name="CategoryName" xml:space="preserve">
     <value>Name</value>
   </data>

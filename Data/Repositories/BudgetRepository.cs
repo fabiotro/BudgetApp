@@ -23,6 +23,26 @@ namespace BudgetApp.Data.Repositories
             return await conn.QueryAsync<T>(sql);
         }
 
+        public async Task<IEnumerable<T>> GetAllForUser(int userId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+                @"
+            SELECT b.[Id]
+                  ,b.[Name]
+                  ,b.[Description]
+                  ,b.[CampId]
+              FROM [dbo].[Budget] b
+              INNER JOIN [dbo].[Camp] c ON b.[CampId] = c.[Id]
+              WHERE c.[CreatedByUserId] = @UserId
+                 OR EXISTS (
+                     SELECT 1 FROM [dbo].[CampUser] cu
+                     WHERE cu.[CampId] = c.[Id] AND cu.[UserId] = @UserId
+                 )
+            ";
+            return await conn.QueryAsync<T>(sql, new { UserId = userId });
+        }
+
         public async Task<T?> GetById(int id)
         {
             ValidateId(id);
