@@ -40,12 +40,18 @@ else
                     <td>
                         @($"{budget.StartDate:dd.MM.yyyy} – {budget.EndDate:dd.MM.yyyy}")
                     </td>
-                    <td class="text-end">
-                        <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary">
+                    <td class="text-end text-nowrap">
+                        <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary" title="Anzeigen">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a asp-action="Edit" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-secondary">
+                        <a asp-controller="Transaction" asp-action="Create" asp-route-budgetId="@budget.Id" class="btn btn-sm btn-outline-primary" title="Ausgabe erfassen">
+                            <i class="bi bi-cash-coin"></i>
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-secondary" title="Lagerdaten bearbeiten">
                             <i class="bi bi-pen"></i>
+                        </a>
+                        <a asp-action="Leaders" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-secondary" title="Leitpersonen verwalten">
+                            <i class="bi bi-people"></i>
                         </a>
                     </td>
                 </tr>
