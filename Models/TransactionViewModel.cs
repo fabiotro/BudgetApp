@@ -11,7 +11,7 @@ namespace BudgetApp.Models
             ErrorMessageResourceType = typeof(DataAnnotations)
         )]
         [Range(1, int.MaxValue)]
-        public int CampId { get; set; }
+        public int BudgetId { get; set; }
 
         [Required(
             ErrorMessageResourceName = "Required",
@@ -76,7 +76,7 @@ namespace BudgetApp.Models
         public PaymentMethod PaymentMethod { get; set; }
 
         // Not posted — populated by controller for select lists
-        public List<CampUserModel> CampUsers { get; set; } = [];
+        public List<BudgetUserModel> BudgetUsers { get; set; } = [];
         public List<PositionModel> Positions { get; set; } = [];
     }
 
@@ -96,7 +96,7 @@ namespace BudgetApp.Models
 
     public class UserTransactionsViewModel
     {
-        public required CampModel Camp { get; set; }
+        public required BudgetModel Budget { get; set; }
         public required UserExpenseSummaryViewModel UserSummary { get; set; }
         public List<TransactionWithDocumentsViewModel> Transactions { get; set; } = [];
     }
