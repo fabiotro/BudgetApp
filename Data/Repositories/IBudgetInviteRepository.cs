@@ -3,10 +3,10 @@ using BudgetApp.Models;
 
 namespace BudgetApp.Data.Repositories
 {
-    public interface ICampInviteRepository<T>
-        where T : CampInviteModel
+    public interface IBudgetInviteRepository<T>
+        where T : BudgetInviteModel
     {
-        Task<IEnumerable<T>> GetByCampId(int campId);
+        Task<IEnumerable<T>> GetByBudgetId(int budgetId);
         Task<IEnumerable<T>> GetPendingByInvitedUserId(int userId);
         Task<int> GetPendingCountByInvitedUserId(int userId);
         Task<T?> GetById(int id);

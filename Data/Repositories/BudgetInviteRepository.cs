@@ -4,58 +4,53 @@ using Dapper;
 
 namespace BudgetApp.Data.Repositories
 {
-    public class CampInviteRepository<T> : BaseRepository, ICampInviteRepository<T>
-        where T : CampInviteModel
+    public class BudgetInviteRepository<T> : BaseRepository, IBudgetInviteRepository<T>
+        where T : BudgetInviteModel
     {
-        public CampInviteRepository(DapperContext context)
+        public BudgetInviteRepository(DapperContext context)
             : base(context) { }
 
-        public async Task<IEnumerable<T>> GetByCampId(int campId)
-        {
-            using var conn = _context.CreateConnection();
-            var sql =
-                @"
-            SELECT ci.[Id]
-                  ,ci.[CampId]
+        private const string SelectColumns =
+            @"
+                   ci.[Id]
+                  ,ci.[BudgetId]
                   ,ci.[InvitedByUserId]
                   ,ci.[InvitedUserId]
                   ,ci.[Status]
                   ,ub.[DisplayName] AS InvitedByDisplayName
                   ,ui.[DisplayName] AS InvitedUserDisplayName
                   ,ui.[Email]       AS InvitedUserEmail
-                  ,c.[StartDate]    AS CampStartDate
-                  ,c.[EndDate]      AS CampEndDate
-                  ,c.[MainLeader]   AS CampMainLeader
-              FROM [dbo].[CampInvite] ci
+                  ,b.[Name]         AS BudgetName
+            ";
+
+        private const string Joins =
+            @"
+              FROM [dbo].[BudgetInvite] ci
               INNER JOIN [dbo].[User] ub ON ci.[InvitedByUserId] = ub.[Id]
               INNER JOIN [dbo].[User] ui ON ci.[InvitedUserId]   = ui.[Id]
-              INNER JOIN [dbo].[Camp] c  ON ci.[CampId]          = c.[Id]
-              WHERE ci.[CampId] = @CampId
+              INNER JOIN [dbo].[Budget] b ON ci.[BudgetId]       = b.[Id]
+            ";
+
+        public async Task<IEnumerable<T>> GetByBudgetId(int budgetId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+                $@"
+            SELECT {SelectColumns}
+            {Joins}
+              WHERE ci.[BudgetId] = @BudgetId
               ORDER BY ci.[CreateDate] DESC
             ";
-            return await conn.QueryAsync<T>(sql, new { CampId = campId });
+            return await conn.QueryAsync<T>(sql, new { BudgetId = budgetId });
         }
 
         public async Task<IEnumerable<T>> GetPendingByInvitedUserId(int userId)
         {
             using var conn = _context.CreateConnection();
             var sql =
-                @"
-            SELECT ci.[Id]
-                  ,ci.[CampId]
-                  ,ci.[InvitedByUserId]
-                  ,ci.[InvitedUserId]
-                  ,ci.[Status]
-                  ,ub.[DisplayName] AS InvitedByDisplayName
-                  ,ui.[DisplayName] AS InvitedUserDisplayName
-                  ,ui.[Email]       AS InvitedUserEmail
-                  ,c.[StartDate]    AS CampStartDate
-                  ,c.[EndDate]      AS CampEndDate
-                  ,c.[MainLeader]   AS CampMainLeader
-              FROM [dbo].[CampInvite] ci
-              INNER JOIN [dbo].[User] ub ON ci.[InvitedByUserId] = ub.[Id]
-              INNER JOIN [dbo].[User] ui ON ci.[InvitedUserId]   = ui.[Id]
-              INNER JOIN [dbo].[Camp] c  ON ci.[CampId]          = c.[Id]
+                $@"
+            SELECT {SelectColumns}
+            {Joins}
               WHERE ci.[InvitedUserId] = @UserId
                 AND ci.[Status] = 0
               ORDER BY ci.[CreateDate] DESC
@@ -69,7 +64,7 @@ namespace BudgetApp.Data.Repositories
             var sql =
                 @"
             SELECT COUNT(*)
-              FROM [dbo].[CampInvite]
+              FROM [dbo].[BudgetInvite]
               WHERE [InvitedUserId] = @UserId
                 AND [Status] = 0
             ";
@@ -81,22 +76,9 @@ namespace BudgetApp.Data.Repositories
             ValidateId(id);
             using var conn = _context.CreateConnection();
             var sql =
-                @"
-            SELECT ci.[Id]
-                  ,ci.[CampId]
-                  ,ci.[InvitedByUserId]
-                  ,ci.[InvitedUserId]
-                  ,ci.[Status]
-                  ,ub.[DisplayName] AS InvitedByDisplayName
-                  ,ui.[DisplayName] AS InvitedUserDisplayName
-                  ,ui.[Email]       AS InvitedUserEmail
-                  ,c.[StartDate]    AS CampStartDate
-                  ,c.[EndDate]      AS CampEndDate
-                  ,c.[MainLeader]   AS CampMainLeader
-              FROM [dbo].[CampInvite] ci
-              INNER JOIN [dbo].[User] ub ON ci.[InvitedByUserId] = ub.[Id]
-              INNER JOIN [dbo].[User] ui ON ci.[InvitedUserId]   = ui.[Id]
-              INNER JOIN [dbo].[Camp] c  ON ci.[CampId]          = c.[Id]
+                $@"
+            SELECT {SelectColumns}
+            {Joins}
               WHERE ci.[Id] = @Id
             ";
             return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Id = id });
@@ -107,13 +89,13 @@ namespace BudgetApp.Data.Repositories
             using var conn = _context.CreateConnection();
             var sql =
                 @"
-            INSERT INTO [dbo].[CampInvite]
-                       ([CampId]
+            INSERT INTO [dbo].[BudgetInvite]
+                       ([BudgetId]
                        ,[InvitedByUserId]
                        ,[InvitedUserId]
                        ,[Status])
                  VALUES
-                       (@CampId
+                       (@BudgetId
                        ,@InvitedByUserId
                        ,@InvitedUserId
                        ,@Status);
@@ -126,7 +108,7 @@ namespace BudgetApp.Data.Repositories
         {
             ValidateId(id);
             using var conn = _context.CreateConnection();
-            var sql = "UPDATE [dbo].[CampInvite] SET [Status] = @Status WHERE [Id] = @Id";
+            var sql = "UPDATE [dbo].[BudgetInvite] SET [Status] = @Status WHERE [Id] = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id, Status = (int)status });
         }
 
@@ -136,7 +118,7 @@ namespace BudgetApp.Data.Repositories
             using var conn = _context.CreateConnection();
             var sql =
                 @"
-            UPDATE [dbo].[CampInvite]
+            UPDATE [dbo].[BudgetInvite]
                SET [Status] = 0
                   ,[InvitedByUserId] = @InvitedByUserId
              WHERE [Id] = @Id

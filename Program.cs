@@ -52,7 +52,6 @@ try
     // Dependency Injection for Repositories
     builder.Services.AddScoped<DapperContext>();
     builder.Services.AddScoped<IBudgetRepository<BudgetModel>, BudgetRepository<BudgetModel>>();
-    builder.Services.AddScoped<ICampRepository<CampModel>, CampRepository<CampModel>>();
     builder.Services.AddScoped<
         ICategoryRepository<CategoryModel>,
         CategoryRepository<CategoryModel>
@@ -79,12 +78,12 @@ try
     >();
     builder.Services.AddScoped<IUserRepository<UserModel>, UserRepository<UserModel>>();
     builder.Services.AddScoped<
-        ICampUserRepository<CampUserModel>,
-        CampUserRepository<CampUserModel>
+        IBudgetUserRepository<BudgetUserModel>,
+        BudgetUserRepository<BudgetUserModel>
     >();
     builder.Services.AddScoped<
-        ICampInviteRepository<CampInviteModel>,
-        CampInviteRepository<CampInviteModel>
+        IBudgetInviteRepository<BudgetInviteModel>,
+        BudgetInviteRepository<BudgetInviteModel>
     >();
     builder.Services.AddScoped<
         ITransactionRepository<TransactionModel>,
