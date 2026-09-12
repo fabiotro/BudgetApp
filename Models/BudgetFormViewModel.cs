@@ -120,10 +120,8 @@ namespace BudgetApp.Models
         [Display(Name = "CampLeadersTeamCount", ResourceType = typeof(DataAnnotations))]
         public int? LeadersTeamCount_rl { get; set; }
 
-        // Create only — ignored on edit
-        public int SelectedTemplateBudgetId { get; set; }
+        public int? SelectedTemplateBudgetId { get; set; }
 
-        // Populated by the controller for display; not posted back
         public List<TemplateBudgetModel> AvailableTemplates { get; set; } = [];
     }
 }

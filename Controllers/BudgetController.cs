@@ -115,7 +115,7 @@ namespace BudgetApp.Controllers
                 if (vm.SelectedTemplateBudgetId > 0)
                 {
                     var templatePositions = await _templatePositionRepo.GetByTemplateBudgetId(
-                        vm.SelectedTemplateBudgetId
+                        vm.SelectedTemplateBudgetId.Value
                     );
                     foreach (var tp in templatePositions)
                     {
