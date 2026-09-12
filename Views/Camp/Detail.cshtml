@@ -109,7 +109,7 @@
                     <input type="hidden" name="CampId" value="@Model.Camp.Id" />
                     <div class="col-auto">
                         <label asp-for="InviteForm.Email" class="form-label"></label>
-                        <input asp-for="InviteForm.Email" class="form-control" placeholder="user@example.com" style="min-width: 280px" />
+                        <input type="email" name="Email" id="InviteForm_Email" class="form-control" placeholder="user@example.com" style="min-width: 280px" value="@Model.InviteForm.Email" />
                         <span asp-validation-for="InviteForm.Email" class="text-danger small"></span>
                     </div>
                     <div class="col-auto">
