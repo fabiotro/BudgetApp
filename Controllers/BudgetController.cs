@@ -20,7 +20,6 @@ namespace BudgetApp.Controllers
         private readonly IPositionTypeRepository<PositionTypeModel> _positionTypeRepo;
         private readonly ICategoryRepository<CategoryModel> _categoryRepo;
         private readonly ISubCategoryRepository<SubCategoryModel> _subCategoryRepo;
-        private readonly IUserRepository<UserModel> _userRepo;
         private readonly ICampUserRepository<CampUserModel> _campUserRepo;
 
         public BudgetController(
@@ -33,7 +32,6 @@ namespace BudgetApp.Controllers
             IPositionTypeRepository<PositionTypeModel> positionTypeRepo,
             ICategoryRepository<CategoryModel> categoryRepo,
             ISubCategoryRepository<SubCategoryModel> subCategoryRepo,
-            IUserRepository<UserModel> userRepo,
             ICampUserRepository<CampUserModel> campUserRepo
         )
         {
@@ -46,7 +44,6 @@ namespace BudgetApp.Controllers
             _positionTypeRepo = positionTypeRepo;
             _categoryRepo = categoryRepo;
             _subCategoryRepo = subCategoryRepo;
-            _userRepo = userRepo;
             _campUserRepo = campUserRepo;
         }
 
@@ -83,7 +80,6 @@ namespace BudgetApp.Controllers
                     EndDate = DateTime.Today.AddDays(7),
                 },
                 AvailableTemplates = (await _templateBudgetRepo.GetAllForUser(userId)).ToList(),
-                AllUsers = (await _userRepo.GetAll()).Where(u => u.Id != userId).ToList(),
             };
 
             if (campId.HasValue)
@@ -123,7 +119,6 @@ namespace BudgetApp.Controllers
                 newBudget.AvailableTemplates = (
                     await _templateBudgetRepo.GetAllForUser(userId)
                 ).ToList();
-                newBudget.AllUsers = (await _userRepo.GetAll()).Where(u => u.Id != userId).ToList();
                 if (newBudget.Camp.Id > 0)
                 {
                     newBudget.ExistingBudgets = (
@@ -191,7 +186,6 @@ namespace BudgetApp.Controllers
                 newBudget.AvailableTemplates = (
                     await _templateBudgetRepo.GetAllForUser(userId)
                 ).ToList();
-                newBudget.AllUsers = (await _userRepo.GetAll()).Where(u => u.Id != userId).ToList();
                 return View(nameof(NewBudget), newBudget);
             }
         }
@@ -584,55 +578,6 @@ namespace BudgetApp.Controllers
             }
             TempData.Put("ToastMsg", toast);
             return RedirectToAction(nameof(Detail), new { id = budgetId });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddCampUser(int campId, int userId)
-        {
-            var toast = new ToastMessageViewModel();
-            try
-            {
-                var camp = await _campRepo.GetById(campId);
-                if (camp == null || camp.CreatedByUserId != GetCurrentUserId())
-                {
-                    toast = new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message = "Keine Berechtigung.",
-                        Type = ToastType.Error,
-                    };
-                    TempData.Put("ToastMsg", toast);
-                    return RedirectToAction(nameof(NewBudget), new { campId });
-                }
-
-                await _campUserRepo.Create(
-                    new CampUserModel
-                    {
-                        CampId = campId,
-                        UserId = userId,
-                        IsMainLeader = false,
-                    }
-                );
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Erfolg",
-                    Message = "Person hinzugefügt.",
-                    Type = ToastType.Success,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in AddCampUser");
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-            }
-            TempData.Put("ToastMsg", toast);
-            return RedirectToAction(nameof(NewBudget), new { campId });
         }
 
         [HttpPost]

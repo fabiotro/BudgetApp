@@ -215,32 +215,6 @@ else
             </tbody>
         </table>
     }
-
-    @if (Model.AllUsers.Any())
-    {
-        var addedUserIds = Model.CampUsers.Select(cu => cu.UserId).ToHashSet();
-        var availableUsers = Model.AllUsers.Where(u => !addedUserIds.Contains(u.Id)).ToList();
-
-        @if (availableUsers.Any())
-        {
-            <form asp-action="AddCampUser" method="post" class="d-flex gap-2 align-items-end">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="campId" value="@Model.Camp.Id" />
-                <div>
-                    <label class="form-label mb-1">Person hinzufügen</label>
-                    <select name="userId" class="form-select form-select-sm">
-                        @foreach (var u in availableUsers)
-                        {
-                            <option value="@u.Id">@u.DisplayName (@u.Email)</option>
-                        }
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-person-plus"></i> Hinzufügen
-                </button>
-            </form>
-        }
-    }
 }
 
 @section Scripts {
