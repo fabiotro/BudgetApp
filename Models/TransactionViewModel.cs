@@ -53,9 +53,10 @@ namespace BudgetApp.Models
             ErrorMessageResourceType = typeof(DataAnnotations)
         )]
         [Range(
-            0.01,
-            double.MaxValue,
-            ErrorMessageResourceName = "Range",
+            typeof(decimal),
+            "0.01",
+            "1000000000",
+            ErrorMessageResourceName = "TransactionAmountRange",
             ErrorMessageResourceType = typeof(DataAnnotations)
         )]
         [Display(Name = "TransactionAmount", ResourceType = typeof(DataAnnotations))]
@@ -74,6 +75,11 @@ namespace BudgetApp.Models
         )]
         [Display(Name = "TransactionPaymentMethod", ResourceType = typeof(DataAnnotations))]
         public PaymentMethod PaymentMethod { get; set; }
+
+        // Local URL to return to after a successful submit (set by the modal
+        // launcher JS to the page it was opened from), validated with
+        // Url.IsLocalUrl before use.
+        public string? ReturnUrl { get; set; }
 
         // Not posted — populated by controller for select lists
         public List<BudgetUserModel> BudgetUsers { get; set; } = [];
@@ -99,5 +105,11 @@ namespace BudgetApp.Models
         public required BudgetModel Budget { get; set; }
         public required UserExpenseSummaryViewModel UserSummary { get; set; }
         public List<TransactionWithDocumentsViewModel> Transactions { get; set; } = [];
+    }
+
+    public class TransactionBudgetOverviewViewModel
+    {
+        public required BudgetModel Budget { get; set; }
+        public List<UserExpenseSummaryViewModel> UserSummaries { get; set; } = [];
     }
 }

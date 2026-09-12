@@ -21,7 +21,6 @@ namespace BudgetApp.Controllers
         private readonly ISubCategoryRepository<SubCategoryModel> _subCategoryRepo;
         private readonly IBudgetUserRepository<BudgetUserModel> _budgetUserRepo;
         private readonly IBudgetInviteRepository<BudgetInviteModel> _inviteRepo;
-        private readonly ITransactionRepository<TransactionModel> _transactionRepo;
 
         public BudgetController(
             ILogger<BudgetController> logger,
@@ -33,8 +32,7 @@ namespace BudgetApp.Controllers
             ICategoryRepository<CategoryModel> categoryRepo,
             ISubCategoryRepository<SubCategoryModel> subCategoryRepo,
             IBudgetUserRepository<BudgetUserModel> budgetUserRepo,
-            IBudgetInviteRepository<BudgetInviteModel> inviteRepo,
-            ITransactionRepository<TransactionModel> transactionRepo
+            IBudgetInviteRepository<BudgetInviteModel> inviteRepo
         )
         {
             _logger = logger;
@@ -47,7 +45,6 @@ namespace BudgetApp.Controllers
             _subCategoryRepo = subCategoryRepo;
             _budgetUserRepo = budgetUserRepo;
             _inviteRepo = inviteRepo;
-            _transactionRepo = transactionRepo;
         }
 
         private int GetCurrentUserId() =>
@@ -68,7 +65,19 @@ namespace BudgetApp.Controllers
             var budgets = (await _budgetRepo.GetAllForUser(userId))
                 .OrderByDescending(b => b.StartDate)
                 .ToList();
-            return View(budgets);
+            var leaderBudgetIds = (await _budgetUserRepo.GetByUserId(userId))
+                .Where(bu => bu.IsMainLeader)
+                .Select(bu => bu.BudgetId)
+                .ToHashSet();
+
+            var rows = budgets
+                .Select(b => new BudgetIndexRowViewModel
+                {
+                    Budget = b,
+                    IsMainLeader = leaderBudgetIds.Contains(b.Id),
+                })
+                .ToList();
+            return View(rows);
         }
 
         [HttpGet]
@@ -352,6 +361,8 @@ namespace BudgetApp.Controllers
                 )
                 .ToList();
 
+            bool isMainLeader = budgetUsers.IsMainLeaderFor(userId);
+
             var vm = new BudgetDetailViewModel
             {
                 Budget = budget,
@@ -360,6 +371,7 @@ namespace BudgetApp.Controllers
                 PositionTypes = positionTypes.Values.OrderBy(pt => pt.Name).ToList(),
                 AllCategories = categories.Values.OrderBy(c => c.SortIndex).ToList(),
                 AllSubCategories = subCategories.Values.OrderBy(sc => sc.SortIndex).ToList(),
+                IsMainLeader = isMainLeader,
             };
 
             return View(vm);
@@ -376,15 +388,13 @@ namespace BudgetApp.Controllers
                 return Forbid();
 
             var budgetUsers = (await _budgetUserRepo.GetByBudgetId(id)).ToList();
-            var userSummaries = (await _transactionRepo.GetUserSummariesByBudgetId(id)).ToList();
             var invites = (await _inviteRepo.GetByBudgetId(id)).ToList();
-            bool isMainLeader = budgetUsers.Any(bu => bu.UserId == userId && bu.IsMainLeader);
+            bool isMainLeader = budgetUsers.IsMainLeaderFor(userId);
 
             var vm = new BudgetLeadersViewModel
             {
                 Budget = budget,
                 BudgetUsers = budgetUsers,
-                UserSummaries = userSummaries,
                 Invites = invites,
                 IsMainLeader = isMainLeader,
                 InviteForm = new SendInviteViewModel { Email = string.Empty, BudgetId = id },

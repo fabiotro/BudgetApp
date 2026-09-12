@@ -207,6 +207,10 @@ namespace BudgetApp.Resources {
             get { return ResourceManager.GetString("TransactionAmount", resourceCulture); }
         }
 
+        public static string TransactionAmountRange {
+            get { return ResourceManager.GetString("TransactionAmountRange", resourceCulture); }
+        }
+
         public static string TransactionPerformedBy {
             get { return ResourceManager.GetString("TransactionPerformedBy", resourceCulture); }
         }

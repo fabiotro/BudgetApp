@@ -1,4 +1,4 @@
-@model List<BudgetModel>
+@model List<BudgetIndexRowViewModel>
 @{
     ViewData["Title"] = "Budgets";
 }
@@ -27,8 +27,9 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var budget in Model)
+            @foreach (var row in Model)
             {
+                var budget = row.Budget;
                 <tr>
                     <td>
                         <strong>@budget.Name</strong>
@@ -41,12 +42,20 @@ else
                         @($"{budget.StartDate:dd.MM.yyyy} – {budget.EndDate:dd.MM.yyyy}")
                     </td>
                     <td class="text-end text-nowrap">
-                        <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary" title="Anzeigen">
+                        <button type="button" class="btn btn-sm btn-outline-primary" title="Ausgabe erfassen"
+                                onclick="openCreateTransactionModal(@budget.Id)">
+                            <i class="bi bi-cash-coin"></i>
+                        </button>
+                        @if (row.IsMainLeader)
+                        {
+                            <a asp-controller="Transaction" asp-action="BudgetOverview" asp-route-budgetId="@budget.Id" class="btn btn-sm btn-outline-secondary" title="Ausgabenübersicht">
+                                <i class="bi bi-receipt"></i>
+                            </a>
+                        }
+                        <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-secondary" title="Anzeigen">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a asp-controller="Transaction" asp-action="Create" asp-route-budgetId="@budget.Id" class="btn btn-sm btn-outline-primary" title="Ausgabe erfassen">
-                            <i class="bi bi-cash-coin"></i>
-                        </a>
+                        
                         <a asp-action="Edit" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-secondary" title="Lagerdaten bearbeiten">
                             <i class="bi bi-pen"></i>
                         </a>
@@ -58,4 +67,10 @@ else
             }
         </tbody>
     </table>
+}
+
+<div id="createTransactionModalContainer"></div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

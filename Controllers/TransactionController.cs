@@ -135,7 +135,7 @@ namespace BudgetApp.Controllers
                 Name = string.Empty,
             };
             await PopulateFormListsAsync(vm);
-            return View(vm);
+            return PartialView("_CreateModal", vm);
         }
 
         [HttpPost]
@@ -148,7 +148,7 @@ namespace BudgetApp.Controllers
             if (!ModelState.IsValid)
             {
                 await PopulateFormListsAsync(vm);
-                return View(vm);
+                return PartialView("_CreateModal", vm);
             }
 
             int userId = GetCurrentUserId();
@@ -183,7 +183,12 @@ namespace BudgetApp.Controllers
                     Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
-                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+
+                string redirectUrl =
+                    !string.IsNullOrEmpty(vm.ReturnUrl) && Url.IsLocalUrl(vm.ReturnUrl)
+                        ? vm.ReturnUrl
+                        : Url.Action("Detail", "Budget", new { id = vm.BudgetId })!;
+                return Json(new { success = true, redirectUrl });
             }
             catch (Exception ex)
             {
@@ -192,15 +197,9 @@ namespace BudgetApp.Controllers
                     "Error creating transaction for budget {BudgetId}",
                     vm.BudgetId
                 );
-                var toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-                TempData.Put("ToastMsg", toast);
+                ModelState.AddModelError(string.Empty, "Ein unerwarteter Fehler ist aufgetreten.");
                 await PopulateFormListsAsync(vm);
-                return View(vm);
+                return PartialView("_CreateModal", vm);
             }
         }
 
@@ -231,7 +230,7 @@ namespace BudgetApp.Controllers
                 ExistingDocuments = existingDocs,
             };
             await PopulateFormListsAsync(vm);
-            return View(vm);
+            return PartialView("_EditModal", vm);
         }
 
         [HttpPost]
@@ -245,7 +244,7 @@ namespace BudgetApp.Controllers
             {
                 vm.ExistingDocuments = (await _docRepo.GetByTransactionId(vm.Id)).ToList();
                 await PopulateFormListsAsync(vm);
-                return View(vm);
+                return PartialView("_EditModal", vm);
             }
 
             int userId = GetCurrentUserId();
@@ -280,24 +279,27 @@ namespace BudgetApp.Controllers
                     Type = ToastType.Success,
                 };
                 TempData.Put("ToastMsg", toast);
-                return RedirectToAction(
-                    nameof(UserTransactions),
-                    new { budgetId = existing.BudgetId, userId = existing.PerformedByUserId }
-                );
+
+                string redirectUrl =
+                    !string.IsNullOrEmpty(vm.ReturnUrl) && Url.IsLocalUrl(vm.ReturnUrl)
+                        ? vm.ReturnUrl
+                        : Url.Action(
+                            "UserTransactions",
+                            new
+                            {
+                                budgetId = existing.BudgetId,
+                                userId = existing.PerformedByUserId,
+                            }
+                        )!;
+                return Json(new { success = true, redirectUrl });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating transaction {TransactionId}", vm.Id);
-                var toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-                TempData.Put("ToastMsg", toast);
+                ModelState.AddModelError(string.Empty, "Ein unerwarteter Fehler ist aufgetreten.");
                 vm.ExistingDocuments = (await _docRepo.GetByTransactionId(vm.Id)).ToList();
                 await PopulateFormListsAsync(vm);
-                return View(vm);
+                return PartialView("_EditModal", vm);
             }
         }
 
@@ -392,6 +394,28 @@ namespace BudgetApp.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> BudgetOverview(int budgetId)
+        {
+            int userId = GetCurrentUserId();
+            var budget = await _budgetRepo.GetById(budgetId);
+            if (budget == null)
+                return NotFound();
+
+            var budgetUsers = await _budgetUserRepo.GetByBudgetId(budgetId);
+            if (!budgetUsers.IsMainLeaderFor(userId))
+                return Forbid();
+
+            var vm = new TransactionBudgetOverviewViewModel
+            {
+                Budget = budget,
+                UserSummaries = (
+                    await _transactionRepo.GetUserSummariesByBudgetId(budgetId)
+                ).ToList(),
+            };
+            return View(vm);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> DownloadDocument(int id)
         {
             int userId = GetCurrentUserId();
@@ -428,31 +452,32 @@ namespace BudgetApp.Controllers
             if (!await HasBudgetAccessAsync(transaction.BudgetId, userId))
                 return Forbid();
 
+            // Called only from within the edit modal, so it responds via JSON
+            // rather than redirecting back to Edit (which is a modal-only partial).
             try
             {
                 await _docRepo.Delete(id);
-
-                var toast = new ToastMessageViewModel
-                {
-                    Title = "Gelöscht",
-                    Message = "Dokument erfolgreich gelöscht.",
-                    Type = ToastType.Success,
-                };
-                TempData.Put("ToastMsg", toast);
+                return Json(
+                    new
+                    {
+                        success = true,
+                        title = "Gelöscht",
+                        message = "Dokument erfolgreich gelöscht.",
+                    }
+                );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting document {DocumentId}", id);
-                var toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-                TempData.Put("ToastMsg", toast);
+                return Json(
+                    new
+                    {
+                        success = false,
+                        title = "Fehler",
+                        message = "Ein Fehler ist aufgetreten.",
+                    }
+                );
             }
-
-            return RedirectToAction(nameof(Edit), new { id = transactionId });
         }
     }
 }

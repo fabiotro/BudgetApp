@@ -141,6 +141,9 @@
   <data name="Range" xml:space="preserve">
     <value>Das Feld "{0}" muss zwischen {1} und {2} liegen.</value>
   </data>
+  <data name="TransactionAmountRange" xml:space="preserve">
+    <value>Der Betrag darf nicht leer sein.</value>
+  </data>
   <data name="StringLength" xml:space="preserve">
     <value>Das Feld "{0}" darf maximal {1} Zeichen lang sein.</value>
   </data>

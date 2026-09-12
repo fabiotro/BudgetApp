@@ -1,0 +1,165 @@
+@model EditTransactionViewModel
+@using BudgetApp.Enums
+@{
+    string PaymentSourceLabel(PaymentSource s) => s switch
+    {
+        PaymentSource.PersonalMoney => "Privatgeld",
+        PaymentSource.Budget        => "Lagerkasse",
+        PaymentSource.OtherAdvance  => "Andere Vorauszahlung",
+        _                           => s.ToString()
+    };
+
+    string PaymentMethodLabel(PaymentMethod m) => m switch
+    {
+        PaymentMethod.Cash  => "Bargeld",
+        PaymentMethod.Card  => "Karte",
+        PaymentMethod.Bill  => "Rechnung",
+        PaymentMethod.Other => "Andere",
+        _                   => m.ToString()
+    };
+
+    string FormatFileSize(int bytes)
+    {
+        if (bytes >= 1024 * 1024) return $"{bytes / 1024.0 / 1024.0:F1} MB";
+        if (bytes >= 1024) return $"{bytes / 1024.0:F0} KB";
+        return $"{bytes} B";
+    }
+}
+
+<div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTransactionModalLabel">Ausgabe bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTransactionForm" asp-controller="Transaction" asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="BudgetId" type="hidden" />
+                    <input asp-for="ReturnUrl" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="PerformedByUserId" class="form-label"></label>
+                            <select asp-for="PerformedByUserId" class="form-select">
+                                @foreach (var bu in Model.BudgetUsers)
+                                {
+                                    <option value="@bu.UserId">@bu.DisplayName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="PerformedByUserId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Amount" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">CHF</span>
+                                <input asp-for="Amount" class="form-control" type="text" inputmode="decimal" />
+                            </div>
+                            <span asp-validation-for="Amount" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PaymentSource" class="form-label"></label>
+                            <select asp-for="PaymentSource" class="form-select">
+                                @foreach (PaymentSource s in Enum.GetValues(typeof(PaymentSource)))
+                                {
+                                    <option value="@((int)s)">@PaymentSourceLabel(s)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="PaymentSource" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PaymentMethod" class="form-label"></label>
+                            <select asp-for="PaymentMethod" class="form-select">
+                                @foreach (PaymentMethod m in Enum.GetValues(typeof(PaymentMethod)))
+                                {
+                                    <option value="@((int)m)">@PaymentMethodLabel(m)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                        </div>
+
+                        @if (Model.Positions.Any())
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="PositionId" class="form-label">Budgetposition (optional)</label>
+                                <select asp-for="PositionId" class="form-select">
+                                    <option value="">— keine —</option>
+                                    @foreach (var pos in Model.Positions)
+                                    {
+                                        <option value="@pos.Id">@pos.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        else
+                        {
+                            <input asp-for="PositionId" type="hidden" />
+                        }
+
+                        <div class="col-12">
+                            <label class="form-label">Neue Belege hinzufügen</label>
+                            <input type="file" name="newAttachments" class="form-control"
+                                   multiple accept="image/*,.pdf" capture="environment" />
+                            <div class="form-text">Erlaubte Formate: JPG, PNG, WEBP, GIF, PDF. Max. 10 MB pro Datei.</div>
+                        </div>
+                    </div>
+                </form>
+
+                @if (Model.ExistingDocuments.Any())
+                {
+                    <hr />
+                    <h6>Vorhandene Belege</h6>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var doc in Model.ExistingDocuments)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>
+                                    <i class="bi @(doc.ContentType.StartsWith("image/") ? "bi-image" : "bi-file-earmark-pdf") me-2"></i>
+                                    @doc.FileName
+                                    <small class="text-muted ms-2">(@FormatFileSize(doc.FileSize))</small>
+                                </span>
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="Transaction" asp-action="DownloadDocument" asp-route-id="@doc.Id"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <form asp-action="DeleteDocument" method="post" class="d-inline delete-document-form">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@doc.Id" />
+                                        <input type="hidden" name="transactionId" value="@Model.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" form="editTransactionForm" class="btn btn-primary">
+                    Änderungen speichern <i class="bi bi-floppy"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
