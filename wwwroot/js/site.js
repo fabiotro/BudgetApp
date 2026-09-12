@@ -293,6 +293,91 @@ function wireEditTransactionForm(container) {
     });
 }
 
+// Upsert-category modal — same async-load-into-modal / fetch-submit approach
+// as the transaction Create/Edit modals.
+function openUpsertCategoryModal(id) {
+    var container = document.getElementById('upsertCategoryModalContainer');
+    var url = '/Category/UpsertCategory' + (id ? ('?id=' + id) : '');
+    fetch(url)
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+            container.innerHTML = html;
+            wireUpsertCategoryForm(container);
+            new bootstrap.Modal(container.querySelector('.modal')).show();
+        })
+        .catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
+}
+
+function wireUpsertCategoryForm(container) {
+    var form = container.querySelector('form');
+    if (!form) return;
+
+    if (window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive) {
+        window.jQuery.validator.unobtrusive.parse(form);
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        postFormViaFetch(
+            form,
+            function (data) {
+                if (data.success) window.location.href = data.redirectUrl;
+            },
+            function (html) {
+                swapModalContent(container, html, wireUpsertCategoryForm);
+            }
+        ).catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
+    });
+}
+
+// Upsert-subcategory modal — categoryId preselects the dropdown when adding
+// a new subcategory from a specific category's card footer.
+function openUpsertSubCategoryModal(id, categoryId) {
+    var container = document.getElementById('upsertSubCategoryModalContainer');
+    var params = [];
+    if (id) params.push('id=' + id);
+    if (categoryId) params.push('categoryId=' + categoryId);
+    var url = '/Category/UpsertSubCategory' + (params.length ? ('?' + params.join('&')) : '');
+    fetch(url)
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+            container.innerHTML = html;
+            wireUpsertSubCategoryForm(container);
+            new bootstrap.Modal(container.querySelector('.modal')).show();
+        })
+        .catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
+}
+
+function wireUpsertSubCategoryForm(container) {
+    var form = container.querySelector('form');
+    if (!form) return;
+
+    if (window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive) {
+        window.jQuery.validator.unobtrusive.parse(form);
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        postFormViaFetch(
+            form,
+            function (data) {
+                if (data.success) window.location.href = data.redirectUrl;
+            },
+            function (html) {
+                swapModalContent(container, html, wireUpsertSubCategoryForm);
+            }
+        ).catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
+    });
+}
+
 // Profile sidebar — load the edit form async when it's opened, submit its
 // forms via fetch so saving doesn't navigate away from the sidebar.
 (function () {

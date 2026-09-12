@@ -5,16 +5,16 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Kategorien</h2>
-    <a asp-action="UpsertCategory" class="btn btn-primary">
+    <button type="button" class="btn btn-primary" onclick="openUpsertCategoryModal()">
         <span class="me-2">Kategorie erstellen</span>
         <i class="bi bi-plus-square"></i>
-    </a>
+    </button>
 </div>
 <hr />
 
 @if (!Model.Categories.Any())
 {
-    <p class="text-muted">Noch keine Kategorien vorhanden. <a asp-action="UpsertCategory">Jetzt erstellen.</a></p>
+    <p class="text-muted">Noch keine Kategorien vorhanden. <a href="javascript:void(0)" onclick="openUpsertCategoryModal()">Jetzt erstellen.</a></p>
 }
 else
 {
@@ -34,10 +34,10 @@ else
                         }
                     </div>
                     <div>
-                        <a asp-action="UpsertCategory" asp-route-id="@item.Category.Id"
-                           class="btn btn-sm btn-outline-secondary">
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="openUpsertCategoryModal(@item.Category.Id)">
                             <i class="bi bi-pen"></i>
-                        </a>
+                        </button>
                         <button type="submit" form="deleteCat-@item.Category.Id"
                                 class="btn btn-sm btn-outline-danger"
                                 onclick="return confirm('Kategorie «@item.Category.Name» wirklich löschen?')">
@@ -65,10 +65,10 @@ else
                                             }
                                         </td>
                                         <td class="text-end pe-3" style="white-space: nowrap;">
-                                            <a asp-action="UpsertSubCategory" asp-route-id="@sub.Id"
-                                               class="btn btn-sm btn-outline-secondary">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    onclick="openUpsertSubCategoryModal(@sub.Id)">
                                                 <i class="bi bi-pen"></i>
-                                            </a>
+                                            </button>
                                             <form asp-action="DeleteSubCategory" method="post" class="d-inline"
                                                   onsubmit="return confirm('Unterkategorie «@sub.Name» wirklich löschen?')">
                                                 @Html.AntiForgeryToken()
@@ -86,10 +86,10 @@ else
                 }
 
                 <div class="card-footer">
-                    <a asp-action="UpsertSubCategory" asp-route-categoryId="@item.Category.Id"
-                       class="btn btn-sm btn-outline-primary">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            onclick="openUpsertSubCategoryModal(null, @item.Category.Id)">
                         Unterkategorie hinzufügen <i class="bi bi-plus-square"></i>
-                    </a>
+                    </button>
                 </div>
             </div>
         }
@@ -105,7 +105,11 @@ else
     }
 }
 
+<div id="upsertCategoryModalContainer"></div>
+<div id="upsertSubCategoryModalContainer"></div>
+
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script src="~/lib/sortablejs/Sortable.min.js"></script>
     <script src="~/js/category-reorder.js" asp-append-version="true"></script>
 }
