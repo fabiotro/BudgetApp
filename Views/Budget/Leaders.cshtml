@@ -9,9 +9,7 @@
         <h2>Leitpersonen</h2>
         <small class="text-muted">@Model.Budget.Name</small>
     </div>
-    <a asp-action="Detail" asp-route-id="@Model.Budget.Id" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Zurück zum Budget
-    </a>
+    <partial name="_GoBackButton" />
 </div>
 <hr />
 

@@ -47,10 +47,7 @@
         <button type="button" class="btn btn-primary btn-sm" onclick="openCreateTransactionModal(@Model.Budget.Id)">
             Ausgabe erfassen <i class="bi bi-plus-square"></i>
         </button>
-        <a asp-controller="Budget" asp-action="Detail" asp-route-id="@Model.Budget.Id"
-           class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Lagerübersicht
-        </a>
+        <partial name="_GoBackButton" />
     </div>
 </div>
 <hr />
