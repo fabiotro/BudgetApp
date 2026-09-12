@@ -3,6 +3,7 @@ using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
+using BudgetApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,13 +17,15 @@ namespace BudgetApp.Controllers
         private readonly ICampUserRepository<CampUserModel> _campUserRepo;
         private readonly ICampInviteRepository<CampInviteModel> _inviteRepo;
         private readonly IUserRepository<UserModel> _userRepo;
+        private readonly IEmailService _emailService;
 
         public InviteController(
             ILogger<InviteController> logger,
             ICampRepository<CampModel> campRepo,
             ICampUserRepository<CampUserModel> campUserRepo,
             ICampInviteRepository<CampInviteModel> inviteRepo,
-            IUserRepository<UserModel> userRepo
+            IUserRepository<UserModel> userRepo,
+            IEmailService emailService
         )
         {
             _logger = logger;
@@ -30,6 +33,7 @@ namespace BudgetApp.Controllers
             _campUserRepo = campUserRepo;
             _inviteRepo = inviteRepo;
             _userRepo = userRepo;
+            _emailService = emailService;
         }
 
         private int GetCurrentUserId() =>
@@ -163,6 +167,30 @@ namespace BudgetApp.Controllers
                     Status = InviteStatus.Pending,
                 };
                 await _inviteRepo.Create(invite);
+
+                try
+                {
+                    await _emailService.SendCampInviteEmailAsync(
+                        targetUser.Email,
+                        targetUser.DisplayName,
+                        $"{camp.StartDate:dd.MM.yyyy} – {camp.EndDate:dd.MM.yyyy}"
+                            + (
+                                string.IsNullOrWhiteSpace(camp.MainLeader)
+                                    ? ""
+                                    : $" ({camp.MainLeader})"
+                            ),
+                        Url.Action("Detail", "Camp", new { id = vm.CampId }, Request.Scheme)!
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Error sending invite email to user {UserId} for camp {CampId}",
+                        targetUser.Id,
+                        vm.CampId
+                    );
+                }
 
                 TempData.Put(
                     "ToastMsg",
