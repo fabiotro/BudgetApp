@@ -8,6 +8,7 @@ namespace BudgetApp.Data.Repositories
         Task<IEnumerable<T>> GetAll();
         Task<T?> GetById(int id);
         Task<T?> GetByEmail(string email);
+        Task<T?> GetByEmailConfirmationToken(string token);
         Task<int> Create(T user);
         Task<int> Update(T user);
         Task<int> Delete(int id);

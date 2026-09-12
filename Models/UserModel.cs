@@ -26,5 +26,12 @@ namespace BudgetApp.Models
 
         [StringLength(34)]
         public string? IBAN { get; set; }
+
+        public bool IsEmailConfirmed { get; set; }
+
+        [StringLength(128)]
+        public string? EmailConfirmationToken { get; set; }
+
+        public DateTime? EmailConfirmationTokenExpiry { get; set; }
     }
 }

@@ -550,3 +550,19 @@ BEGIN
     UPDATE [dbo].[CampInvite] SET ChangeDate = GETDATE() FROM [CampInvite] t INNER JOIN Inserted i ON t.Id = i.Id
 END'
 GO
+
+-- =============================================
+-- Email Confirmation Feature
+-- =============================================
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[User]') AND name = 'IsEmailConfirmed')
+BEGIN
+    ALTER TABLE [dbo].[User] ADD [IsEmailConfirmed] [bit] NOT NULL DEFAULT 0;
+    ALTER TABLE [dbo].[User] ADD [EmailConfirmationToken] [nvarchar](128) NULL;
+    ALTER TABLE [dbo].[User] ADD [EmailConfirmationTokenExpiry] [datetime] NULL;
+
+    -- Grandfather in everyone who existed before this feature shipped.
+    -- (sp_executesql defers compilation so the column just added above resolves.)
+    EXEC dbo.sp_executesql @statement = N'UPDATE [dbo].[User] SET [IsEmailConfirmed] = 1';
+END
+GO

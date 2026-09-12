@@ -17,6 +17,24 @@
             <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
             <div class="mb-3">
+                <label class="form-label">E-Mail</label>
+                <div class="d-flex align-items-center gap-2">
+                    <span>@Model.Email</span>
+                    @if (Model.IsEmailConfirmed)
+                    {
+                        <span class="badge bg-success">Bestätigt</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Nicht bestätigt</span>
+                        <form asp-controller="Profile" asp-action="ResendConfirmation" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-link btn-sm p-0">Bestätigung erneut senden</button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="DisplayName" class="form-label"></label>
                 <input asp-for="DisplayName" class="form-control" />
                 <span asp-validation-for="DisplayName" class="text-danger small"></span>

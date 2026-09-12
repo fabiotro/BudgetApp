@@ -1,8 +1,10 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
+using BudgetApp.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -17,16 +19,19 @@ namespace BudgetApp.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly IUserRepository<UserModel> _userRepo;
         private readonly IPasswordHasher<UserModel> _passwordHasher;
+        private readonly IEmailService _emailService;
 
         public AccountController(
             ILogger<AccountController> logger,
             IUserRepository<UserModel> userRepo,
-            IPasswordHasher<UserModel> passwordHasher
+            IPasswordHasher<UserModel> passwordHasher,
+            IEmailService emailService
         )
         {
             _logger = logger;
             _userRepo = userRepo;
             _passwordHasher = passwordHasher;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -107,6 +112,35 @@ namespace BudgetApp.Controllers
                 int newId = await _userRepo.Create(user);
                 user.Id = newId;
 
+                user.EmailConfirmationToken = Convert.ToHexString(
+                    RandomNumberGenerator.GetBytes(32)
+                );
+                user.EmailConfirmationTokenExpiry = DateTime.UtcNow.AddHours(24);
+                await _userRepo.Update(user);
+
+                try
+                {
+                    var confirmUrl = Url.Action(
+                        "ConfirmEmail",
+                        "Account",
+                        new { token = user.EmailConfirmationToken },
+                        Request.Scheme
+                    )!;
+                    await _emailService.SendConfirmationEmailAsync(
+                        user.Email,
+                        user.DisplayName,
+                        confirmUrl
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Error sending confirmation email to user {UserId}",
+                        user.Id
+                    );
+                }
+
                 await SignInUser(user);
 
                 var toast = new ToastMessageViewModel
@@ -133,6 +167,54 @@ namespace BudgetApp.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string token)
+        {
+            var user = await _userRepo.GetByEmailConfirmationToken(token);
+
+            bool valid =
+                user != null
+                && user.EmailConfirmationTokenExpiry.HasValue
+                && user.EmailConfirmationTokenExpiry.Value > DateTime.UtcNow;
+
+            bool authenticated = User.Identity?.IsAuthenticated == true;
+
+            if (!valid)
+            {
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Der Bestätigungslink ist ungültig oder abgelaufen.",
+                        Type = ToastType.Error,
+                    }
+                );
+                return authenticated
+                    ? RedirectToAction("Index", "Home")
+                    : RedirectToAction(nameof(Login));
+            }
+
+            user!.IsEmailConfirmed = true;
+            user.EmailConfirmationToken = null;
+            user.EmailConfirmationTokenExpiry = null;
+            await _userRepo.Update(user);
+
+            TempData.Put(
+                "ToastMsg",
+                new ToastMessageViewModel
+                {
+                    Title = "Bestätigt",
+                    Message = "E-Mail-Adresse erfolgreich bestätigt.",
+                    Type = ToastType.Success,
+                }
+            );
+
+            return authenticated
+                ? RedirectToAction("Index", "Home")
+                : RedirectToAction(nameof(Login));
         }
 
         private async Task SignInUser(UserModel user)

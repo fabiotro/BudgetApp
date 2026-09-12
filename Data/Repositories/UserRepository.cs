@@ -21,6 +21,9 @@ namespace BudgetApp.Data.Repositories
                   ,[FirstName]
                   ,[LastName]
                   ,[IBAN]
+                  ,[IsEmailConfirmed]
+                  ,[EmailConfirmationToken]
+                  ,[EmailConfirmationTokenExpiry]
               FROM [dbo].[User]
               ORDER BY [DisplayName]
             ";
@@ -40,6 +43,9 @@ namespace BudgetApp.Data.Repositories
                   ,[FirstName]
                   ,[LastName]
                   ,[IBAN]
+                  ,[IsEmailConfirmed]
+                  ,[EmailConfirmationToken]
+                  ,[EmailConfirmationTokenExpiry]
               FROM [dbo].[User]
               WHERE [Id] = @Id
             ";
@@ -58,10 +64,34 @@ namespace BudgetApp.Data.Repositories
                   ,[FirstName]
                   ,[LastName]
                   ,[IBAN]
+                  ,[IsEmailConfirmed]
+                  ,[EmailConfirmationToken]
+                  ,[EmailConfirmationTokenExpiry]
               FROM [dbo].[User]
               WHERE [Email] = @Email
             ";
             return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Email = email });
+        }
+
+        public async Task<T?> GetByEmailConfirmationToken(string token)
+        {
+            using var conn = _context.CreateConnection();
+            var sql =
+                @"
+            SELECT [Id]
+                  ,[Email]
+                  ,[DisplayName]
+                  ,[PasswordHash]
+                  ,[FirstName]
+                  ,[LastName]
+                  ,[IBAN]
+                  ,[IsEmailConfirmed]
+                  ,[EmailConfirmationToken]
+                  ,[EmailConfirmationTokenExpiry]
+              FROM [dbo].[User]
+              WHERE [EmailConfirmationToken] = @Token
+            ";
+            return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Token = token });
         }
 
         public async Task<int> Create(T user)
@@ -100,6 +130,9 @@ namespace BudgetApp.Data.Repositories
                   ,[FirstName] = @FirstName
                   ,[LastName] = @LastName
                   ,[IBAN] = @IBAN
+                  ,[IsEmailConfirmed] = @IsEmailConfirmed
+                  ,[EmailConfirmationToken] = @EmailConfirmationToken
+                  ,[EmailConfirmationTokenExpiry] = @EmailConfirmationTokenExpiry
              WHERE [Id] = @Id
             ";
             return await conn.ExecuteAsync(sql, user);

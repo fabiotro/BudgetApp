@@ -5,6 +5,10 @@ namespace BudgetApp.Models
 {
     public class EditProfileViewModel
     {
+        public string Email { get; set; } = string.Empty;
+
+        public bool IsEmailConfirmed { get; set; }
+
         [Required(
             ErrorMessageResourceName = "Required",
             ErrorMessageResourceType = typeof(DataAnnotations)

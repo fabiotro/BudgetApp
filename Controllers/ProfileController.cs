@@ -1,8 +1,10 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Enums;
 using BudgetApp.Extensions;
 using BudgetApp.Models;
+using BudgetApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +15,17 @@ namespace BudgetApp.Controllers
     {
         private readonly ILogger<ProfileController> _logger;
         private readonly IUserRepository<UserModel> _userRepo;
+        private readonly IEmailService _emailService;
 
         public ProfileController(
             ILogger<ProfileController> logger,
-            IUserRepository<UserModel> userRepo
+            IUserRepository<UserModel> userRepo,
+            IEmailService emailService
         )
         {
             _logger = logger;
             _userRepo = userRepo;
+            _emailService = emailService;
         }
 
         private int GetCurrentUserId() =>
@@ -36,6 +41,8 @@ namespace BudgetApp.Controllers
 
             var vm = new EditProfileViewModel
             {
+                Email = user.Email,
+                IsEmailConfirmed = user.IsEmailConfirmed,
                 DisplayName = user.DisplayName,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -90,6 +97,59 @@ namespace BudgetApp.Controllers
                 TempData.Put("ToastMsg", toast);
                 return View(vm);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendConfirmation()
+        {
+            int userId = GetCurrentUserId();
+            var user = await _userRepo.GetById(userId);
+            if (user == null)
+                return NotFound();
+
+            if (!user.IsEmailConfirmed)
+            {
+                user.EmailConfirmationToken = Convert.ToHexString(
+                    RandomNumberGenerator.GetBytes(32)
+                );
+                user.EmailConfirmationTokenExpiry = DateTime.UtcNow.AddHours(24);
+                await _userRepo.Update(user);
+
+                try
+                {
+                    var confirmUrl = Url.Action(
+                        "ConfirmEmail",
+                        "Account",
+                        new { token = user.EmailConfirmationToken },
+                        Request.Scheme
+                    )!;
+                    await _emailService.SendConfirmationEmailAsync(
+                        user.Email,
+                        user.DisplayName,
+                        confirmUrl
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Error resending confirmation email for user {UserId}",
+                        userId
+                    );
+                }
+            }
+
+            TempData.Put(
+                "ToastMsg",
+                new ToastMessageViewModel
+                {
+                    Title = "Gesendet",
+                    Message = "Bestätigungs-E-Mail wurde versendet.",
+                    Type = ToastType.Success,
+                }
+            );
+            return RedirectToAction(nameof(Edit));
         }
     }
 }

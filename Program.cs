@@ -2,6 +2,7 @@ using BudgetApp.Data;
 using BudgetApp.Data.Repositories;
 using BudgetApp.Models;
 using BudgetApp.Resources;
+using BudgetApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using NLog;
@@ -44,6 +45,9 @@ try
         });
 
     builder.Services.AddScoped<IPasswordHasher<UserModel>, PasswordHasher<UserModel>>();
+
+    // Email
+    builder.Services.AddScoped<IEmailService, EmailService>();
 
     // Dependency Injection for Repositories
     builder.Services.AddScoped<DapperContext>();
