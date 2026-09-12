@@ -46,15 +46,21 @@
         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#budgetAddPositionModal">
             Position hinzufügen <i class="bi bi-plus-square"></i>
         </button>
-        <a asp-controller="Transaction" asp-action="Create" asp-route-budgetId="@Model.Budget.Id" class="btn btn-outline-primary btn-sm">
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="openCreateTransactionModal(@Model.Budget.Id)">
             Ausgabe erfassen <i class="bi bi-cash-coin"></i>
-        </a>
+        </button>
         <a asp-action="Edit" asp-route-id="@Model.Budget.Id" class="btn btn-outline-secondary btn-sm">
             Lagerdaten bearbeiten <i class="bi bi-pen"></i>
         </a>
         <a asp-action="Leaders" asp-route-id="@Model.Budget.Id" class="btn btn-outline-secondary btn-sm">
             Leitpersonen verwalten <i class="bi bi-people"></i>
         </a>
+        @if (Model.IsMainLeader)
+        {
+            <a asp-controller="Transaction" asp-action="BudgetOverview" asp-route-budgetId="@Model.Budget.Id" class="btn btn-outline-secondary btn-sm">
+                Ausgabenübersicht <i class="bi bi-receipt"></i>
+            </a>
+        }
     </div>
 </div>
 <hr />
@@ -197,6 +203,7 @@ else
 }
 
 <div id="editPositionModalContainer"></div>
+<div id="createTransactionModalContainer"></div>
 
 <script>
     function openEditPositionModal(id) {
@@ -229,4 +236,8 @@ else
     CampJs_PersonsCount_fc = Model.Budget.js_PersonsCount_fc,
     CampLeadersTeamCount_fc = Model.Budget.LeadersTeamCount_fc
 })
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
 

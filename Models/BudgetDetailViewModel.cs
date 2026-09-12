@@ -39,13 +39,19 @@ namespace BudgetApp.Models
         public List<PositionTypeModel> PositionTypes { get; set; } = [];
         public List<CategoryModel> AllCategories { get; set; } = [];
         public List<SubCategoryModel> AllSubCategories { get; set; } = [];
+        public bool IsMainLeader { get; set; }
+    }
+
+    public class BudgetIndexRowViewModel
+    {
+        public required BudgetModel Budget { get; set; }
+        public bool IsMainLeader { get; set; }
     }
 
     public class BudgetLeadersViewModel
     {
         public required BudgetModel Budget { get; set; }
         public List<BudgetUserModel> BudgetUsers { get; set; } = [];
-        public List<UserExpenseSummaryViewModel> UserSummaries { get; set; } = [];
         public List<BudgetInviteModel> Invites { get; set; } = [];
         public bool IsMainLeader { get; set; }
         public SendInviteViewModel InviteForm { get; set; } = new() { Email = string.Empty };

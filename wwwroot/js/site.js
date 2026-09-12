@@ -49,6 +49,24 @@ function showAjaxToast(title, message, success) {
     toast.show();
 }
 
+// Posts a form via fetch and branches on the response's content-type: a JSON
+// response (success, or a failure that only needs a toast) goes to onJson; an
+// HTML response (a re-rendered partial showing validation errors) goes to onHtml.
+function postFormViaFetch(form, onJson, onHtml) {
+    var formData = new FormData(form);
+    return fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    }).then(function (r) {
+        var contentType = r.headers.get('content-type') || '';
+        if (contentType.indexOf('application/json') !== -1) {
+            return r.json().then(onJson);
+        }
+        return r.text().then(onHtml);
+    });
+}
+
 function formatCurrencyInput(input) {
     const val = parseFloat(input.value);
     input.value = isNaN(val) ? '0.00' : val.toFixed(2);
@@ -147,6 +165,134 @@ document.addEventListener('focusout', function (e) {
     }
 }());
 
+// Create-transaction modal — load the form async into a modal (from Budget
+// Index or Budget Detail), submit it via fetch so a server-side validation
+// failure re-shows the modal with the entered values instead of navigating
+// to a bare, unstyled fragment. On success, do a real navigation to the
+// returned redirect URL so the toast shows the same way it does everywhere
+// else (TempData survives the fetch response and is read on that load).
+function openCreateTransactionModal(budgetId) {
+    var container = document.getElementById('createTransactionModalContainer');
+    fetch('/Transaction/Create?budgetId=' + budgetId)
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+            container.innerHTML = html;
+            wireCreateTransactionForm(container);
+            new bootstrap.Modal(container.querySelector('.modal')).show();
+        });
+}
+
+// Re-rendering a modal after a failed submit by wiping the container and
+// creating a new bootstrap.Modal leaves the already-shown instance's backdrop
+// orphaned in the DOM (a new one is added on top each time, and none of the
+// earlier ones are ever removed, even once the modal is finally closed). Swap
+// just the .modal-content instead, so the original instance/backdrop stays put.
+function swapModalContent(container, html, rewire) {
+    var temp = document.createElement('div');
+    temp.innerHTML = html;
+    var newContent = temp.querySelector('.modal-content');
+    var currentContent = container.querySelector('.modal-content');
+    if (newContent && currentContent) {
+        currentContent.replaceWith(newContent);
+        rewire(container);
+    } else {
+        container.innerHTML = html;
+        rewire(container);
+        new bootstrap.Modal(container.querySelector('.modal')).show();
+    }
+}
+
+function wireCreateTransactionForm(container) {
+    var form = container.querySelector('form');
+    if (!form) return;
+
+    var returnUrlInput = form.querySelector('[name="ReturnUrl"]');
+    if (returnUrlInput) returnUrlInput.value = window.location.href;
+
+    initCurrencyInputs(container);
+    initCountInputs(container);
+    if (window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive) {
+        window.jQuery.validator.unobtrusive.parse(form);
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        postFormViaFetch(
+            form,
+            function (data) {
+                if (data.success) window.location.href = data.redirectUrl;
+            },
+            function (html) {
+                swapModalContent(container, html, wireCreateTransactionForm);
+            }
+        ).catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
+    });
+}
+
+// Edit-transaction modal — same async-load-into-modal / fetch-submit approach
+// as the create modal, plus its per-document delete forms (also fetch-based,
+// so deleting a document doesn't navigate away from the modal either).
+function openEditTransactionModal(id) {
+    var container = document.getElementById('editTransactionModalContainer');
+    fetch('/Transaction/Edit?id=' + id)
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+            container.innerHTML = html;
+            wireEditTransactionForm(container);
+            new bootstrap.Modal(container.querySelector('.modal')).show();
+        });
+}
+
+function wireEditTransactionForm(container) {
+    var form = container.querySelector('#editTransactionForm');
+    if (form) {
+        var returnUrlInput = form.querySelector('[name="ReturnUrl"]');
+        if (returnUrlInput) returnUrlInput.value = window.location.href;
+
+        initCurrencyInputs(container);
+        initCountInputs(container);
+        if (window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive) {
+            window.jQuery.validator.unobtrusive.parse(form);
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            postFormViaFetch(
+                form,
+                function (data) {
+                    if (data.success) window.location.href = data.redirectUrl;
+                },
+                function (html) {
+                    swapModalContent(container, html, wireEditTransactionForm);
+                }
+            ).catch(function () {
+                showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+            });
+        });
+    }
+
+    container.querySelectorAll('.delete-document-form').forEach(function (delForm) {
+        delForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!confirm('Beleg löschen?')) return;
+            postFormViaFetch(
+                delForm,
+                function (data) {
+                    showAjaxToast(data.title, data.message, data.success);
+                    if (data.success) delForm.closest('li').remove();
+                },
+                function () {
+                    showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+                }
+            ).catch(function () {
+                showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+            });
+        });
+    });
+}
+
 // Profile sidebar — load the edit form async when it's opened, submit its
 // forms via fetch so saving doesn't navigate away from the sidebar.
 (function () {
@@ -195,27 +341,14 @@ document.addEventListener('focusout', function (e) {
 
     // Posts a form via fetch. The server returns JSON on success/failure (toast
     // only, form stays as-is) or the re-rendered partial HTML when validation
-    // failed (form needs to show the errors), so branch on the content type.
+    // failed (form needs to show the errors).
     function submitViaFetch(form) {
-        var formData = new FormData(form);
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        })
-            .then(function (r) {
-                var contentType = r.headers.get('content-type') || '';
-                if (contentType.indexOf('application/json') !== -1) {
-                    return r.json().then(handleJsonResult);
-                }
-                return r.text().then(function (html) {
-                    body.innerHTML = html;
-                    bindProfileForms();
-                });
-            })
-            .catch(function () {
-                showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
-            });
+        postFormViaFetch(form, handleJsonResult, function (html) {
+            body.innerHTML = html;
+            bindProfileForms();
+        }).catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
     }
 
     function handleJsonResult(data) {
