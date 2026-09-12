@@ -6,7 +6,23 @@ document.addEventListener("DOMContentLoaded", function () {
     displayToast();
     initCurrencyInputs();
     initCountInputs();
+    initGoBackButtons();
 });
+
+// Hides ".go-back-btn" instances (from _GoBackButton.cshtml) when there's no
+// real previous page to return to, and sends the rest through browser
+// history rather than a hardcoded destination.
+function initGoBackButtons() {
+    document.querySelectorAll(".go-back-btn").forEach(function (btn) {
+        if (window.history.length <= 1) {
+            btn.classList.add("d-none");
+            return;
+        }
+        btn.addEventListener("click", function () {
+            window.history.back();
+        });
+    });
+}
 
 function displayToast() {
     var toastEl = document.getElementById("liveToast");
