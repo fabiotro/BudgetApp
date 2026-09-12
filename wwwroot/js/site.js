@@ -86,7 +86,7 @@ document.addEventListener('focusout', function (e) {
                 data.invites.forEach(function (inv) {
                     html += '<li class="px-3 py-2 border-bottom">';
                     html += '<div class="small fw-semibold">' + escapeHtml(inv.invitedBy) + ' lädt dich ein</div>';
-                    html += '<div class="small text-muted mb-2">Lager: ' + escapeHtml(inv.campName) + '</div>';
+                    html += '<div class="small text-muted mb-2">Lager: ' + escapeHtml(inv.budgetName) + '</div>';
                     html += '<form method="post" action="/Invite/Accept" class="d-inline">';
                     html += '<input type="hidden" name="__RequestVerificationToken" value="' + escapeHtml(token) + '">';
                     html += '<input type="hidden" name="id" value="' + inv.id + '">';

@@ -1,0 +1,24 @@
+@model BudgetFormViewModel
+@{
+    ViewData["Title"] = "Neues Lagerbudget";
+}
+
+<h2>Neues Lagerbudget erstellen</h2>
+<hr />
+
+@using (Html.BeginForm("Create", "Budget", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <partial name="_BudgetForm" model="Model" />
+
+    <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary">
+            <span class="me-2">Budget erstellen</span>
+            <i class="bi bi-plus-square"></i>
+        </button>
+    </div>
+}
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
