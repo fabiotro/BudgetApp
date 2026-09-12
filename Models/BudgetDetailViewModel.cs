@@ -6,10 +6,6 @@ namespace BudgetApp.Models
     {
         public required BudgetModel Budget { get; set; }
         public List<BudgetUserModel> BudgetUsers { get; set; } = [];
-        public List<UserExpenseSummaryViewModel> UserSummaries { get; set; } = [];
-        public List<BudgetInviteModel> Invites { get; set; } = [];
-        public bool IsMainLeader { get; set; }
-        public SendInviteViewModel InviteForm { get; set; } = new() { Email = string.Empty };
         public List<CategoryGroupViewModel> Groups { get; set; } = [];
 
         public decimal TotalAmount_fc => Groups.Sum(g => g.TotalAmount_fc);
@@ -43,6 +39,16 @@ namespace BudgetApp.Models
         public List<PositionTypeModel> PositionTypes { get; set; } = [];
         public List<CategoryModel> AllCategories { get; set; } = [];
         public List<SubCategoryModel> AllSubCategories { get; set; } = [];
+    }
+
+    public class BudgetLeadersViewModel
+    {
+        public required BudgetModel Budget { get; set; }
+        public List<BudgetUserModel> BudgetUsers { get; set; } = [];
+        public List<UserExpenseSummaryViewModel> UserSummaries { get; set; } = [];
+        public List<BudgetInviteModel> Invites { get; set; } = [];
+        public bool IsMainLeader { get; set; }
+        public SendInviteViewModel InviteForm { get; set; } = new() { Email = string.Empty };
     }
 
     public class UserExpenseSummaryViewModel

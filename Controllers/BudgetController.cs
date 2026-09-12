@@ -277,9 +277,6 @@ namespace BudgetApp.Controllers
                 return Forbid();
 
             var budgetUsers = (await _budgetUserRepo.GetByBudgetId(id)).ToList();
-            var userSummaries = (await _transactionRepo.GetUserSummariesByBudgetId(id)).ToList();
-            var invites = (await _inviteRepo.GetByBudgetId(id)).ToList();
-            bool isMainLeader = budgetUsers.Any(bu => bu.UserId == userId && bu.IsMainLeader);
 
             var positions = (await _positionRepo.GetByBudgetId(id)).ToList();
             var categories = (await _categoryRepo.GetAll()).ToDictionary(c => c.Id);
@@ -359,14 +356,38 @@ namespace BudgetApp.Controllers
             {
                 Budget = budget,
                 BudgetUsers = budgetUsers,
-                UserSummaries = userSummaries,
-                Invites = invites,
-                IsMainLeader = isMainLeader,
-                InviteForm = new SendInviteViewModel { Email = string.Empty, BudgetId = id },
                 Groups = groups,
                 PositionTypes = positionTypes.Values.OrderBy(pt => pt.Name).ToList(),
                 AllCategories = categories.Values.OrderBy(c => c.SortIndex).ToList(),
                 AllSubCategories = subCategories.Values.OrderBy(sc => sc.SortIndex).ToList(),
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Leaders(int id)
+        {
+            int userId = GetCurrentUserId();
+            var budget = await _budgetRepo.GetById(id);
+            if (budget == null)
+                return NotFound();
+            if (!await HasAccessAsync(budget, userId))
+                return Forbid();
+
+            var budgetUsers = (await _budgetUserRepo.GetByBudgetId(id)).ToList();
+            var userSummaries = (await _transactionRepo.GetUserSummariesByBudgetId(id)).ToList();
+            var invites = (await _inviteRepo.GetByBudgetId(id)).ToList();
+            bool isMainLeader = budgetUsers.Any(bu => bu.UserId == userId && bu.IsMainLeader);
+
+            var vm = new BudgetLeadersViewModel
+            {
+                Budget = budget,
+                BudgetUsers = budgetUsers,
+                UserSummaries = userSummaries,
+                Invites = invites,
+                IsMainLeader = isMainLeader,
+                InviteForm = new SendInviteViewModel { Email = string.Empty, BudgetId = id },
             };
 
             return View(vm);
@@ -572,14 +593,14 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     };
                     TempData.Put("ToastMsg", toast);
-                    return RedirectToAction(nameof(Detail), new { id = budgetId });
+                    return RedirectToAction(nameof(Leaders), new { id = budgetId });
                 }
 
                 await _budgetUserRepo.Delete(budgetUserId);
                 toast = new ToastMessageViewModel
                 {
                     Title = "Erfolg",
-                    Message = "Person entfernt.",
+                    Message = "Leitperson entfernt.",
                     Type = ToastType.Success,
                 };
             }
@@ -594,7 +615,7 @@ namespace BudgetApp.Controllers
                 };
             }
             TempData.Put("ToastMsg", toast);
-            return RedirectToAction(nameof(Detail), new { id = budgetId });
+            return RedirectToAction(nameof(Leaders), new { id = budgetId });
         }
 
         #region Helpers

@@ -73,11 +73,11 @@ namespace BudgetApp.Controllers
                     new ToastMessageViewModel
                     {
                         Title = "Fehler",
-                        Message = "Nur die Hauptleitung kann Einladungen versenden.",
+                        Message = "Nur die Hauptleitperson kann Einladungen versenden.",
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
             }
 
             if (!ModelState.IsValid)
@@ -91,7 +91,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
             }
 
             var targetUser = await _userRepo.GetByEmail(vm.Email.Trim().ToLowerInvariant());
@@ -106,7 +106,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
             }
 
             if (targetUser.Id == userId)
@@ -120,7 +120,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
             }
 
             if (budgetUsers.Any(bu => bu.UserId == targetUser.Id))
@@ -130,11 +130,11 @@ namespace BudgetApp.Controllers
                     new ToastMessageViewModel
                     {
                         Title = "Fehler",
-                        Message = $"{targetUser.DisplayName} ist bereits Mitglied dieses Lagers.",
+                        Message = $"{targetUser.DisplayName} ist bereits Leitperson dieses Lagers.",
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
             }
 
             var existingInvites = await _inviteRepo.GetByBudgetId(vm.BudgetId);
@@ -153,7 +153,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
             }
 
             try
@@ -224,7 +224,7 @@ namespace BudgetApp.Controllers
                 );
             }
 
-            return RedirectToAction("Detail", "Budget", new { id = vm.BudgetId });
+            return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
         }
 
         [HttpPost]
@@ -245,11 +245,11 @@ namespace BudgetApp.Controllers
                     new ToastMessageViewModel
                     {
                         Title = "Fehler",
-                        Message = "Nur die Hauptleitung kann Einladungen versenden.",
+                        Message = "Nur die Hauptleitperson kann Einladungen versenden.",
                         Type = ToastType.Error,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = invite.BudgetId });
             }
 
             if (invite.Status != InviteStatus.Declined)
@@ -263,7 +263,7 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Warning,
                     }
                 );
-                return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
+                return RedirectToAction("Leaders", "Budget", new { id = invite.BudgetId });
             }
 
             try
@@ -308,7 +308,7 @@ namespace BudgetApp.Controllers
                 );
             }
 
-            return RedirectToAction("Detail", "Budget", new { id = invite.BudgetId });
+            return RedirectToAction("Leaders", "Budget", new { id = invite.BudgetId });
         }
 
         [HttpPost]
