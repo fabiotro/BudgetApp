@@ -56,8 +56,10 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Profile" asp-action="Edit">
-                                    <i class="bi bi-person-circle"></i> @User.Identity.Name
+                                <a class="nav-link text-dark" id="profileNavLink"
+                                   asp-controller="Profile" asp-action="Edit"
+                                   data-bs-toggle="offcanvas" data-bs-target="#profileOffcanvas">
+                                    <i class="bi bi-person-circle"></i> <span id="profileDisplayName">@User.Identity.Name</span>
                                 </a>
                             </li>
                             <partial name="_InviteBell" model="pendingInviteCount" />
@@ -73,6 +75,18 @@
             </div>
         </nav>
     </header>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="profileOffcanvas" aria-labelledby="profileOffcanvasLabel" style="width: 420px;">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="profileOffcanvasLabel">Profil bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body" id="profileOffcanvasBody">
+                <div class="text-muted">Wird geladen…</div>
+            </div>
+        </div>
+    }
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
