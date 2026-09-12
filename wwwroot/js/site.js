@@ -16,6 +16,39 @@ function displayToast() {
     }
 }
 
+// Builds and shows a toast the same way _ToastNotification.cshtml does, for
+// results that come back from a fetch() call instead of a full page load.
+function showAjaxToast(title, message, success) {
+    var container = document.querySelector(".toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.className = "toast-container position-fixed top-0 end-0 p-3";
+        container.style.zIndex = 1100;
+        document.body.appendChild(container);
+    }
+
+    var toastEl = document.createElement("div");
+    toastEl.className = "toast";
+    toastEl.setAttribute("role", "alert");
+    toastEl.setAttribute("aria-live", "assertive");
+    toastEl.setAttribute("aria-atomic", "true");
+    toastEl.innerHTML =
+        '<div class="toast-header ' + (success ? "bg-success text-white" : "bg-danger text-white") + '">' +
+        '<strong class="me-auto"></strong>' +
+        '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>' +
+        "</div>" +
+        '<div class="toast-body text-dark"></div>';
+    toastEl.querySelector("strong").textContent = title;
+    toastEl.querySelector(".toast-body").textContent = message;
+    container.appendChild(toastEl);
+
+    var toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+    toastEl.addEventListener("hidden.bs.toast", function () {
+        toastEl.remove();
+    });
+    toast.show();
+}
+
 function formatCurrencyInput(input) {
     const val = parseFloat(input.value);
     input.value = isNaN(val) ? '0.00' : val.toFixed(2);
@@ -111,5 +144,85 @@ document.addEventListener('focusout', function (e) {
         var d = document.createElement('div');
         d.appendChild(document.createTextNode(text));
         return d.innerHTML;
+    }
+}());
+
+// Profile sidebar — load the edit form async when it's opened, submit its
+// forms via fetch so saving doesn't navigate away from the sidebar.
+(function () {
+    var navLink = document.getElementById('profileNavLink');
+    var offcanvasEl = document.getElementById('profileOffcanvas');
+    if (!navLink || !offcanvasEl) return;
+
+    var body = document.getElementById('profileOffcanvasBody');
+    var url = navLink.getAttribute('href');
+
+    offcanvasEl.addEventListener('show.bs.offcanvas', loadProfileForm);
+
+    function loadProfileForm() {
+        body.innerHTML = '<div class="text-muted">Wird geladen…</div>';
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                body.innerHTML = html;
+                bindProfileForms();
+            })
+            .catch(function () {
+                body.innerHTML = '<div class="text-danger small">Fehler beim Laden.</div>';
+            });
+    }
+
+    function bindProfileForms() {
+        var editForm = body.querySelector('#profileEditForm');
+        if (editForm) {
+            editForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitViaFetch(editForm);
+            });
+        }
+
+        var resendForm = body.querySelector('#resendConfirmationForm');
+        if (resendForm) {
+            resendForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitViaFetch(resendForm);
+            });
+        }
+
+        initCurrencyInputs(body);
+        initCountInputs(body);
+    }
+
+    // Posts a form via fetch. The server returns JSON on success/failure (toast
+    // only, form stays as-is) or the re-rendered partial HTML when validation
+    // failed (form needs to show the errors), so branch on the content type.
+    function submitViaFetch(form) {
+        var formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then(function (r) {
+                var contentType = r.headers.get('content-type') || '';
+                if (contentType.indexOf('application/json') !== -1) {
+                    return r.json().then(handleJsonResult);
+                }
+                return r.text().then(function (html) {
+                    body.innerHTML = html;
+                    bindProfileForms();
+                });
+            })
+            .catch(function () {
+                showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+            });
+    }
+
+    function handleJsonResult(data) {
+        showAjaxToast(data.title, data.message, data.success);
+        if (data.success && data.displayName) {
+            var nameSpan = document.getElementById('profileDisplayName');
+            if (nameSpan) nameSpan.textContent = data.displayName;
+        }
     }
 }());

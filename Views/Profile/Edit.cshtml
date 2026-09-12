@@ -13,58 +13,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Edit" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
-            <div class="mb-3">
-                <label class="form-label">E-Mail</label>
-                <div class="d-flex align-items-center gap-2">
-                    <span>@Model.Email</span>
-                    @if (Model.IsEmailConfirmed)
-                    {
-                        <span class="badge bg-success">Bestätigt</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-warning text-dark">Nicht bestätigt</span>
-                        <form asp-controller="Profile" asp-action="ResendConfirmation" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-link btn-sm p-0">Bestätigung erneut senden</button>
-                        </form>
-                    }
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="DisplayName" class="form-label"></label>
-                <input asp-for="DisplayName" class="form-control" />
-                <span asp-validation-for="DisplayName" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="FirstName" class="form-label"></label>
-                <input asp-for="FirstName" class="form-control" />
-                <span asp-validation-for="FirstName" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="LastName" class="form-label"></label>
-                <input asp-for="LastName" class="form-control" />
-                <span asp-validation-for="LastName" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="IBAN" class="form-label"></label>
-                <input asp-for="IBAN" class="form-control" placeholder="CH93 0076 2011 6238 5295 7" />
-                <div class="form-text">
-                    Wird für die Rückerstattung von Lagerausgaben verwendet.
-                </div>
-                <span asp-validation-for="IBAN" class="text-danger small"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">
-                Speichern <i class="bi bi-floppy"></i>
-            </button>
-        </form>
+        <partial name="_EditPartial" model="Model" />
     </div>
 </div>
 

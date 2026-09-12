@@ -31,6 +31,11 @@ namespace BudgetApp.Controllers
         private int GetCurrentUserId() =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+        // The profile edit form is loaded into a sidebar via fetch(); requests made
+        // that way are marked with this header so the controller can return just the
+        // partial/JSON the sidebar's JS expects instead of a full page.
+        private bool IsAjaxRequest() => Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         [HttpGet]
         public async Task<IActionResult> Edit()
         {
@@ -48,6 +53,8 @@ namespace BudgetApp.Controllers
                 LastName = user.LastName,
                 IBAN = user.IBAN,
             };
+            if (IsAjaxRequest())
+                return PartialView("_EditPartial", vm);
             return View(vm);
         }
 
@@ -56,7 +63,11 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> Edit(EditProfileViewModel vm)
         {
             if (!ModelState.IsValid)
+            {
+                if (IsAjaxRequest())
+                    return PartialView("_EditPartial", vm);
                 return View(vm);
+            }
 
             int userId = GetCurrentUserId();
             var user = await _userRepo.GetById(userId);
@@ -76,6 +87,17 @@ namespace BudgetApp.Controllers
 
                 await _userRepo.Update(user);
 
+                if (IsAjaxRequest())
+                    return Json(
+                        new
+                        {
+                            success = true,
+                            title = "Gespeichert",
+                            message = "Profil erfolgreich gespeichert.",
+                            displayName = user.DisplayName,
+                        }
+                    );
+
                 var toast = new ToastMessageViewModel
                 {
                     Title = "Gespeichert",
@@ -88,6 +110,17 @@ namespace BudgetApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving profile for user {UserId}", userId);
+
+                if (IsAjaxRequest())
+                    return Json(
+                        new
+                        {
+                            success = false,
+                            title = "Fehler",
+                            message = "Ein Fehler ist aufgetreten.",
+                        }
+                    );
+
                 var toast = new ToastMessageViewModel
                 {
                     Title = "Fehler",
@@ -139,6 +172,16 @@ namespace BudgetApp.Controllers
                     );
                 }
             }
+
+            if (IsAjaxRequest())
+                return Json(
+                    new
+                    {
+                        success = true,
+                        title = "Gesendet",
+                        message = "Bestätigungs-E-Mail wurde versendet.",
+                    }
+                );
 
             TempData.Put(
                 "ToastMsg",
