@@ -9,13 +9,13 @@ namespace BudgetApp.Data.Repositories
         public TransactionRepository(DapperContext context)
             : base(context) { }
 
-        public async Task<IEnumerable<T>> GetByCampId(int campId)
+        public async Task<IEnumerable<T>> GetByBudgetId(int budgetId)
         {
             using var conn = _context.CreateConnection();
             var sql =
                 @"
             SELECT [Id]
-                  ,[CampId]
+                  ,[BudgetId]
                   ,[PerformedByUserId]
                   ,[PositionId]
                   ,[Name]
@@ -24,19 +24,19 @@ namespace BudgetApp.Data.Repositories
                   ,[PaymentSource]
                   ,[PaymentMethod]
               FROM [dbo].[Transaction]
-              WHERE [CampId] = @CampId
+              WHERE [BudgetId] = @BudgetId
               ORDER BY [CreateDate] DESC
             ";
-            return await conn.QueryAsync<T>(sql, new { CampId = campId });
+            return await conn.QueryAsync<T>(sql, new { BudgetId = budgetId });
         }
 
-        public async Task<IEnumerable<T>> GetByUserId(int userId, int campId)
+        public async Task<IEnumerable<T>> GetByUserId(int userId, int budgetId)
         {
             using var conn = _context.CreateConnection();
             var sql =
                 @"
             SELECT [Id]
-                  ,[CampId]
+                  ,[BudgetId]
                   ,[PerformedByUserId]
                   ,[PositionId]
                   ,[Name]
@@ -45,14 +45,14 @@ namespace BudgetApp.Data.Repositories
                   ,[PaymentSource]
                   ,[PaymentMethod]
               FROM [dbo].[Transaction]
-              WHERE [PerformedByUserId] = @UserId AND [CampId] = @CampId
+              WHERE [PerformedByUserId] = @UserId AND [BudgetId] = @BudgetId
               ORDER BY [CreateDate] DESC
             ";
-            return await conn.QueryAsync<T>(sql, new { UserId = userId, CampId = campId });
+            return await conn.QueryAsync<T>(sql, new { UserId = userId, BudgetId = budgetId });
         }
 
-        public async Task<IEnumerable<UserExpenseSummaryViewModel>> GetUserSummariesByCampId(
-            int campId
+        public async Task<IEnumerable<UserExpenseSummaryViewModel>> GetUserSummariesByBudgetId(
+            int budgetId
         )
         {
             using var conn = _context.CreateConnection();
@@ -65,14 +65,17 @@ namespace BudgetApp.Data.Repositories
                    u.[IBAN],
                    ISNULL(SUM(t.[Amount]), 0) AS TotalExpenses,
                    ISNULL(SUM(CASE WHEN t.[PaymentSource] = 1 THEN t.[Amount] ELSE 0 END), 0) AS PersonalMoneyOwed
-              FROM [dbo].[CampUser] cu
-              INNER JOIN [dbo].[User] u ON cu.[UserId] = u.[Id]
-              LEFT JOIN [dbo].[Transaction] t ON t.[PerformedByUserId] = u.[Id] AND t.[CampId] = cu.[CampId]
-              WHERE cu.[CampId] = @CampId
+              FROM [dbo].[BudgetUser] bu
+              INNER JOIN [dbo].[User] u ON bu.[UserId] = u.[Id]
+              LEFT JOIN [dbo].[Transaction] t ON t.[PerformedByUserId] = u.[Id] AND t.[BudgetId] = bu.[BudgetId]
+              WHERE bu.[BudgetId] = @BudgetId
               GROUP BY u.[Id], u.[DisplayName], u.[FirstName], u.[LastName], u.[IBAN]
               ORDER BY u.[DisplayName]
             ";
-            return await conn.QueryAsync<UserExpenseSummaryViewModel>(sql, new { CampId = campId });
+            return await conn.QueryAsync<UserExpenseSummaryViewModel>(
+                sql,
+                new { BudgetId = budgetId }
+            );
         }
 
         public async Task<T?> GetById(int id)
@@ -82,7 +85,7 @@ namespace BudgetApp.Data.Repositories
             var sql =
                 @"
             SELECT [Id]
-                  ,[CampId]
+                  ,[BudgetId]
                   ,[PerformedByUserId]
                   ,[PositionId]
                   ,[Name]
@@ -102,7 +105,7 @@ namespace BudgetApp.Data.Repositories
             var sql =
                 @"
             INSERT INTO [dbo].[Transaction]
-                       ([CampId]
+                       ([BudgetId]
                        ,[PerformedByUserId]
                        ,[PositionId]
                        ,[Name]
@@ -111,7 +114,7 @@ namespace BudgetApp.Data.Repositories
                        ,[PaymentSource]
                        ,[PaymentMethod])
                  VALUES
-                       (@CampId
+                       (@BudgetId
                        ,@PerformedByUserId
                        ,@PositionId
                        ,@Name

@@ -1,11 +1,11 @@
-@model List<BudgetListViewModel>
+@model List<BudgetModel>
 @{
     ViewData["Title"] = "Budgets";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Budgets</h2>
-    <a asp-action="NewBudget" class="btn btn-primary">
+    <a asp-action="Create" class="btn btn-primary">
         <span class="me-2">Lagerbudget erstellen</span>
         <i class="bi bi-plus-square"></i>
     </a>
@@ -14,7 +14,7 @@
 
 @if (!Model.Any())
 {
-    <p class="text-muted">Noch keine Budgets vorhanden. <a asp-action="NewBudget">Jetzt erstellen.</a></p>
+    <p class="text-muted">Noch keine Budgets vorhanden. <a asp-action="Create">Jetzt erstellen.</a></p>
 }
 else
 {
@@ -27,36 +27,26 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @foreach (var budget in Model)
             {
                 <tr>
                     <td>
-                        <strong>@item.Budget.Name</strong>
-                        @if (!string.IsNullOrEmpty(item.Budget.Description))
+                        <strong>@budget.Name</strong>
+                        @if (!string.IsNullOrEmpty(budget.Description))
                         {
-                            <br /><small class="text-muted">@item.Budget.Description</small>
+                            <br /><small class="text-muted">@budget.Description</small>
                         }
                     </td>
                     <td>
-                        @if (item.Camp != null)
-                        {
-                            @($"{item.Camp.StartDate:dd.MM.yyyy} – {item.Camp.EndDate:dd.MM.yyyy}")
-                        }
-                        else { <span class="text-muted">–</span> }
+                        @($"{budget.StartDate:dd.MM.yyyy} – {budget.EndDate:dd.MM.yyyy}")
                     </td>
                     <td class="text-end">
-                        <a asp-action="Detail" asp-route-id="@item.Budget.Id" class="btn btn-sm btn-outline-primary">
+                        <a asp-action="Detail" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-eye"></i>
                         </a>
-                        @if (item.Camp != null)
-                        {
-                            <a asp-action="NewBudget" asp-route-campId="@item.Camp.Id" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-pen"></i>
-                            </a>
-                            <a asp-controller="Camp" asp-action="Detail" asp-route-id="@item.Camp.Id" class="btn btn-sm btn-outline-primary" title="Lagerübersicht">
-                                <i class="bi bi-people"></i>
-                            </a>
-                        }
+                        <a asp-action="Edit" asp-route-id="@budget.Id" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pen"></i>
+                        </a>
                     </td>
                 </tr>
             }

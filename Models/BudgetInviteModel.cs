@@ -3,13 +3,13 @@ using BudgetApp.Enums;
 
 namespace BudgetApp.Models
 {
-    public class CampInviteModel
+    public class BudgetInviteModel
     {
         public int Id { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]
-        public int CampId { get; set; }
+        public int BudgetId { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]
@@ -27,9 +27,7 @@ namespace BudgetApp.Models
         public string? InvitedUserDisplayName { get; set; }
         public string? InvitedUserEmail { get; set; }
 
-        // Joined from Camp table for display
-        public DateTime CampStartDate { get; set; }
-        public DateTime CampEndDate { get; set; }
-        public string? CampMainLeader { get; set; }
+        // Joined from Budget table for display
+        public string? BudgetName { get; set; }
     }
 }

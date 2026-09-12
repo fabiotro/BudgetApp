@@ -1,4 +1,5 @@
 @model BudgetDetailViewModel
+@using BudgetApp.Enums
 @{
     ViewData["Title"] = Model.Budget.Name;
 
@@ -22,21 +23,21 @@
             <p class="text-muted mb-1">@Model.Budget.Description</p>
         }
         <small class="text-muted">
-            Lager: @Model.Camp.StartDate.ToString("dd.MM.yyyy") – @Model.Camp.EndDate.ToString("dd.MM.yyyy")
+            Lager: @Model.Budget.StartDate.ToString("dd.MM.yyyy") – @Model.Budget.EndDate.ToString("dd.MM.yyyy")
             @{
-                var mainLeader = Model.CampUsers.FirstOrDefault(cu => cu.IsMainLeader);
+                var mainLeader = Model.BudgetUsers.FirstOrDefault(bu => bu.IsMainLeader);
             }
             @if (mainLeader != null)
             {
                 <span> | Lagerleiter: @mainLeader.DisplayName</span>
             }
         </small>
-        @if (Model.CampUsers.Count > 1)
+        @if (Model.BudgetUsers.Count > 1)
         {
             <div class="mt-1">
-                @foreach (var cu in Model.CampUsers)
+                @foreach (var bu in Model.BudgetUsers)
                 {
-                    <span class="badge @(cu.IsMainLeader ? "bg-primary" : "bg-secondary") me-1">@cu.DisplayName</span>
+                    <span class="badge @(bu.IsMainLeader ? "bg-primary" : "bg-secondary") me-1">@bu.DisplayName</span>
                 }
             </div>
         }
@@ -45,11 +46,11 @@
         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#budgetAddPositionModal">
             Position hinzufügen <i class="bi bi-plus-square"></i>
         </button>
-        <a asp-action="NewBudget" asp-route-campId="@Model.Camp.Id" class="btn btn-outline-secondary btn-sm">
-            Lagerdaten bearbeiten <i class="bi bi-pen"></i>
+        <a asp-controller="Transaction" asp-action="Create" asp-route-budgetId="@Model.Budget.Id" class="btn btn-outline-primary btn-sm">
+            Ausgabe erfassen <i class="bi bi-cash-coin"></i>
         </a>
-        <a asp-controller="Camp" asp-action="Detail" asp-route-id="@Model.Camp.Id" class="btn btn-outline-primary btn-sm">
-            Lagerübersicht <i class="bi bi-people"></i>
+        <a asp-action="Edit" asp-route-id="@Model.Budget.Id" class="btn btn-outline-secondary btn-sm">
+            Lagerdaten bearbeiten <i class="bi bi-pen"></i>
         </a>
     </div>
 </div>
@@ -190,7 +191,6 @@
 else
 {
     <p class="text-muted">Keine Positionen vorhanden.</p>
-    <a asp-action="Index" class="btn btn-outline-secondary">Zur Übersicht</a>
 }
 
 <div id="editPositionModalContainer"></div>
@@ -222,7 +222,193 @@ else
     Categories = Model.AllCategories,
     SubCategories = Model.AllSubCategories,
     ShowCampVariables = true,
-    CampParticipantsCount_fc = Model.Camp.ParticipantsCount_fc,
-    CampJs_PersonsCount_fc = Model.Camp.js_PersonsCount_fc,
-    CampLeadersTeamCount_fc = Model.Camp.LeadersTeamCount_fc
+    CampParticipantsCount_fc = Model.Budget.ParticipantsCount_fc,
+    CampJs_PersonsCount_fc = Model.Budget.js_PersonsCount_fc,
+    CampLeadersTeamCount_fc = Model.Budget.LeadersTeamCount_fc
 })
+
+<hr class="mt-5" />
+
+<h4>Lagermitglieder</h4>
+<div class="mb-4">
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>E-Mail</th>
+                <th>Rolle</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var member in Model.BudgetUsers)
+            {
+                <tr>
+                    <td>@member.DisplayName</td>
+                    <td>@member.Email</td>
+                    <td>
+                        @if (member.IsMainLeader)
+                        {
+                            <span class="badge bg-primary">Hauptleitung</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Leitung</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        @if (!member.IsMainLeader)
+                        {
+                            <form asp-controller="Budget" asp-action="RemoveBudgetUser" method="post" class="d-inline"
+                                  onsubmit="return confirm('Person wirklich entfernen?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="budgetUserId" value="@member.Id" />
+                                <input type="hidden" name="budgetId" value="@Model.Budget.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.IsMainLeader && Model.Invites.Any())
+    {
+        <h6 class="mt-3">Einladungen</h6>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Person</th>
+                    <th>E-Mail</th>
+                    <th>Eingeladen durch</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (BudgetInviteModel invite in Model.Invites)
+                {
+                    <tr>
+                        <td>@invite.InvitedUserDisplayName</td>
+                        <td>@invite.InvitedUserEmail</td>
+                        <td>@invite.InvitedByDisplayName</td>
+                        <td>
+                            @switch (invite.Status)
+                            {
+                                case InviteStatus.Pending:
+                                    <span class="badge bg-warning text-dark">Ausstehend</span>
+                                    break;
+                                case InviteStatus.Accepted:
+                                    <span class="badge bg-success">Angenommen</span>
+                                    break;
+                                case InviteStatus.Declined:
+                                    <span class="badge bg-secondary">Abgelehnt</span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            @if (invite.Status == InviteStatus.Declined)
+                            {
+                                <form asp-controller="Invite" asp-action="Reinvite" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@invite.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        Erneut einladen <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (Model.IsMainLeader)
+    {
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title">Leitung einladen</h6>
+                <form asp-controller="Invite" asp-action="Send" method="post" class="row g-2 align-items-end">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="BudgetId" value="@Model.Budget.Id" />
+                    <div class="col-auto">
+                        <label asp-for="InviteForm.Email" class="form-label"></label>
+                        <input type="email" name="Email" id="InviteForm_Email" class="form-control" placeholder="user@example.com" style="min-width: 280px" value="@Model.InviteForm.Email" />
+                        <span asp-validation-for="InviteForm.Email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">
+                            Einladen <i class="bi bi-envelope-plus"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<h4>Ausgaben nach Person</h4>
+@if (!Model.UserSummaries.Any())
+{
+    <p class="text-muted">Noch keine Leitungsmitglieder oder Ausgaben vorhanden.</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>IBAN</th>
+                <th class="text-end">Ausgaben total</th>
+                <th class="text-end">Lager schuldet</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var summary in Model.UserSummaries)
+            {
+                <tr>
+                    <td>
+                        <a asp-controller="Transaction" asp-action="UserTransactions"
+                           asp-route-budgetId="@Model.Budget.Id" asp-route-userId="@summary.UserId">
+                            @summary.FullName
+                        </a>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(summary.IBAN))
+                        {
+                            <code class="small">@summary.IBAN</code>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">–</span>
+                        }
+                    </td>
+                    <td class="text-end">@summary.TotalExpenses.ToString("N2") CHF</td>
+                    <td class="text-end @(summary.PersonalMoneyOwed > 0 ? "fw-semibold text-danger" : "")">
+                        @summary.PersonalMoneyOwed.ToString("N2") CHF
+                    </td>
+                    <td class="text-end">
+                        <a asp-controller="Transaction" asp-action="UserTransactions"
+                           asp-route-budgetId="@Model.Budget.Id" asp-route-userId="@summary.UserId"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-list-ul"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot class="table-light fw-semibold">
+            <tr>
+                <td colspan="2">Total</td>
+                <td class="text-end">@Model.UserSummaries.Sum(s => s.TotalExpenses).ToString("N2") CHF</td>
+                <td class="text-end">@Model.UserSummaries.Sum(s => s.PersonalMoneyOwed).ToString("N2") CHF</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+}

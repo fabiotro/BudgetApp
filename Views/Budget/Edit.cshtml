@@ -1,0 +1,29 @@
+@model BudgetFormViewModel
+@{
+    ViewData["Title"] = "Lagerdaten bearbeiten";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Lagerdaten bearbeiten</h2>
+    <a asp-action="Detail" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Zurück
+    </a>
+</div>
+<hr />
+
+@using (Html.BeginForm("Edit", "Budget", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <partial name="_BudgetForm" model="Model" />
+
+    <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary">
+            <span class="me-2">Speichern</span>
+            <i class="bi bi-floppy"></i>
+        </button>
+    </div>
+}
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

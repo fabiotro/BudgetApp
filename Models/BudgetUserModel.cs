@@ -2,13 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BudgetApp.Models
 {
-    public class CampUserModel
+    public class BudgetUserModel
     {
         public int Id { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]
-        public int CampId { get; set; }
+        public int BudgetId { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]

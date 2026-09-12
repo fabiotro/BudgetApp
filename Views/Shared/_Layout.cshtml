@@ -1,5 +1,5 @@
 ﻿@using System.Security.Claims
-@inject BudgetApp.Data.Repositories.ICampInviteRepository<BudgetApp.Models.CampInviteModel> InviteRepo
+@inject BudgetApp.Data.Repositories.IBudgetInviteRepository<BudgetApp.Models.BudgetInviteModel> InviteRepo
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     int pendingInviteCount = 0;

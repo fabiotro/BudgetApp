@@ -3,10 +3,10 @@ namespace BudgetApp.Services
     public interface IEmailService
     {
         Task SendConfirmationEmailAsync(string toEmail, string displayName, string confirmUrl);
-        Task SendCampInviteEmailAsync(
+        Task SendBudgetInviteEmailAsync(
             string toEmail,
             string displayName,
-            string campName,
+            string budgetName,
             string inviteUrl
         );
     }

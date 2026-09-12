@@ -9,6 +9,6 @@ namespace BudgetApp.Models
         [Display(Name = "InviteEmail", ResourceType = typeof(Resources.DataAnnotations))]
         public required string Email { get; set; }
 
-        public int CampId { get; set; }
+        public int BudgetId { get; set; }
     }
 }

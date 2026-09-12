@@ -1,4 +1,4 @@
-﻿using BudgetApp.Models;
+using BudgetApp.Models;
 using Dapper;
 
 namespace BudgetApp.Data.Repositories
@@ -9,17 +9,27 @@ namespace BudgetApp.Data.Repositories
         public BudgetRepository(DapperContext context)
             : base(context) { }
 
+        private const string SelectColumns =
+            @"
+                   [Id]
+                  ,[Name]
+                  ,[Description]
+                  ,[StartDate]
+                  ,[EndDate]
+                  ,[MainLeader]
+                  ,[ParticipantsCount_fc]
+                  ,[js_PersonsCount_fc]
+                  ,[LeadersTeamCount_fc]
+                  ,[ParticipantsCount_rl]
+                  ,[js_PersonsCount_rl]
+                  ,[LeadersTeamCount_rl]
+                  ,[CreatedByUserId]
+            ";
+
         public async Task<IEnumerable<T>> GetAll()
         {
             using var conn = _context.CreateConnection();
-            var sql =
-                @"
-            SELECT [Id]
-                  ,[Name]
-                  ,[Description]
-                  ,[CampId]
-              FROM [dbo].[Budget]
-            ";
+            var sql = $"SELECT {SelectColumns} FROM [dbo].[Budget]";
             return await conn.QueryAsync<T>(sql);
         }
 
@@ -27,17 +37,13 @@ namespace BudgetApp.Data.Repositories
         {
             using var conn = _context.CreateConnection();
             var sql =
-                @"
-            SELECT b.[Id]
-                  ,b.[Name]
-                  ,b.[Description]
-                  ,b.[CampId]
+                $@"
+            SELECT {SelectColumns}
               FROM [dbo].[Budget] b
-              INNER JOIN [dbo].[Camp] c ON b.[CampId] = c.[Id]
-              WHERE c.[CreatedByUserId] = @UserId
+              WHERE b.[CreatedByUserId] = @UserId
                  OR EXISTS (
-                     SELECT 1 FROM [dbo].[CampUser] cu
-                     WHERE cu.[CampId] = c.[Id] AND cu.[UserId] = @UserId
+                     SELECT 1 FROM [dbo].[BudgetUser] bu
+                     WHERE bu.[BudgetId] = b.[Id] AND bu.[UserId] = @UserId
                  )
             ";
             return await conn.QueryAsync<T>(sql, new { UserId = userId });
@@ -47,31 +53,8 @@ namespace BudgetApp.Data.Repositories
         {
             ValidateId(id);
             using var conn = _context.CreateConnection();
-            var sql =
-                @"
-            SELECT [Id]
-                  ,[Name]
-                  ,[Description]
-                  ,[CampId]
-              FROM [dbo].[Budget]
-              WHERE Id = @Id
-            ";
+            var sql = $"SELECT {SelectColumns} FROM [dbo].[Budget] WHERE Id = @Id";
             return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Id = id });
-        }
-
-        public async Task<IEnumerable<T>> GetByCampId(int campId)
-        {
-            using var conn = _context.CreateConnection();
-            var sql =
-                @"
-            SELECT [Id]
-                  ,[Name]
-                  ,[Description]
-                  ,[CampId]
-              FROM [dbo].[Budget]
-              WHERE [CampId] = @CampId
-            ";
-            return await conn.QueryAsync<T>(sql, new { CampId = campId });
         }
 
         public async Task<int> Create(T budget)
@@ -82,11 +65,29 @@ namespace BudgetApp.Data.Repositories
             INSERT INTO [dbo].[Budget]
                        ([Name]
                        ,[Description]
-                       ,[CampId])
+                       ,[StartDate]
+                       ,[EndDate]
+                       ,[MainLeader]
+                       ,[ParticipantsCount_fc]
+                       ,[js_PersonsCount_fc]
+                       ,[LeadersTeamCount_fc]
+                       ,[ParticipantsCount_rl]
+                       ,[js_PersonsCount_rl]
+                       ,[LeadersTeamCount_rl]
+                       ,[CreatedByUserId])
                  VALUES
                        (@Name
                        ,@Description
-                       ,@CampId);
+                       ,@StartDate
+                       ,@EndDate
+                       ,@MainLeader
+                       ,@ParticipantsCount_fc
+                       ,@js_PersonsCount_fc
+                       ,@LeadersTeamCount_fc
+                       ,@ParticipantsCount_rl
+                       ,@js_PersonsCount_rl
+                       ,@LeadersTeamCount_rl
+                       ,@CreatedByUserId);
                     SELECT CAST(SCOPE_IDENTITY() as int);
             ";
             return await conn.ExecuteScalarAsync<int>(sql, budget);
@@ -100,7 +101,15 @@ namespace BudgetApp.Data.Repositories
             UPDATE [dbo].[Budget]
                SET [Name] = @Name
                   ,[Description] = @Description
-                  ,[CampId] = @CampId
+                  ,[StartDate] = @StartDate
+                  ,[EndDate] = @EndDate
+                  ,[MainLeader] = @MainLeader
+                  ,[ParticipantsCount_fc] = @ParticipantsCount_fc
+                  ,[js_PersonsCount_fc] = @js_PersonsCount_fc
+                  ,[LeadersTeamCount_fc] = @LeadersTeamCount_fc
+                  ,[ParticipantsCount_rl] = @ParticipantsCount_rl
+                  ,[js_PersonsCount_rl] = @js_PersonsCount_rl
+                  ,[LeadersTeamCount_rl] = @LeadersTeamCount_rl
                 WHERE Id = @Id
             ";
             return await conn.ExecuteAsync(sql, budget);

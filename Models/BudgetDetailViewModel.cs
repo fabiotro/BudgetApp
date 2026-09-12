@@ -5,8 +5,11 @@ namespace BudgetApp.Models
     public class BudgetDetailViewModel
     {
         public required BudgetModel Budget { get; set; }
-        public required CampModel Camp { get; set; }
-        public List<CampUserModel> CampUsers { get; set; } = [];
+        public List<BudgetUserModel> BudgetUsers { get; set; } = [];
+        public List<UserExpenseSummaryViewModel> UserSummaries { get; set; } = [];
+        public List<BudgetInviteModel> Invites { get; set; } = [];
+        public bool IsMainLeader { get; set; }
+        public SendInviteViewModel InviteForm { get; set; } = new() { Email = string.Empty };
         public List<CategoryGroupViewModel> Groups { get; set; } = [];
 
         public decimal TotalAmount_fc => Groups.Sum(g => g.TotalAmount_fc);
@@ -40,6 +43,22 @@ namespace BudgetApp.Models
         public List<PositionTypeModel> PositionTypes { get; set; } = [];
         public List<CategoryModel> AllCategories { get; set; } = [];
         public List<SubCategoryModel> AllSubCategories { get; set; } = [];
+    }
+
+    public class UserExpenseSummaryViewModel
+    {
+        public int UserId { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? IBAN { get; set; }
+        public decimal TotalExpenses { get; set; }
+        public decimal PersonalMoneyOwed { get; set; }
+
+        public string FullName =>
+            (!string.IsNullOrWhiteSpace(FirstName) || !string.IsNullOrWhiteSpace(LastName))
+                ? $"{FirstName} {LastName}".Trim()
+                : DisplayName;
     }
 
     public class CategoryGroupViewModel

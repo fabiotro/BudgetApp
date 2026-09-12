@@ -6,7 +6,7 @@
     string PaymentSourceLabel(PaymentSource s) => s switch
     {
         PaymentSource.PersonalMoney => "Privatgeld",
-        PaymentSource.CampBudget    => "Lagerkasse",
+        PaymentSource.Budget        => "Lagerkasse",
         PaymentSource.OtherAdvance  => "Andere Vorauszahlung",
         _                           => s.ToString()
     };
@@ -14,7 +14,7 @@
     string PaymentSourceBadgeClass(PaymentSource s) => s switch
     {
         PaymentSource.PersonalMoney => "bg-warning text-dark",
-        PaymentSource.CampBudget    => "bg-success",
+        PaymentSource.Budget        => "bg-success",
         PaymentSource.OtherAdvance  => "bg-info text-dark",
         _                           => "bg-secondary"
     };
@@ -40,15 +40,15 @@
     <div>
         <h2>@Model.UserSummary.FullName</h2>
         <p class="text-muted mb-0">
-            Lager: @Model.Camp.StartDate.ToString("dd.MM.yyyy") – @Model.Camp.EndDate.ToString("dd.MM.yyyy")
+            Lager: @Model.Budget.StartDate.ToString("dd.MM.yyyy") – @Model.Budget.EndDate.ToString("dd.MM.yyyy")
         </p>
     </div>
     <div class="d-flex gap-2">
-        <a asp-controller="Transaction" asp-action="Create" asp-route-campId="@Model.Camp.Id"
+        <a asp-controller="Transaction" asp-action="Create" asp-route-budgetId="@Model.Budget.Id"
            class="btn btn-primary btn-sm">
             Ausgabe erfassen <i class="bi bi-plus-square"></i>
         </a>
-        <a asp-controller="Camp" asp-action="Detail" asp-route-id="@Model.Camp.Id"
+        <a asp-controller="Budget" asp-action="Detail" asp-route-id="@Model.Budget.Id"
            class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Lagerübersicht
         </a>
@@ -145,7 +145,7 @@ else
                                   onsubmit="return confirm('Ausgabe löschen?');">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@item.Transaction.Id" />
-                                <input type="hidden" name="campId" value="@Model.Camp.Id" />
+                                <input type="hidden" name="budgetId" value="@Model.Budget.Id" />
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
                                 </button>

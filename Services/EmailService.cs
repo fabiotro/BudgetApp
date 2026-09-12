@@ -44,10 +44,10 @@ namespace BudgetApp.Services
             return SendAsync(toEmail, subject, html);
         }
 
-        public Task SendCampInviteEmailAsync(
+        public Task SendBudgetInviteEmailAsync(
             string toEmail,
             string displayName,
-            string campName,
+            string budgetName,
             string inviteUrl
         )
         {
@@ -55,7 +55,7 @@ namespace BudgetApp.Services
             var html =
                 $@"
                 <p>Hallo {displayName},</p>
-                <p>Sie wurden zum Lager <strong>{campName}</strong> eingeladen.</p>
+                <p>Sie wurden zum Lager <strong>{budgetName}</strong> eingeladen.</p>
                 <p><a href=""{inviteUrl}"">Einladung ansehen</a></p>
             ";
             return SendAsync(toEmail, subject, html);

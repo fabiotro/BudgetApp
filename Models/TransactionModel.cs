@@ -9,7 +9,7 @@ namespace BudgetApp.Models
 
         [Required]
         [Range(1, int.MaxValue)]
-        public int CampId { get; set; }
+        public int BudgetId { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]

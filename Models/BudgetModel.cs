@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace BudgetApp.Models
 {
@@ -14,7 +14,37 @@ namespace BudgetApp.Models
         public string? Description { get; set; }
 
         [Required]
-        [Range(1, int.MaxValue)]
-        public int CampId { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime StartDate { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime EndDate { get; set; }
+
+        public int CreatedByUserId { get; set; }
+
+        [StringLength(255)]
+        public string? MainLeader { get; set; }
+
+        [Required]
+        [Range(0, int.MaxValue)]
+        public int ParticipantsCount_fc { get; set; }
+
+        [Required]
+        [Range(0, int.MaxValue)]
+        public int js_PersonsCount_fc { get; set; }
+
+        [Required]
+        [Range(0, int.MaxValue)]
+        public int LeadersTeamCount_fc { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int? ParticipantsCount_rl { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int? js_PersonsCount_rl { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int? LeadersTeamCount_rl { get; set; }
     }
 }

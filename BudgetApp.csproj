@@ -37,7 +37,15 @@
     already starts the DB itself. Failures are only a warning so builds still work without
     Docker installed/running.
   -->
-  <Target Name="StartDockerCompose" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' AND '$(DesignTimeBuild)' != 'true' AND '$(BuildingProject)' == 'true' AND '$(CODESPACES)' == ''">
-    <Exec Command="docker compose up -d" ContinueOnError="WarnAndContinue" StandardOutputImportance="low" />
+  <Target
+    Name="StartDockerCompose"
+    BeforeTargets="Build"
+    Condition="'$(Configuration)' == 'Debug' AND '$(DesignTimeBuild)' != 'true' AND '$(BuildingProject)' == 'true' AND '$(CODESPACES)' == ''"
+  >
+    <Exec
+      Command="docker compose up -d"
+      ContinueOnError="WarnAndContinue"
+      StandardOutputImportance="low"
+    />
   </Target>
 </Project>

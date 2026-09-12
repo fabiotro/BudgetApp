@@ -566,3 +566,157 @@ BEGIN
     EXEC dbo.sp_executesql @statement = N'UPDATE [dbo].[User] SET [IsEmailConfirmed] = 1';
 END
 GO
+
+-- =============================================
+-- Camp/Budget Merge
+-- A camp only ever has one budget, so Camp is absorbed into Budget: Budget
+-- becomes the single top-level entity (it already carried the Name/Description
+-- shown everywhere), CampUser/CampInvite/Transaction now point at Budget.Id,
+-- and the Camp table is dropped.
+-- =============================================
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Budget]') AND name = 'StartDate')
+BEGIN
+    -- 1. Absorb Camp's columns into Budget (nullable for now — backfilled below)
+    ALTER TABLE [dbo].[Budget] ADD
+        [StartDate] [datetime] NULL,
+        [EndDate] [datetime] NULL,
+        [MainLeader] [nvarchar](255) NULL,
+        [ParticipantsCount_fc] [int] NULL,
+        [js_PersonsCount_fc] [int] NULL,
+        [LeadersTeamCount_fc] [int] NULL,
+        [ParticipantsCount_rl] [int] NULL,
+        [js_PersonsCount_rl] [int] NULL,
+        [LeadersTeamCount_rl] [int] NULL,
+        [CreatedByUserId] [int] NULL;
+
+    -- 2. Backfill existing Budget rows from their linked Camp
+    EXEC dbo.sp_executesql @statement = N'
+        UPDATE b
+           SET b.[StartDate]            = c.[StartDate]
+              ,b.[EndDate]              = c.[EndDate]
+              ,b.[MainLeader]           = c.[MainLeader]
+              ,b.[ParticipantsCount_fc] = c.[ParticipantsCount_fc]
+              ,b.[js_PersonsCount_fc]   = c.[js_PersonsCount_fc]
+              ,b.[LeadersTeamCount_fc]  = c.[LeadersTeamCount_fc]
+              ,b.[ParticipantsCount_rl] = c.[ParticipantsCount_rl]
+              ,b.[js_PersonsCount_rl]   = c.[js_PersonsCount_rl]
+              ,b.[LeadersTeamCount_rl]  = c.[LeadersTeamCount_rl]
+              ,b.[CreatedByUserId]      = c.[CreatedByUserId]
+          FROM [dbo].[Budget] b
+          INNER JOIN [dbo].[Camp] c ON b.[CampId] = c.[Id]';
+
+    -- 3. A camp that never got a Budget row (e.g. abandoned mid-setup) gets one
+    --    now, named from its date range, so no camp data is silently dropped.
+    EXEC dbo.sp_executesql @statement = N'
+        INSERT INTO [dbo].[Budget]
+                   ([Name]
+                   ,[Description]
+                   ,[CampId]
+                   ,[StartDate]
+                   ,[EndDate]
+                   ,[MainLeader]
+                   ,[ParticipantsCount_fc]
+                   ,[js_PersonsCount_fc]
+                   ,[LeadersTeamCount_fc]
+                   ,[ParticipantsCount_rl]
+                   ,[js_PersonsCount_rl]
+                   ,[LeadersTeamCount_rl]
+                   ,[CreatedByUserId])
+        SELECT N''Lager '' + FORMAT(c.[StartDate], N''dd.MM.yyyy'') + N'' - '' + FORMAT(c.[EndDate], N''dd.MM.yyyy'')
+              ,NULL
+              ,c.[Id]
+              ,c.[StartDate]
+              ,c.[EndDate]
+              ,c.[MainLeader]
+              ,c.[ParticipantsCount_fc]
+              ,c.[js_PersonsCount_fc]
+              ,c.[LeadersTeamCount_fc]
+              ,c.[ParticipantsCount_rl]
+              ,c.[js_PersonsCount_rl]
+              ,c.[LeadersTeamCount_rl]
+              ,c.[CreatedByUserId]
+          FROM [dbo].[Camp] c
+         WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Budget] b WHERE b.[CampId] = c.[Id])';
+
+    -- 4. Every Budget row now has real camp data — enforce NOT NULL to match
+    --    the old Camp column constraints
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[Budget] ALTER COLUMN [StartDate] [datetime] NOT NULL';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[Budget] ALTER COLUMN [EndDate] [datetime] NOT NULL';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[Budget] ALTER COLUMN [ParticipantsCount_fc] [int] NOT NULL';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[Budget] ALTER COLUMN [js_PersonsCount_fc] [int] NOT NULL';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[Budget] ALTER COLUMN [LeadersTeamCount_fc] [int] NOT NULL';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[Budget] ALTER COLUMN [CreatedByUserId] [int] NOT NULL';
+
+    EXEC dbo.sp_executesql @statement = N'
+        ALTER TABLE [dbo].[Budget] WITH CHECK ADD CONSTRAINT [FK_Budget_User]
+            FOREIGN KEY([CreatedByUserId]) REFERENCES [dbo].[User] ([Id])';
+
+    -- 5. CampUser -> BudgetUser (FK now points at Budget.Id, not the old Camp.Id)
+    ALTER TABLE [dbo].[CampUser] ADD [BudgetId] [int] NULL;
+    EXEC dbo.sp_executesql @statement = N'
+        UPDATE cu
+           SET cu.[BudgetId] = b.[Id]
+          FROM [dbo].[CampUser] cu
+          INNER JOIN [dbo].[Budget] b ON b.[CampId] = cu.[CampId]';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[CampUser] ALTER COLUMN [BudgetId] [int] NOT NULL';
+    ALTER TABLE [dbo].[CampUser] DROP CONSTRAINT [FK_CampUser_Camp];
+    ALTER TABLE [dbo].[CampUser] DROP CONSTRAINT [UQ_CampUser_CampId_UserId];
+    ALTER TABLE [dbo].[CampUser] DROP COLUMN [CampId];
+    -- (CampUser never had a ChangeDate column/trigger — BudgetUser doesn't either)
+    EXEC sp_rename N'dbo.CampUser', N'BudgetUser';
+    EXEC dbo.sp_executesql @statement = N'
+        ALTER TABLE [dbo].[BudgetUser] WITH CHECK ADD CONSTRAINT [UQ_BudgetUser_BudgetId_UserId] UNIQUE ([BudgetId], [UserId])';
+    EXEC dbo.sp_executesql @statement = N'
+        ALTER TABLE [dbo].[BudgetUser] WITH CHECK ADD CONSTRAINT [FK_BudgetUser_Budget]
+            FOREIGN KEY([BudgetId]) REFERENCES [dbo].[Budget] ([Id]) ON DELETE CASCADE';
+
+    -- 6. CampInvite -> BudgetInvite
+    ALTER TABLE [dbo].[CampInvite] ADD [BudgetId] [int] NULL;
+    EXEC dbo.sp_executesql @statement = N'
+        UPDATE ci
+           SET ci.[BudgetId] = b.[Id]
+          FROM [dbo].[CampInvite] ci
+          INNER JOIN [dbo].[Budget] b ON b.[CampId] = ci.[CampId]';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[CampInvite] ALTER COLUMN [BudgetId] [int] NOT NULL';
+    ALTER TABLE [dbo].[CampInvite] DROP CONSTRAINT [FK_CampInvite_Camp];
+    ALTER TABLE [dbo].[CampInvite] DROP CONSTRAINT [UQ_CampInvite_CampId_InvitedUserId];
+    ALTER TABLE [dbo].[CampInvite] DROP COLUMN [CampId];
+    EXEC sp_rename N'dbo.CampInvite', N'BudgetInvite';
+    DROP TRIGGER [dbo].[CampInvite_UpdateChangeDate];
+    EXEC dbo.sp_executesql @statement = N'
+        ALTER TABLE [dbo].[BudgetInvite] WITH CHECK ADD CONSTRAINT [UQ_BudgetInvite_BudgetId_InvitedUserId] UNIQUE ([BudgetId], [InvitedUserId])';
+    EXEC dbo.sp_executesql @statement = N'
+        ALTER TABLE [dbo].[BudgetInvite] WITH CHECK ADD CONSTRAINT [FK_BudgetInvite_Budget]
+            FOREIGN KEY([BudgetId]) REFERENCES [dbo].[Budget] ([Id]) ON DELETE CASCADE';
+    EXEC dbo.sp_executesql @statement = N'
+        CREATE TRIGGER [dbo].[BudgetInvite_UpdateChangeDate] ON [dbo].[BudgetInvite] AFTER INSERT, UPDATE AS
+        BEGIN
+            SET NOCOUNT ON;
+            UPDATE [dbo].[BudgetInvite] SET ChangeDate = GETDATE() FROM BudgetInvite t INNER JOIN Inserted i ON t.Id = i.Id
+        END';
+
+    -- 7. Transaction.CampId -> Transaction.BudgetId
+    ALTER TABLE [dbo].[Transaction] ADD [BudgetId] [int] NULL;
+    EXEC dbo.sp_executesql @statement = N'
+        UPDATE t
+           SET t.[BudgetId] = b.[Id]
+          FROM [dbo].[Transaction] t
+          INNER JOIN [dbo].[Budget] b ON b.[CampId] = t.[CampId]';
+    EXEC dbo.sp_executesql @statement = N'ALTER TABLE [dbo].[Transaction] ALTER COLUMN [BudgetId] [int] NOT NULL';
+    ALTER TABLE [dbo].[Transaction] DROP CONSTRAINT [FK_Transaction_Camp];
+    ALTER TABLE [dbo].[Transaction] DROP COLUMN [CampId];
+    EXEC dbo.sp_executesql @statement = N'
+        ALTER TABLE [dbo].[Transaction] WITH CHECK ADD CONSTRAINT [FK_Transaction_Budget]
+            FOREIGN KEY([BudgetId]) REFERENCES [dbo].[Budget] ([Id]) ON DELETE CASCADE';
+
+    -- 8. Budget no longer references a separate Camp row — drop the old link
+    ALTER TABLE [dbo].[Budget] DROP CONSTRAINT [FK_Budget_Camp];
+    ALTER TABLE [dbo].[Budget] DROP COLUMN [CampId];
+
+    -- 9. Camp is now fully absorbed into Budget — drop it. Its own FK_Camp_User
+    --    and Camp_UpdateChangeDate trigger go with it; nothing else references
+    --    Camp.Id any more.
+    DROP TABLE [dbo].[Camp];
+END
+GO

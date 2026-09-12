@@ -6,7 +6,7 @@
     string PaymentSourceLabel(PaymentSource s) => s switch
     {
         PaymentSource.PersonalMoney => "Privatgeld",
-        PaymentSource.CampBudget    => "Lagerkasse",
+        PaymentSource.Budget        => "Lagerkasse",
         PaymentSource.OtherAdvance  => "Andere Vorauszahlung",
         _                           => s.ToString()
     };
@@ -23,23 +23,23 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Ausgabe erfassen</h2>
-    <a asp-controller="Camp" asp-action="Detail" asp-route-id="@Model.CampId" class="btn btn-outline-secondary btn-sm">
+    <a asp-controller="Budget" asp-action="Detail" asp-route-id="@Model.BudgetId" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left"></i> Zurück
     </a>
 </div>
 <hr />
 
 <form asp-action="Create" method="post" enctype="multipart/form-data">
-    <input asp-for="CampId" type="hidden" />
+    <input asp-for="BudgetId" type="hidden" />
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
     <div class="row g-3">
         <div class="col-md-6">
             <label asp-for="PerformedByUserId" class="form-label"></label>
             <select asp-for="PerformedByUserId" class="form-select">
-                @foreach (var cu in Model.CampUsers)
+                @foreach (var bu in Model.BudgetUsers)
                 {
-                    <option value="@cu.UserId">@cu.DisplayName</option>
+                    <option value="@bu.UserId">@bu.DisplayName</option>
                 }
             </select>
             <span asp-validation-for="PerformedByUserId" class="text-danger small"></span>
@@ -118,7 +118,7 @@
         <button type="submit" class="btn btn-primary">
             Ausgabe speichern <i class="bi bi-floppy"></i>
         </button>
-        <a asp-controller="Camp" asp-action="Detail" asp-route-id="@Model.CampId" class="btn btn-outline-secondary ms-2">
+        <a asp-controller="Budget" asp-action="Detail" asp-route-id="@Model.BudgetId" class="btn btn-outline-secondary ms-2">
             Abbrechen
         </a>
     </div>
