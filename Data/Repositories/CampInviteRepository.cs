@@ -23,9 +23,13 @@ namespace BudgetApp.Data.Repositories
                   ,ub.[DisplayName] AS InvitedByDisplayName
                   ,ui.[DisplayName] AS InvitedUserDisplayName
                   ,ui.[Email]       AS InvitedUserEmail
+                  ,c.[StartDate]    AS CampStartDate
+                  ,c.[EndDate]      AS CampEndDate
+                  ,c.[MainLeader]   AS CampMainLeader
               FROM [dbo].[CampInvite] ci
               INNER JOIN [dbo].[User] ub ON ci.[InvitedByUserId] = ub.[Id]
               INNER JOIN [dbo].[User] ui ON ci.[InvitedUserId]   = ui.[Id]
+              INNER JOIN [dbo].[Camp] c  ON ci.[CampId]          = c.[Id]
               WHERE ci.[CampId] = @CampId
               ORDER BY ci.[CreateDate] DESC
             ";
@@ -45,9 +49,13 @@ namespace BudgetApp.Data.Repositories
                   ,ub.[DisplayName] AS InvitedByDisplayName
                   ,ui.[DisplayName] AS InvitedUserDisplayName
                   ,ui.[Email]       AS InvitedUserEmail
+                  ,c.[StartDate]    AS CampStartDate
+                  ,c.[EndDate]      AS CampEndDate
+                  ,c.[MainLeader]   AS CampMainLeader
               FROM [dbo].[CampInvite] ci
               INNER JOIN [dbo].[User] ub ON ci.[InvitedByUserId] = ub.[Id]
               INNER JOIN [dbo].[User] ui ON ci.[InvitedUserId]   = ui.[Id]
+              INNER JOIN [dbo].[Camp] c  ON ci.[CampId]          = c.[Id]
               WHERE ci.[InvitedUserId] = @UserId
                 AND ci.[Status] = 0
               ORDER BY ci.[CreateDate] DESC
@@ -82,9 +90,13 @@ namespace BudgetApp.Data.Repositories
                   ,ub.[DisplayName] AS InvitedByDisplayName
                   ,ui.[DisplayName] AS InvitedUserDisplayName
                   ,ui.[Email]       AS InvitedUserEmail
+                  ,c.[StartDate]    AS CampStartDate
+                  ,c.[EndDate]      AS CampEndDate
+                  ,c.[MainLeader]   AS CampMainLeader
               FROM [dbo].[CampInvite] ci
               INNER JOIN [dbo].[User] ub ON ci.[InvitedByUserId] = ub.[Id]
               INNER JOIN [dbo].[User] ui ON ci.[InvitedUserId]   = ui.[Id]
+              INNER JOIN [dbo].[Camp] c  ON ci.[CampId]          = c.[Id]
               WHERE ci.[Id] = @Id
             ";
             return await conn.QuerySingleOrDefaultAsync<T>(sql, new { Id = id });
@@ -116,6 +128,20 @@ namespace BudgetApp.Data.Repositories
             using var conn = _context.CreateConnection();
             var sql = "UPDATE [dbo].[CampInvite] SET [Status] = @Status WHERE [Id] = @Id";
             return await conn.ExecuteAsync(sql, new { Id = id, Status = (int)status });
+        }
+
+        public async Task<int> Reinvite(int id, int invitedByUserId)
+        {
+            ValidateId(id);
+            using var conn = _context.CreateConnection();
+            var sql =
+                @"
+            UPDATE [dbo].[CampInvite]
+               SET [Status] = 0
+                  ,[InvitedByUserId] = @InvitedByUserId
+             WHERE [Id] = @Id
+            ";
+            return await conn.ExecuteAsync(sql, new { Id = id, InvitedByUserId = invitedByUserId });
         }
     }
 }

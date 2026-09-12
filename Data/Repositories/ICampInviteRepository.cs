@@ -12,5 +12,6 @@ namespace BudgetApp.Data.Repositories
         Task<T?> GetById(int id);
         Task<int> Create(T invite);
         Task<int> UpdateStatus(int id, InviteStatus status);
+        Task<int> Reinvite(int id, int invitedByUserId);
     }
 }

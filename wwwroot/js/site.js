@@ -51,6 +51,12 @@ document.addEventListener('focusout', function (e) {
     var bell = document.getElementById('inviteBellToggle');
     if (!bell) return;
 
+    // Invite emails link here with ?openInvites=1 so the recipient lands
+    // straight on their pending invites instead of a camp they can't open yet.
+    if (new URLSearchParams(window.location.search).get('openInvites') === '1') {
+        bootstrap.Dropdown.getOrCreateInstance(bell).show();
+    }
+
     bell.addEventListener('show.bs.dropdown', function () {
         var url = bell.getAttribute('data-invite-url');
         var container = document.getElementById('inviteListContainer');
@@ -80,7 +86,7 @@ document.addEventListener('focusout', function (e) {
                 data.invites.forEach(function (inv) {
                     html += '<li class="px-3 py-2 border-bottom">';
                     html += '<div class="small fw-semibold">' + escapeHtml(inv.invitedBy) + ' lädt dich ein</div>';
-                    html += '<div class="small text-muted mb-2"><a href="' + escapeHtml(inv.campUrl) + '">Lager anzeigen</a></div>';
+                    html += '<div class="small text-muted mb-2">Lager: ' + escapeHtml(inv.campName) + '</div>';
                     html += '<form method="post" action="/Invite/Accept" class="d-inline">';
                     html += '<input type="hidden" name="__RequestVerificationToken" value="' + escapeHtml(token) + '">';
                     html += '<input type="hidden" name="id" value="' + inv.id + '">';

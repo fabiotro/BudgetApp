@@ -39,6 +39,14 @@ namespace BudgetApp.Controllers
         private int GetCurrentUserId() =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+        private static string FormatCampLabel(
+            DateTime startDate,
+            DateTime endDate,
+            string? mainLeader
+        ) =>
+            $"{startDate:dd.MM.yyyy} – {endDate:dd.MM.yyyy}"
+            + (string.IsNullOrWhiteSpace(mainLeader) ? "" : $" ({mainLeader})");
+
         [HttpGet]
         public async Task<IActionResult> Pending()
         {
@@ -49,7 +57,7 @@ namespace BudgetApp.Controllers
                 i.Id,
                 i.CampId,
                 InvitedBy = i.InvitedByDisplayName,
-                CampUrl = Url.Action("Detail", "Camp", new { id = i.CampId }),
+                CampName = FormatCampLabel(i.CampStartDate, i.CampEndDate, i.CampMainLeader),
             });
             return Json(new { count = invites.Count, invites = result });
         }
@@ -138,11 +146,10 @@ namespace BudgetApp.Controllers
             }
 
             var existingInvites = await _inviteRepo.GetByCampId(vm.CampId);
-            if (
-                existingInvites.Any(i =>
-                    i.InvitedUserId == targetUser.Id && i.Status == InviteStatus.Pending
-                )
-            )
+            var existingInvite = existingInvites.FirstOrDefault(i =>
+                i.InvitedUserId == targetUser.Id
+            );
+            if (existingInvite != null && existingInvite.Status == InviteStatus.Pending)
             {
                 TempData.Put(
                     "ToastMsg",
@@ -159,27 +166,31 @@ namespace BudgetApp.Controllers
 
             try
             {
-                var invite = new CampInviteModel
+                if (existingInvite != null)
                 {
-                    CampId = vm.CampId,
-                    InvitedByUserId = userId,
-                    InvitedUserId = targetUser.Id,
-                    Status = InviteStatus.Pending,
-                };
-                await _inviteRepo.Create(invite);
+                    // A declined invite for this CampId+InvitedUserId already exists —
+                    // UQ_CampInvite_CampId_InvitedUserId forbids a second row, so revive it.
+                    await _inviteRepo.Reinvite(existingInvite.Id, userId);
+                }
+                else
+                {
+                    var invite = new CampInviteModel
+                    {
+                        CampId = vm.CampId,
+                        InvitedByUserId = userId,
+                        InvitedUserId = targetUser.Id,
+                        Status = InviteStatus.Pending,
+                    };
+                    await _inviteRepo.Create(invite);
+                }
 
                 try
                 {
                     await _emailService.SendCampInviteEmailAsync(
                         targetUser.Email,
                         targetUser.DisplayName,
-                        $"{camp.StartDate:dd.MM.yyyy} – {camp.EndDate:dd.MM.yyyy}"
-                            + (
-                                string.IsNullOrWhiteSpace(camp.MainLeader)
-                                    ? ""
-                                    : $" ({camp.MainLeader})"
-                            ),
-                        Url.Action("Detail", "Camp", new { id = vm.CampId }, Request.Scheme)!
+                        FormatCampLabel(camp.StartDate, camp.EndDate, camp.MainLeader),
+                        Url.Action("Index", "Home", new { openInvites = "1" }, Request.Scheme)!
                     );
                 }
                 catch (Exception ex)
@@ -222,6 +233,94 @@ namespace BudgetApp.Controllers
             }
 
             return RedirectToAction("Detail", "Camp", new { id = vm.CampId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reinvite(int id)
+        {
+            int userId = GetCurrentUserId();
+            var invite = await _inviteRepo.GetById(id);
+            if (invite == null)
+                return NotFound();
+
+            var campUsers = (await _campUserRepo.GetByCampId(invite.CampId)).ToList();
+            bool isMainLeader = campUsers.Any(cu => cu.UserId == userId && cu.IsMainLeader);
+            if (!isMainLeader)
+            {
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Nur die Hauptleitung kann Einladungen versenden.",
+                        Type = ToastType.Error,
+                    }
+                );
+                return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+            }
+
+            if (invite.Status != InviteStatus.Declined)
+            {
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Diese Einladung kann nicht erneut gesendet werden.",
+                        Type = ToastType.Warning,
+                    }
+                );
+                return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
+            }
+
+            try
+            {
+                await _inviteRepo.Reinvite(id, userId);
+
+                try
+                {
+                    await _emailService.SendCampInviteEmailAsync(
+                        invite.InvitedUserEmail!,
+                        invite.InvitedUserDisplayName!,
+                        FormatCampLabel(
+                            invite.CampStartDate,
+                            invite.CampEndDate,
+                            invite.CampMainLeader
+                        ),
+                        Url.Action("Index", "Home", new { openInvites = "1" }, Request.Scheme)!
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending reinvite email for invite {InviteId}", id);
+                }
+
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Eingeladen",
+                        Message = $"Einladung an {invite.InvitedUserDisplayName} erneut gesendet.",
+                        Type = ToastType.Success,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reinviting for invite {InviteId}", id);
+                TempData.Put(
+                    "ToastMsg",
+                    new ToastMessageViewModel
+                    {
+                        Title = "Fehler",
+                        Message = "Ein Fehler ist aufgetreten.",
+                        Type = ToastType.Error,
+                    }
+                );
+            }
+
+            return RedirectToAction("Detail", "Camp", new { id = invite.CampId });
         }
 
         [HttpPost]

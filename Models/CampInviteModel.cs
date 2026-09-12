@@ -26,5 +26,10 @@ namespace BudgetApp.Models
         public string? InvitedByDisplayName { get; set; }
         public string? InvitedUserDisplayName { get; set; }
         public string? InvitedUserEmail { get; set; }
+
+        // Joined from Camp table for display
+        public DateTime CampStartDate { get; set; }
+        public DateTime CampEndDate { get; set; }
+        public string? CampMainLeader { get; set; }
     }
 }
