@@ -61,9 +61,9 @@ namespace BudgetApp.Controllers
                 var category = await _categoryRepo.GetById(id.Value);
                 if (category == null)
                     return NotFound();
-                return View(category);
+                return PartialView("_UpsertCategoryModal", category);
             }
-            return View(new CategoryModel { Name = string.Empty });
+            return PartialView("_UpsertCategoryModal", new CategoryModel { Name = string.Empty });
         }
 
         [HttpPost]
@@ -71,7 +71,7 @@ namespace BudgetApp.Controllers
         public async Task<IActionResult> UpsertCategory(CategoryModel model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+                return PartialView("_UpsertCategoryModal", model);
 
             var toast = new ToastMessageViewModel();
             try
@@ -101,19 +101,13 @@ namespace BudgetApp.Controllers
                     };
                 }
                 TempData.Put("ToastMsg", toast);
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in Category UpsertCategory");
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-                TempData.Put("ToastMsg", toast);
-                return View(model);
+                ModelState.AddModelError(string.Empty, "Ein unerwarteter Fehler ist aufgetreten.");
+                return PartialView("_UpsertCategoryModal", model);
             }
         }
 
@@ -166,7 +160,7 @@ namespace BudgetApp.Controllers
                     Description = sub.Description,
                     Categories = categories,
                 };
-                return View(vm);
+                return PartialView("_UpsertSubCategoryModal", vm);
             }
             else
             {
@@ -175,7 +169,7 @@ namespace BudgetApp.Controllers
                     CategoryId = categoryId ?? 0,
                     Categories = categories,
                 };
-                return View(vm);
+                return PartialView("_UpsertSubCategoryModal", vm);
             }
         }
 
@@ -186,7 +180,7 @@ namespace BudgetApp.Controllers
             if (!ModelState.IsValid)
             {
                 vm.Categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
-                return View(vm);
+                return PartialView("_UpsertSubCategoryModal", vm);
             }
 
             var toast = new ToastMessageViewModel();
@@ -226,20 +220,14 @@ namespace BudgetApp.Controllers
                     };
                 }
                 TempData.Put("ToastMsg", toast);
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in UpsertSubCategory");
                 vm.Categories = (await _categoryRepo.GetAll()).OrderBy(c => c.SortIndex).ToList();
-                toast = new ToastMessageViewModel
-                {
-                    Title = "Fehler",
-                    Message = "Ein unerwarteter Fehler ist aufgetreten.",
-                    Type = ToastType.Error,
-                };
-                TempData.Put("ToastMsg", toast);
-                return View(vm);
+                ModelState.AddModelError(string.Empty, "Ein unerwarteter Fehler ist aufgetreten.");
+                return PartialView("_UpsertSubCategoryModal", vm);
             }
         }
 
