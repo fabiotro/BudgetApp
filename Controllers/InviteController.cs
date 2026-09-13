@@ -40,6 +40,20 @@ namespace BudgetApp.Controllers
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         [HttpGet]
+        public async Task<IActionResult> Form(int budgetId)
+        {
+            int userId = GetCurrentUserId();
+            var budgetUsers = (await _budgetUserRepo.GetByBudgetId(budgetId)).ToList();
+            if (!budgetUsers.IsMainLeaderFor(userId))
+                return Forbid();
+
+            return PartialView(
+                "_InviteLeaderModal",
+                new SendInviteViewModel { Email = string.Empty, BudgetId = budgetId }
+            );
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Pending()
         {
             int userId = GetCurrentUserId();
@@ -65,76 +79,42 @@ namespace BudgetApp.Controllers
                 return NotFound();
 
             var budgetUsers = (await _budgetUserRepo.GetByBudgetId(vm.BudgetId)).ToList();
-            bool isMainLeader = budgetUsers.Any(bu => bu.UserId == userId && bu.IsMainLeader);
+            bool isMainLeader = budgetUsers.IsMainLeaderFor(userId);
             if (!isMainLeader)
             {
-                TempData.Put(
-                    "ToastMsg",
-                    new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message = "Nur die Hauptleitperson kann Einladungen versenden.",
-                        Type = ToastType.Error,
-                    }
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Nur die Hauptleitperson kann Einladungen versenden."
                 );
-                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
+                return PartialView("_InviteLeaderModal", vm);
             }
 
             if (!ModelState.IsValid)
-            {
-                TempData.Put(
-                    "ToastMsg",
-                    new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message = "Ungültige E-Mail-Adresse.",
-                        Type = ToastType.Error,
-                    }
-                );
-                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
-            }
+                return PartialView("_InviteLeaderModal", vm);
 
             var targetUser = await _userRepo.GetByEmail(vm.Email.Trim().ToLowerInvariant());
             if (targetUser == null)
             {
-                TempData.Put(
-                    "ToastMsg",
-                    new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message = "Kein Benutzer mit dieser E-Mail-Adresse gefunden.",
-                        Type = ToastType.Error,
-                    }
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Kein Benutzer mit dieser E-Mail-Adresse gefunden."
                 );
-                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
+                return PartialView("_InviteLeaderModal", vm);
             }
 
             if (targetUser.Id == userId)
             {
-                TempData.Put(
-                    "ToastMsg",
-                    new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message = "Sie können sich nicht selbst einladen.",
-                        Type = ToastType.Error,
-                    }
-                );
-                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
+                ModelState.AddModelError(string.Empty, "Sie können sich nicht selbst einladen.");
+                return PartialView("_InviteLeaderModal", vm);
             }
 
             if (budgetUsers.Any(bu => bu.UserId == targetUser.Id))
             {
-                TempData.Put(
-                    "ToastMsg",
-                    new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message = $"{targetUser.DisplayName} ist bereits Leitperson dieses Lagers.",
-                        Type = ToastType.Error,
-                    }
+                ModelState.AddModelError(
+                    string.Empty,
+                    $"{targetUser.DisplayName} ist bereits Leitperson dieses Lagers."
                 );
-                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
+                return PartialView("_InviteLeaderModal", vm);
             }
 
             var existingInvites = await _inviteRepo.GetByBudgetId(vm.BudgetId);
@@ -143,17 +123,11 @@ namespace BudgetApp.Controllers
             );
             if (existingInvite != null && existingInvite.Status == InviteStatus.Pending)
             {
-                TempData.Put(
-                    "ToastMsg",
-                    new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message =
-                            $"{targetUser.DisplayName} hat bereits eine ausstehende Einladung.",
-                        Type = ToastType.Error,
-                    }
+                ModelState.AddModelError(
+                    string.Empty,
+                    $"{targetUser.DisplayName} hat bereits eine ausstehende Einladung."
                 );
-                return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
+                return PartialView("_InviteLeaderModal", vm);
             }
 
             try
@@ -204,6 +178,13 @@ namespace BudgetApp.Controllers
                         Type = ToastType.Success,
                     }
                 );
+                return Json(
+                    new
+                    {
+                        success = true,
+                        redirectUrl = Url.Action("Leaders", "Budget", new { id = vm.BudgetId }),
+                    }
+                );
             }
             catch (Exception ex)
             {
@@ -213,18 +194,9 @@ namespace BudgetApp.Controllers
                     targetUser.Id,
                     vm.BudgetId
                 );
-                TempData.Put(
-                    "ToastMsg",
-                    new ToastMessageViewModel
-                    {
-                        Title = "Fehler",
-                        Message = "Ein Fehler ist aufgetreten.",
-                        Type = ToastType.Error,
-                    }
-                );
+                ModelState.AddModelError(string.Empty, "Ein Fehler ist aufgetreten.");
+                return PartialView("_InviteLeaderModal", vm);
             }
-
-            return RedirectToAction("Leaders", "Budget", new { id = vm.BudgetId });
         }
 
         [HttpPost]

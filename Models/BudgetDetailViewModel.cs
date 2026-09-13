@@ -54,7 +54,6 @@ namespace BudgetApp.Models
         public List<BudgetUserModel> BudgetUsers { get; set; } = [];
         public List<BudgetInviteModel> Invites { get; set; } = [];
         public bool IsMainLeader { get; set; }
-        public SendInviteViewModel InviteForm { get; set; } = new() { Email = string.Empty };
     }
 
     public class UserExpenseSummaryViewModel
