@@ -8,7 +8,10 @@ namespace BudgetApp.Models
             ErrorMessageResourceName = "Required",
             ErrorMessageResourceType = typeof(Resources.DataAnnotations)
         )]
-        [EmailAddress]
+        [EmailAddress(
+            ErrorMessageResourceName = "EmailAddress",
+            ErrorMessageResourceType = typeof(Resources.DataAnnotations)
+        )]
         [Display(Name = "InviteEmail", ResourceType = typeof(Resources.DataAnnotations))]
         public required string Email { get; set; }
 

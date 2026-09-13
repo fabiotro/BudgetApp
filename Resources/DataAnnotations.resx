@@ -123,6 +123,9 @@
   <data name="Required" xml:space="preserve">
     <value>Das Feld "{0}" ist erforderlich.</value>
   </data>
+  <data name="EmailAddress" xml:space="preserve">
+    <value>Das Feld "{0}" ist keine gültige E-Mail-Adresse.</value>
+  </data>
   <data name="CampEndDate" xml:space="preserve">
     <value>Lagerende</value>
   </data>
