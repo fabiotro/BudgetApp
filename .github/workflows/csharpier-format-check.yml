@@ -16,7 +16,9 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install CSharpier
-        run: dotnet tool install csharpier -g
+        run: |
+          dotnet tool install csharpier -g
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Check formatting
         run: dotnet csharpier check .
