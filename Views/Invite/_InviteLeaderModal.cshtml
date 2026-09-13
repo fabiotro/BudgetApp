@@ -1,0 +1,31 @@
+@model SendInviteViewModel
+
+<div class="modal fade" id="inviteLeaderModal" tabindex="-1" aria-labelledby="inviteLeaderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inviteLeaderModalLabel">Leitperson einladen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <form asp-controller="Invite" asp-action="Send" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="BudgetId" />
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="max.mustermann@pfadigugus.ch" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">
+                        Einladen <i class="bi bi-envelope-plus"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

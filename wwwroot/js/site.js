@@ -394,6 +394,46 @@ function wireUpsertSubCategoryForm(container) {
     });
 }
 
+// Invite-leader modal — same async-load-into-modal / fetch-submit approach
+// as the upsert-category modals.
+function openInviteLeaderModal(budgetId) {
+    var container = document.getElementById('inviteLeaderModalContainer');
+    fetch('/Invite/Form?budgetId=' + budgetId)
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+            container.innerHTML = html;
+            wireInviteLeaderForm(container);
+            new bootstrap.Modal(container.querySelector('.modal')).show();
+        })
+        .catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
+}
+
+function wireInviteLeaderForm(container) {
+    var form = container.querySelector('form');
+    if (!form) return;
+
+    if (window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive) {
+        window.jQuery.validator.unobtrusive.parse(form);
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        postFormViaFetch(
+            form,
+            function (data) {
+                if (data.success) window.location.href = data.redirectUrl;
+            },
+            function (html) {
+                swapModalContent(container, html, wireInviteLeaderForm);
+            }
+        ).catch(function () {
+            showAjaxToast('Fehler', 'Ein Fehler ist aufgetreten.', false);
+        });
+    });
+}
+
 // Profile sidebar — load the edit form async when it's opened, submit its
 // forms via fetch so saving doesn't navigate away from the sidebar.
 (function () {

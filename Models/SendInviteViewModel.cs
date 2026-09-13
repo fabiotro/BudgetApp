@@ -4,7 +4,10 @@ namespace BudgetApp.Models
 {
     public class SendInviteViewModel
     {
-        [Required]
+        [Required(
+            ErrorMessageResourceName = "Required",
+            ErrorMessageResourceType = typeof(Resources.DataAnnotations)
+        )]
         [EmailAddress]
         [Display(Name = "InviteEmail", ResourceType = typeof(Resources.DataAnnotations))]
         public required string Email { get; set; }
