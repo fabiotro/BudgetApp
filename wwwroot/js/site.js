@@ -113,18 +113,19 @@ document.addEventListener('focusout', function (e) {
     }
 });
 
-// Invite notification bell — load pending invites on dropdown open
+// Invite notification bell — load pending invites when the sidebar opens
 (function () {
     var bell = document.getElementById('inviteBellToggle');
-    if (!bell) return;
+    var offcanvasEl = document.getElementById('inviteOffcanvas');
+    if (!bell || !offcanvasEl) return;
 
     // Invite emails link here with ?openInvites=1 so the recipient lands
     // straight on their pending invites instead of a camp they can't open yet.
     if (new URLSearchParams(window.location.search).get('openInvites') === '1') {
-        bootstrap.Dropdown.getOrCreateInstance(bell).show();
+        bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl).show();
     }
 
-    bell.addEventListener('show.bs.dropdown', function () {
+    offcanvasEl.addEventListener('show.bs.offcanvas', function () {
         var url = bell.getAttribute('data-invite-url');
         var container = document.getElementById('inviteListContainer');
         var badge = document.getElementById('inviteBadge');
@@ -141,7 +142,7 @@ document.addEventListener('focusout', function (e) {
                 }
 
                 if (data.invites.length === 0) {
-                    container.innerHTML = '<span class="dropdown-item text-muted">Keine ausstehenden Einladungen.</span>';
+                    container.innerHTML = '<div class="text-muted">Keine ausstehenden Einladungen.</div>';
                     return;
                 }
 
@@ -149,9 +150,9 @@ document.addEventListener('focusout', function (e) {
                 var meta = document.querySelector('meta[name="RequestVerificationToken"]');
                 if (meta) token = meta.getAttribute('content');
 
-                var html = '';
+                var html = '<ul class="list-unstyled mb-0">';
                 data.invites.forEach(function (inv) {
-                    html += '<li class="px-3 py-2 border-bottom">';
+                    html += '<li class="py-2 border-bottom">';
                     html += '<div class="small fw-semibold">' + escapeHtml(inv.invitedBy) + ' lädt dich ein</div>';
                     html += '<div class="small text-muted mb-2">Lager: ' + escapeHtml(inv.budgetName) + '</div>';
                     html += '<form method="post" action="/Invite/Accept" class="d-inline">';
@@ -166,10 +167,11 @@ document.addEventListener('focusout', function (e) {
                     html += '</form>';
                     html += '</li>';
                 });
+                html += '</ul>';
                 container.innerHTML = html;
             })
             .catch(function () {
-                container.innerHTML = '<span class="dropdown-item text-danger small">Fehler beim Laden.</span>';
+                container.innerHTML = '<div class="text-danger small">Fehler beim Laden.</div>';
             });
     });
 
