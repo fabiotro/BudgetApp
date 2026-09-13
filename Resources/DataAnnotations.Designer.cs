@@ -133,6 +133,15 @@ namespace BudgetApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Das Feld &quot;{0}&quot; ist keine gültige E-Mail-Adresse..
+        /// </summary>
+        public static string EmailAddress {
+            get {
+                return ResourceManager.GetString("EmailAddress", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Das Feld &quot;{0}&quot; darf maximal {1} Zeichen lang sein..
         /// </summary>
         public static string StringLength {

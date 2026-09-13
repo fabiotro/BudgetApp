@@ -397,7 +397,6 @@ namespace BudgetApp.Controllers
                 BudgetUsers = budgetUsers,
                 Invites = invites,
                 IsMainLeader = isMainLeader,
-                InviteForm = new SendInviteViewModel { Email = string.Empty, BudgetId = id },
             };
 
             return View(vm);
